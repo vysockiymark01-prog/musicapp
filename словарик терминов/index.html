@@ -1,0 +1,796 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Музыкальный словарик</title>
+<script>(function(){var t=localStorage.getItem('musicapp_theme');if(t==='dark')document.documentElement.setAttribute('data-theme','dark');else document.documentElement.setAttribute('data-theme','light');})()</script>
+<style>
+  :root {
+    --bg:#f8fafc; --bg2:#ffffff; --card:#ffffff;
+    --border:#e2e8f0; --border-light:#f1f5f9;
+    --text:#0f172a; --text2:#475569; --muted:#94a3b8;
+    --accent:#2563eb; --accent-hover:#1d4ed8;
+    --green:#10b981; --red:#ef4444;
+    --shadow-sm:0 1px 3px rgba(0,0,0,.04);
+    --shadow-md:0 10px 15px rgba(0,0,0,.05);
+    --radius:16px; --radius-lg:24px;
+  }
+  [data-theme="dark"] {
+    --bg:#0f172a; --bg2:#1e293b; --card:#1e293b;
+    --border:#334155; --border-light:#1e293b;
+    --text:#f1f5f9; --text2:#94a3b8; --muted:#64748b;
+    --accent:#3b82f6; --accent-hover:#2563eb;
+    --shadow-sm:0 1px 3px rgba(0,0,0,.3);
+    --shadow-md:0 10px 15px rgba(0,0,0,.3);
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;min-height:100vh;transition:background .3s,color .3s;}
+  .container{max-width:700px;margin:0 auto;padding:12px;}
+
+  /* HEADER */
+  .header{display:flex;justify-content:space-between;align-items:center;padding:12px 16px;background:var(--card);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:12px;box-shadow:var(--shadow-sm);}
+  .header-title{display:flex;align-items:center;gap:8px;font-weight:900;font-size:14px;text-transform:uppercase;letter-spacing:-.5px;}
+  .header-actions{display:flex;gap:8px;}
+  .hbtn{display:flex;align-items:center;gap:6px;padding:6px 12px;background:#f1f5f9;border:none;border-radius:10px;font-weight:700;font-size:10px;text-transform:uppercase;cursor:pointer;color:var(--text);transition:background .2s;}
+  [data-theme="dark"] .hbtn{background:#334155;}
+  .hbtn:hover{background:#e2e8f0;}
+  [data-theme="dark"] .hbtn:hover{background:#475569;}
+
+  /* TABS */
+  .tabs{display:flex;background:var(--card);padding:4px;border-radius:12px;border:1px solid var(--border);margin-bottom:12px;box-shadow:var(--shadow-sm);}
+  .tab{flex:1;padding:11px;border:none;background:none;border-radius:8px;font-size:10px;font-weight:900;text-transform:uppercase;color:var(--muted);cursor:pointer;transition:all .2s;}
+  .tab.active{background:var(--accent);color:#fff;box-shadow:0 4px 6px rgba(37,99,235,.2);}
+
+  /* FILTER PANELS */
+  .filter-panel{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:10px 16px;margin-bottom:8px;box-shadow:var(--shadow-sm);}
+  .filter-row{display:flex;gap:6px;flex-wrap:wrap;align-items:center;}
+  .filter-label{font-size:9px;font-weight:900;text-transform:uppercase;color:var(--muted);margin-right:2px;letter-spacing:.5px;white-space:nowrap;}
+  .fbtn{padding:5px 11px;border-radius:20px;border:1px solid var(--border);background:transparent;color:var(--muted);cursor:pointer;font-size:10px;font-weight:700;text-transform:uppercase;transition:all .2s;}
+  .fbtn:hover{border-color:var(--accent);color:var(--text);}
+  .fbtn.active{color:#fff;border-color:transparent;}
+  .fbtn[data-topic="all"].active,.fbtn[data-cls="all"].active{background:var(--accent);}
+  .fbtn[data-topic="темп"].active{background:#7c3aed;}
+  .fbtn[data-topic="динамика"].active{background:#dc2626;}
+  .fbtn[data-topic="характер"].active{background:#d97706;}
+  .fbtn[data-topic="форма"].active{background:#059669;}
+  .fbtn[data-topic="нотация"].active{background:#0284c7;}
+  .fbtn[data-cls="1-2"].active{background:#0284c7;}
+  .fbtn[data-cls="3-4"].active{background:#7c3aed;}
+  .fbtn[data-cls="5-6"].active{background:#d97706;}
+  .fbtn[data-cls="7-8"].active{background:#059669;}
+
+  /* PROGRESS */
+  .progress-section{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:12px 16px;margin-bottom:12px;box-shadow:var(--shadow-sm);}
+  .progress-title{font-size:9px;font-weight:900;text-transform:uppercase;color:var(--muted);letter-spacing:.5px;margin-bottom:8px;}
+  .progress-row{display:flex;gap:10px;flex-wrap:wrap;}
+  .prog-item{flex:1;min-width:70px;}
+  .prog-label{font-size:9px;font-weight:900;text-transform:uppercase;color:var(--text2);display:flex;justify-content:space-between;margin-bottom:4px;}
+  .prog-bar{height:4px;background:var(--border);border-radius:2px;overflow:hidden;}
+  .prog-fill{height:100%;border-radius:2px;transition:width .4s;}
+  .pf-темп{background:#7c3aed;} .pf-динамика{background:#dc2626;} .pf-характер{background:#d97706;} .pf-форма{background:#059669;} .pf-нотация{background:#0284c7;}
+
+  /* BADGE */
+  .badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:9px;font-weight:900;text-transform:uppercase;letter-spacing:.5px;color:#fff;}
+  .b-темп{background:#7c3aed;} .b-динамика{background:#dc2626;} .b-характер{background:#d97706;} .b-форма{background:#059669;} .b-нотация{background:#0284c7;}
+  .b-cls{background:#475569;}
+
+  /* BUTTONS */
+  .btn{padding:12px 22px;border-radius:12px;border:none;font-size:11px;font-weight:900;text-transform:uppercase;cursor:pointer;display:inline-flex;align-items:center;gap:6px;transition:all .2s;box-shadow:0 4px 6px rgba(0,0,0,.1);font-family:inherit;}
+  .btn:active{transform:scale(.96);}
+  .btn-primary{background:var(--accent);color:#fff;} .btn-primary:hover{background:var(--accent-hover);}
+  .btn-green{background:var(--green);color:#fff;} .btn-green:hover{opacity:.9;}
+  .btn-red{background:var(--red);color:#fff;} .btn-red:hover{opacity:.9;}
+  .btn-sec{background:var(--card);color:var(--text2);border:1px solid var(--border);box-shadow:var(--shadow-sm);} .btn-sec:hover{background:var(--bg);}
+
+  /* CARDS */
+  .cards-wrap{display:flex;flex-direction:column;align-items:center;gap:14px;}
+  .card-counter{font-size:11px;font-weight:700;text-transform:uppercase;color:var(--muted);letter-spacing:.5px;}
+  .card-scene{width:100%;max-width:540px;perspective:1000px;cursor:pointer;user-select:none;}
+  .card-inner{position:relative;width:100%;min-height:220px;transform-style:preserve-3d;transition:transform .45s cubic-bezier(.4,0,.2,1);}
+  .card-scene.flipped .card-inner{transform:rotateY(180deg);}
+  .card-face{position:absolute;width:100%;min-height:220px;backface-visibility:hidden;border-radius:var(--radius-lg);padding:28px 24px;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;gap:10px;}
+  .card-front{background:var(--card);border:1px solid var(--border);box-shadow:var(--shadow-md);}
+  .card-back{background:var(--card);border:2px solid var(--accent);box-shadow:var(--shadow-md);transform:rotateY(180deg);}
+  .card-term{font-size:34px;font-weight:900;color:var(--text);}
+  .card-hint{font-size:10px;font-weight:700;text-transform:uppercase;color:var(--muted);letter-spacing:1px;}
+  .card-def{font-size:16px;color:var(--text);line-height:1.5;}
+  .card-example{font-size:13px;color:var(--text2);font-style:italic;}
+  .card-actions{display:flex;gap:10px;margin-top:4px;}
+  .done-box{text-align:center;padding:40px 0;}
+  .done-box h2{font-size:22px;font-weight:900;margin-bottom:10px;}
+  .done-box p{color:var(--text2);margin-bottom:20px;font-size:14px;}
+  .empty-state{text-align:center;padding:60px 0;color:var(--muted);font-size:13px;font-weight:700;text-transform:uppercase;}
+
+  /* QUIZ */
+  .quiz-wrap{display:flex;flex-direction:column;gap:14px;}
+  .quiz-meta{display:flex;justify-content:space-between;align-items:center;}
+  .quiz-counter{font-size:11px;font-weight:900;text-transform:uppercase;color:var(--muted);}
+  .quiz-score-badge{font-size:11px;font-weight:900;text-transform:uppercase;color:var(--green);}
+  .quiz-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius-lg);padding:26px 22px;box-shadow:var(--shadow-md);}
+  .quiz-q{font-size:28px;font-weight:900;margin-bottom:6px;}
+  .quiz-topic-row{margin-bottom:18px;display:flex;gap:6px;}
+  .quiz-options{display:flex;flex-direction:column;gap:8px;}
+  .quiz-opt{padding:13px 16px;border-radius:12px;border:1px solid var(--border);background:var(--bg);color:var(--text);font-size:14px;cursor:pointer;text-align:left;transition:all .2s;line-height:1.4;font-family:inherit;}
+  .quiz-opt:hover:not(:disabled){border-color:var(--accent);background:var(--card);}
+  .quiz-opt.correct{border-color:var(--green);background:rgba(16,185,129,.08);color:var(--green);font-weight:700;}
+  .quiz-opt.wrong{border-color:var(--red);background:rgba(239,68,68,.08);color:var(--red);}
+  .quiz-opt:disabled{cursor:default;}
+  .quiz-result-box{background:var(--card);border:1px solid var(--border);border-radius:var(--radius-lg);padding:48px 24px;text-align:center;box-shadow:var(--shadow-md);}
+  .score-big{font-size:64px;font-weight:900;color:var(--accent);line-height:1;}
+  .score-sub{color:var(--text2);margin:8px 0 28px;font-size:15px;}
+
+  /* MATCH */
+  .match-wrap{display:flex;flex-direction:column;gap:12px;}
+  .match-info{font-size:11px;font-weight:900;text-transform:uppercase;color:var(--muted);letter-spacing:.5px;}
+  .match-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+  .match-col{display:flex;flex-direction:column;gap:8px;}
+  .match-item{padding:11px 13px;border-radius:12px;border:2px solid var(--border);background:var(--card);font-size:13px;cursor:pointer;transition:all .2s;line-height:1.4;min-height:50px;display:flex;align-items:center;box-shadow:var(--shadow-sm);}
+  .match-item:hover:not(.matched):not(.wrong-flash){border-color:var(--accent);}
+  .match-item.selected{border-color:var(--accent);background:rgba(37,99,235,.06);color:var(--accent);font-weight:700;}
+  .match-item.matched{border-color:var(--green);background:rgba(16,185,129,.06);color:var(--green);cursor:default;opacity:.75;}
+  .match-item.wrong-flash{border-color:var(--red);background:rgba(239,68,68,.08);}
+  .match-term-text{font-weight:900;font-size:15px;}
+  .match-status{font-size:11px;font-weight:900;text-transform:uppercase;color:var(--muted);text-align:center;}
+  .match-done-box{background:var(--card);border:1px solid var(--border);border-radius:var(--radius-lg);padding:40px 24px;text-align:center;box-shadow:var(--shadow-md);}
+  .match-done-box h2{font-size:22px;font-weight:900;margin-bottom:8px;}
+  .match-done-box p{color:var(--text2);font-size:14px;margin-bottom:24px;}
+
+  /* FEEDBACK */
+  .feedback-modal{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.2);backdrop-filter:blur(4px);z-index:9999;}
+  .feedback-modal.hidden{display:none;}
+  .feedback-content{background:var(--card);padding:40px 48px;border-radius:32px;box-shadow:0 25px 50px rgba(0,0,0,.2);}
+  .feedback-text{font-size:26px;font-weight:900;text-align:center;}
+  .feedback-text.correct{color:var(--green);} .feedback-text.wrong{color:var(--red);}
+
+  @media(max-width:600px){
+    .header{flex-wrap:wrap;gap:8px;padding:10px 12px;}
+    .header-actions{gap:4px;}
+    .hbtn{padding:7px 9px;font-size:9px;}
+    .container{padding:8px;}
+    .card-term{font-size:22px;}
+    .card-def{font-size:14px;}
+    .card-actions{flex-wrap:wrap;justify-content:center;}
+    .match-grid{grid-template-columns:1fr;}
+    .quiz-q{font-size:20px;}
+    .feedback-content{padding:28px 24px;border-radius:24px;}
+    .feedback-text{font-size:20px;}
+    .score-big{font-size:48px;}
+    .btn{padding:11px 14px;font-size:9px;}
+  }
+  @media(max-width:400px){
+    .header-title{font-size:12px;}
+    .card-term{font-size:18px;}
+    .tabs .tab{padding:9px 6px;font-size:9px;}
+  }
+</style>
+</head>
+<body>
+<div class="container">
+<a href="../index.html" style="display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:800;text-decoration:none;opacity:.65;padding:5px 11px;border:1px solid rgba(128,128,128,.25);border-radius:10px;margin-bottom:8px;color:inherit;">← Главная</a>
+
+  <div class="header">
+    <div class="header-title">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+        <path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/>
+      </svg>
+      <span id="appTitle">Музыкальный словарик</span>
+    </div>
+    <div class="header-actions">
+      <button class="hbtn" onclick="toggleLang()">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="m5 8 6 6"/><path d="m4 14 6-6 2-3"/><path d="M2 5h12"/><path d="M7 2h1"/>
+          <path d="m22 22-5-10-5 10"/><path d="M14 18h6"/>
+        </svg>
+        <span id="langText">RU</span>
+      </button>
+      <button class="hbtn" id="themeBtn" onclick="toggleTheme()">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" id="themeIcon">
+          <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+        </svg>
+        <span id="themeText">Тёмная</span>
+      </button>
+    </div>
+  </div>
+
+  <div class="tabs">
+    <button class="tab active" onclick="switchMode('cards')" id="tab0"></button>
+    <button class="tab" onclick="switchMode('quiz')" id="tab1"></button>
+    <button class="tab" onclick="switchMode('match')" id="tab2"></button>
+  </div>
+
+  <div class="filter-panel">
+    <div class="filter-row">
+      <span class="filter-label" id="fl1"></span>
+      <button class="fbtn active" data-topic="all" onclick="setTopic('all')" id="ft_all"></button>
+      <button class="fbtn" data-topic="темп" onclick="setTopic('темп')" id="ft_t"></button>
+      <button class="fbtn" data-topic="динамика" onclick="setTopic('динамика')" id="ft_d"></button>
+      <button class="fbtn" data-topic="характер" onclick="setTopic('характер')" id="ft_h"></button>
+      <button class="fbtn" data-topic="форма" onclick="setTopic('форма')" id="ft_f"></button>
+      <button class="fbtn" data-topic="нотация" onclick="setTopic('нотация')" id="ft_n"></button>
+    </div>
+  </div>
+
+  <div class="filter-panel">
+    <div class="filter-row">
+      <span class="filter-label" id="fl2"></span>
+      <button class="fbtn active" data-cls="all" onclick="setCls('all')" id="fc_all"></button>
+      <button class="fbtn" data-cls="1-2" onclick="setCls('1-2')" id="fc_12"></button>
+      <button class="fbtn" data-cls="3-4" onclick="setCls('3-4')" id="fc_34"></button>
+      <button class="fbtn" data-cls="5-6" onclick="setCls('5-6')" id="fc_56"></button>
+      <button class="fbtn" data-cls="7-8" onclick="setCls('7-8')" id="fc_78"></button>
+    </div>
+  </div>
+
+  <div class="progress-section">
+    <div class="progress-title" id="progTitle"></div>
+    <div class="progress-row" id="progressRow"></div>
+  </div>
+
+  <div id="mainContent"></div>
+</div>
+
+<div class="feedback-modal hidden" id="feedbackModal">
+  <div class="feedback-content">
+    <div class="feedback-text" id="feedbackText"></div>
+  </div>
+</div>
+
+<script>
+// ── TRANSLATIONS ─────────────────────────────────────────────
+const UI = {
+  ru: {
+    appTitle:"Музыкальный словарик", themeLight:"Светлая", themeDark:"Тёмная",
+    topicLabel:"Тема", clsLabel:"Класс",
+    topicAll:"Все", clsAll:"Все",
+    topics:{темп:"Темп",динамика:"Динамика",характер:"Характер",форма:"Форма",нотация:"Нотация"},
+    classes:{"1-2":"1–2 кл.","3-4":"3–4 кл.","5-6":"5–6 кл.","7-8":"7–8 кл."},
+    tabs:["🃏 Карточки","✏️ Тест","🔗 Сопоставить"],
+    progTitle:"Прогресс",
+    flipHint:"👆 нажми, чтобы перевернуть",
+    knew:"✓ Знал", unknown:"✗ Не знал",
+    restart:"Начать заново", playAgain:"Сыграть ещё", nextQ:"Следующий →",
+    deckDone:"🎉 Колода пройдена!", deckDoneMsg:"Повторить ещё раз?",
+    correct:"Верно! 🎉", wrong:"Попробуй ещё 🎹",
+    emptyCards:"Нет карточек для выбранных фильтров",
+    emptyQuiz:"Нужно хотя бы 4 термина",
+    emptyMatch:"Нужно хотя бы 2 термина",
+    quizResult:"Верных:",
+    matchInfo:"Соедините термин с определением",
+    matchDone:"🎉 Все пары найдены!",
+    matchDoneStats:(e,s)=>`Ошибок: ${e} · Время: ${s} сек`,
+    matchOf:"пар",
+    matchStatus:(m,t)=>`Совпадений: ${m} / ${t}`,
+    cardOf:"/"
+  },
+  en: {
+    appTitle:"Music Dictionary", themeLight:"Light", themeDark:"Dark",
+    topicLabel:"Topic", clsLabel:"Grade",
+    topicAll:"All", clsAll:"All",
+    topics:{темп:"Tempo",динамика:"Dynamics",характер:"Character",форма:"Form",нотация:"Notation"},
+    classes:{"1-2":"Gr. 1–2","3-4":"Gr. 3–4","5-6":"Gr. 5–6","7-8":"Gr. 7–8"},
+    tabs:["🃏 Flashcards","✏️ Quiz","🔗 Match"],
+    progTitle:"Progress",
+    flipHint:"👆 tap to flip",
+    knew:"✓ Got it", unknown:"✗ Missed",
+    restart:"Start over", playAgain:"Play again", nextQ:"Next →",
+    deckDone:"🎉 Deck complete!", deckDoneMsg:"Play again?",
+    correct:"Correct! 🎉", wrong:"Try again 🎹",
+    emptyCards:"No cards for selected filters",
+    emptyQuiz:"Need at least 4 terms",
+    emptyMatch:"Need at least 2 terms",
+    quizResult:"Correct:",
+    matchInfo:"Connect term with definition",
+    matchDone:"🎉 All pairs found!",
+    matchDoneStats:(e,s)=>`Errors: ${e} · Time: ${s}s`,
+    matchOf:"pairs",
+    matchStatus:(m,t)=>`Matched: ${m} / ${t}`,
+    cardOf:"/"
+  }
+};
+
+// ── TERMS ────────────────────────────────────────────────────
+// cls: "1-2" | "3-4" | "5-6" | "7-8"
+const TERMS = [
+  // ── ТЕМП / TEMPO ──
+  {term:"Andante",
+   defRu:"Умеренно медленно, шагом (букв. «идущий»)", exRu:"Andante подходит для лирических мелодий.",
+   defEn:"Moderately slow, walking pace (lit. «going»)", exEn:"Andante suits lyrical melodies.",
+   topic:"темп", cls:"1-2"},
+  {term:"Moderato",
+   defRu:"Умеренно, в среднем темпе", exRu:"Moderato — нейтральный «средний» темп.",
+   defEn:"At a moderate, medium pace", exEn:"Moderato is the neutral, middle tempo.",
+   topic:"темп", cls:"1-2"},
+  {term:"Allegro",
+   defRu:"Быстро, живо и весело", exRu:"Финалы сонат Моцарта написаны в Allegro.",
+   defEn:"Fast, lively and cheerful", exEn:"Mozart's sonata finales are written in Allegro.",
+   topic:"темп", cls:"1-2"},
+  {term:"Grave",
+   defRu:"Очень медленно, торжественно и тяжело", exRu:"Открытие траурного марша — Grave.",
+   defEn:"Very slow, solemn and heavy", exEn:"The opening of a funeral march is often marked Grave.",
+   topic:"темп", cls:"3-4"},
+  {term:"Largo",
+   defRu:"Очень медленно и широко", exRu:"Известный Largo Генделя — пример величественного темпа.",
+   defEn:"Very slow and broad", exEn:"Handel's famous Largo is an example of a majestic tempo.",
+   topic:"темп", cls:"3-4"},
+  {term:"Adagio",
+   defRu:"Медленно и плавно, спокойно", exRu:"Второй части сонат Бетховена часто написаны в Adagio.",
+   defEn:"Slow and smooth, calmly", exEn:"Beethoven's sonata slow movements are often marked Adagio.",
+   topic:"темп", cls:"3-4"},
+  {term:"Presto",
+   defRu:"Очень быстро", exRu:"Этюды Шопена часто исполняются в Presto.",
+   defEn:"Very fast", exEn:"Chopin's études are often performed at Presto.",
+   topic:"темп", cls:"3-4"},
+  {term:"Ritardando",
+   defRu:"Постепенно замедляясь", exRu:"Пьеса заканчивается ritardando — кода «тает».",
+   defEn:"Gradually slowing down", exEn:"The piece ends with ritardando — the coda «melts» away.",
+   topic:"темп", cls:"5-6"},
+  {term:"Accelerando",
+   defRu:"Постепенно ускоряясь", exRu:"Кульминация нарастает с помощью accelerando.",
+   defEn:"Gradually speeding up", exEn:"The climax builds through accelerando.",
+   topic:"темп", cls:"5-6"},
+  {term:"A tempo",
+   defRu:"Вернуться к первоначальному темпу", exRu:"После rit. стоит a tempo — возврат к основному темпу.",
+   defEn:"Return to the original tempo", exEn:"After rit., a tempo means returning to the main speed.",
+   topic:"темп", cls:"5-6"},
+
+  // ── ДИНАМИКА / DYNAMICS ──
+  {term:"p (piano)",
+   defRu:"Тихо", exRu:"Лирические темы часто звучат p.",
+   defEn:"Soft / quiet", exEn:"Lyrical themes are often marked p.",
+   topic:"динамика", cls:"1-2"},
+  {term:"mp (mezzo piano)",
+   defRu:"Умеренно тихо, чуть тише среднего", exRu:"mp — мягкий нейтральный уровень.",
+   defEn:"Moderately soft, slightly below medium", exEn:"mp is a gentle, neutral level.",
+   topic:"динамика", cls:"1-2"},
+  {term:"mf (mezzo forte)",
+   defRu:"Умеренно громко, чуть громче среднего", exRu:"Главная тема звучит mf — уверенно, не крикливо.",
+   defEn:"Moderately loud, slightly above medium", exEn:"The main theme sounds mf — confident, not shouty.",
+   topic:"динамика", cls:"1-2"},
+  {term:"f (forte)",
+   defRu:"Громко", exRu:"Героические темы Бетховена написаны f.",
+   defEn:"Loud", exEn:"Beethoven's heroic themes are written f.",
+   topic:"динамика", cls:"1-2"},
+  {term:"pp (pianissimo)",
+   defRu:"Очень тихо", exRu:"Начало «Лунной сонаты» Бетховена — pp.",
+   defEn:"Very soft", exEn:"The opening of Beethoven's «Moonlight Sonata» is pp.",
+   topic:"динамика", cls:"3-4"},
+  {term:"ff (fortissimo)",
+   defRu:"Очень громко", exRu:"Финальный аккорд оркестра — ff.",
+   defEn:"Very loud", exEn:"The orchestra's final chord is ff.",
+   topic:"динамика", cls:"3-4"},
+  {term:"Crescendo",
+   defRu:"Постепенное нарастание громкости", exRu:"Crescendo создаёт нарастающее напряжение.",
+   defEn:"Gradually getting louder", exEn:"Crescendo creates building tension.",
+   topic:"динамика", cls:"3-4"},
+  {term:"Decrescendo",
+   defRu:"Постепенное убывание громкости", exRu:"Тема растворяется в decrescendo.",
+   defEn:"Gradually getting softer", exEn:"The theme dissolves in a decrescendo.",
+   topic:"динамика", cls:"3-4"},
+  {term:"Sforzando (sfz)",
+   defRu:"Резкий акцент, внезапный удар", exRu:"sfz на слабой доле создаёт неожиданный эффект.",
+   defEn:"A sudden, sharp accent", exEn:"sfz on a weak beat creates a surprising effect.",
+   topic:"динамика", cls:"5-6"},
+
+  // ── ХАРАКТЕР / CHARACTER ──
+  {term:"Cantabile",
+   defRu:"Певуче, напевно", exRu:"«Играй cantabile» — играй как будто поёшь.",
+   defEn:"In a singing style", exEn:"«Play cantabile» means play as if you are singing.",
+   topic:"характер", cls:"3-4"},
+  {term:"Dolce",
+   defRu:"Нежно, сладко", exRu:"Dolce передаёт нежный трогательный характер.",
+   defEn:"Sweetly, gently", exEn:"Dolce conveys a tender, touching character.",
+   topic:"характер", cls:"3-4"},
+  {term:"Espressivo",
+   defRu:"Выразительно, с чувством", exRu:"Espressivo требует личного исполнительского высказывания.",
+   defEn:"Expressively, with feeling", exEn:"Espressivo demands a personal expressive statement.",
+   topic:"характер", cls:"5-6"},
+  {term:"Giocoso",
+   defRu:"Игриво, весело", exRu:"Танцевальные пьесы часто помечены giocoso.",
+   defEn:"Playfully, jokingly", exEn:"Dance pieces are often marked giocoso.",
+   topic:"характер", cls:"5-6"},
+  {term:"Maestoso",
+   defRu:"Величественно, торжественно", exRu:"Государственные гимны исполняются maestoso.",
+   defEn:"Majestically, grandly", exEn:"National anthems are performed maestoso.",
+   topic:"характер", cls:"5-6"},
+  {term:"Agitato",
+   defRu:"Взволнованно, возбуждённо", exRu:"Бурные пассажи в этюдах Шопена — agitato.",
+   defEn:"Agitated, restlessly", exEn:"Stormy passages in Chopin's études are agitato.",
+   topic:"характер", cls:"5-6"},
+  {term:"Con brio",
+   defRu:"С огнём, с воодушевлением", exRu:"Allegro con brio — быстро и с воодушевлением.",
+   defEn:"With fire, with spirit", exEn:"Allegro con brio — fast and with spirit.",
+   topic:"характер", cls:"5-6"},
+  {term:"Tranquillo",
+   defRu:"Спокойно, умиротворённо", exRu:"Ноктюрны Шопена нередко звучат tranquillo.",
+   defEn:"Calmly, peacefully", exEn:"Chopin's nocturnes often sound tranquillo.",
+   topic:"характер", cls:"5-6"},
+  {term:"Sostenuto",
+   defRu:"Выдержанно, сдержанно, протяжно", exRu:"Sostenuto pedal удерживает отдельные ноты.",
+   defEn:"Sustained, held back, drawn-out", exEn:"The sostenuto pedal holds selected notes.",
+   topic:"характер", cls:"5-6"},
+
+  // ── ФОРМА / FORM ──
+  {term:"Рондо",
+   defRu:"Форма, где рефрен чередуется с эпизодами: A–B–A–C–A", exRu:"Рондо в финалах сонат даёт ощущение лёгкости.",
+   defEn:"Form where a refrain alternates with episodes: A–B–A–C–A", exEn:"Rondo in sonata finales gives a sense of lightness.",
+   topic:"форма", cls:"5-6"},
+  {term:"Вариации",
+   defRu:"Тема и её изменённые повторения (ритм, темп, фактура)", exRu:"«24 вариации» Моцарта на тему «Ah, vous dirai-je Maman».",
+   defEn:"A theme and its altered repetitions (rhythm, tempo, texture)", exEn:"Mozart's «12 Variations» on «Ah, vous dirai-je Maman».",
+   topic:"форма", cls:"5-6"},
+  {term:"Прелюдия",
+   defRu:"Короткая пьеса-вступление или самостоятельная миниатюра", exRu:"Прелюдии Шопена — самостоятельные образные зарисовки.",
+   defEn:"A short introductory piece or standalone miniature", exEn:"Chopin's Preludes are standalone character sketches.",
+   topic:"форма", cls:"5-6"},
+  {term:"Кода",
+   defRu:"Заключительный раздел, завершающий произведение", exRu:"Бетховен любил писать пространные коды.",
+   defEn:"The concluding section that ends the piece", exEn:"Beethoven loved writing extensive codas.",
+   topic:"форма", cls:"5-6"},
+  {term:"Соната",
+   defRu:"Крупная форма из нескольких частей; также форма с экспозицией, разработкой и репризой", exRu:"«Лунная соната» Бетховена — три части.",
+   defEn:"A large form of several movements; also a form with exposition, development, and recapitulation", exEn:"Beethoven's «Moonlight Sonata» has three movements.",
+   topic:"форма", cls:"7-8"},
+  {term:"Экспозиция",
+   defRu:"Первый раздел сонатной формы: представление главной и побочной тем", exRu:"В экспозиции две темы «знакомятся» со слушателем.",
+   defEn:"First section of sonata form: presentation of the main and secondary themes", exEn:"In the exposition, two themes are introduced to the listener.",
+   topic:"форма", cls:"7-8"},
+  {term:"Разработка",
+   defRu:"Средний раздел сонатной формы: темы трансформируются, создаётся напряжение", exRu:"Разработка — «конфликт» сонатной формы.",
+   defEn:"Middle section of sonata form: themes are transformed, tension builds", exEn:"The development is the «conflict» of sonata form.",
+   topic:"форма", cls:"7-8"},
+  {term:"Реприза",
+   defRu:"Возвращение тем экспозиции, разрешение конфликта", exRu:"В репризе обе темы звучат в главной тональности.",
+   defEn:"Return of the exposition themes, resolution of conflict", exEn:"In the recapitulation both themes sound in the main key.",
+   topic:"форма", cls:"7-8"},
+  {term:"Фуга",
+   defRu:"Полифоническая форма, основанная на теме и её имитациях в разных голосах", exRu:"«ХТК» Баха — 48 прелюдий и фуг.",
+   defEn:"A polyphonic form based on a theme and its imitations in different voices", exEn:"Bach's «WTC» contains 48 preludes and fugues.",
+   topic:"форма", cls:"7-8"},
+
+  // ── НОТАЦИЯ / NOTATION ──
+  {term:"Диез (♯)",
+   defRu:"Знак повышения ноты на полутон", exRu:"Фа-диез — на полутон выше фа.",
+   defEn:"Sign raising a note by a semitone", exEn:"F-sharp is one semitone above F.",
+   topic:"нотация", cls:"1-2"},
+  {term:"Бемоль (♭)",
+   defRu:"Знак понижения ноты на полутон", exRu:"Си-бемоль — на полутон ниже си.",
+   defEn:"Sign lowering a note by a semitone", exEn:"B-flat is one semitone below B.",
+   topic:"нотация", cls:"1-2"},
+  {term:"Бекар (♮)",
+   defRu:"Знак отмены предыдущего диеза или бемоля", exRu:"После диеза бекар возвращает ноту к натуральной.",
+   defEn:"Sign cancelling a previous sharp or flat", exEn:"After a sharp, a natural sign returns the note to its natural pitch.",
+   topic:"нотация", cls:"1-2"},
+  {term:"Лига (slur)",
+   defRu:"Дуга над нотами — играть связно, без отрыва", exRu:"Лига объединяет группу нот в единую фразу.",
+   defEn:"A curved line over notes — play smoothly without breaks", exEn:"A slur groups notes into one seamless phrase.",
+   topic:"нотация", cls:"1-2"},
+  {term:"Стаккато",
+   defRu:"Точка над нотой — играть коротко, отрывисто", exRu:"Стаккато передаёт лёгкость и игривость.",
+   defEn:"A dot above a note — play short and detached", exEn:"Staccato conveys lightness and playfulness.",
+   topic:"нотация", cls:"1-2"},
+  {term:"Фермата",
+   defRu:"Знак «глаз» над нотой — выдержать дольше обычного по усмотрению исполнителя", exRu:"Фермата на финальном аккорде — торжественная пауза.",
+   defEn:"A «bird's eye» sign — hold longer than usual, at the performer's discretion", exEn:"A fermata on the final chord creates a solemn pause.",
+   topic:"нотация", cls:"3-4"},
+  {term:"Трель (tr)",
+   defRu:"Быстрое чередование двух соседних нот", exRu:"Трели у Моцарта и Гайдна — украшение мелодии.",
+   defEn:"A rapid alternation between two adjacent notes", exEn:"Trills in Mozart and Haydn ornament the melody.",
+   topic:"нотация", cls:"3-4"},
+  {term:"Форшлаг",
+   defRu:"Маленькая нотка перед основной — короткое мелодическое украшение", exRu:"Форшлаги придают мелодии живость и изящество.",
+   defEn:"A small grace note before the main note — a short melodic ornament", exEn:"Grace notes give the melody liveliness and elegance.",
+   topic:"нотация", cls:"5-6"},
+  {term:"Da Capo (D.C.)",
+   defRu:"Вернуться к началу произведения", exRu:"D.C. al Fine — с начала до слова Fine.",
+   defEn:"Return to the beginning of the piece", exEn:"D.C. al Fine — from the top to the word Fine.",
+   topic:"нотация", cls:"5-6"},
+  {term:"Fine",
+   defRu:"Конец произведения (при использовании D.C. или D.S.)", exRu:"D.C. al Fine — играй сначала до Fine.",
+   defEn:"The end of the piece (used with D.C. or D.S.)", exEn:"D.C. al Fine — play from the start until Fine.",
+   topic:"нотация", cls:"5-6"},
+];
+
+// ── STATE ─────────────────────────────────────────────────────
+let lang = localStorage.getItem('musicapp_lang')||'ru';
+let isDark = localStorage.getItem('musicapp_theme')==='dark';
+let mode = 'cards';
+let filterTopic = 'all';
+let filterCls = 'all';
+let progress = JSON.parse(localStorage.getItem('mvpro3') || '{}');
+
+function t(key) { return UI[lang][key]; }
+function save() { localStorage.setItem('mvpro3', JSON.stringify(progress)); }
+
+function filtered() {
+  return TERMS.filter(x =>
+    (filterTopic === 'all' || x.topic === filterTopic) &&
+    (filterCls === 'all' || x.cls === filterCls)
+  );
+}
+function shuffle(a) {
+  const b=[...a];
+  for(let i=b.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[b[i],b[j]]=[b[j],b[i]];}
+  return b;
+}
+function def(card) { return lang==='ru' ? card.defRu : card.defEn; }
+function ex(card)  { return lang==='ru' ? card.exRu  : card.exEn; }
+function topicLabel(tp) { return UI[lang].topics[tp] || tp; }
+function clsLabel(cls)  { return UI[lang].classes[cls] || cls; }
+
+// ── UI TEXT ───────────────────────────────────────────────────
+function applyUI() {
+  document.getElementById('appTitle').textContent = t('appTitle');
+  document.getElementById('themeText').textContent = isDark ? t('themeLight') : t('themeDark');
+  document.getElementById('langText').textContent = lang==='ru' ? 'RU' : 'EN';
+  document.getElementById('fl1').textContent = t('topicLabel');
+  document.getElementById('fl2').textContent = t('clsLabel');
+  document.getElementById('progTitle').textContent = t('progTitle');
+  document.getElementById('ft_all').textContent = t('topicAll');
+  document.getElementById('ft_t').textContent = t('topics').темп;
+  document.getElementById('ft_d').textContent = t('topics').динамика;
+  document.getElementById('ft_h').textContent = t('topics').характер;
+  document.getElementById('ft_f').textContent = t('topics').форма;
+  document.getElementById('ft_n').textContent = t('topics').нотация;
+  document.getElementById('fc_all').textContent = t('clsAll');
+  document.getElementById('fc_12').textContent = clsLabel('1-2');
+  document.getElementById('fc_34').textContent = clsLabel('3-4');
+  document.getElementById('fc_56').textContent = clsLabel('5-6');
+  document.getElementById('fc_78').textContent = clsLabel('7-8');
+  const tabs = t('tabs');
+  tabs.forEach((txt,i)=>document.getElementById('tab'+i).textContent=txt);
+}
+
+// ── TOGGLES ───────────────────────────────────────────────────
+function toggleTheme() {
+  isDark = !isDark;
+  localStorage.setItem('musicapp_theme', isDark ? 'dark' : 'light');
+  document.documentElement.dataset.theme = isDark ? 'dark' : '';
+  document.getElementById('themeIcon').innerHTML = isDark
+    ? '<circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>'
+    : '<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>';
+  applyUI();
+}
+
+function toggleLang() {
+  lang = lang==='ru' ? 'en' : 'ru';
+  localStorage.setItem('musicapp_lang', lang);
+  applyUI();
+  renderAll();
+}
+
+function switchMode(m) {
+  mode = m;
+  ['cards','quiz','match'].forEach((x,i)=>document.getElementById('tab'+i).classList.toggle('active',x===m));
+  renderAll();
+}
+
+function setTopic(tp) {
+  filterTopic = tp;
+  document.querySelectorAll('.fbtn[data-topic]').forEach(b=>b.classList.toggle('active',b.dataset.topic===tp));
+  renderAll();
+}
+
+function setCls(cls) {
+  filterCls = cls;
+  document.querySelectorAll('.fbtn[data-cls]').forEach(b=>b.classList.toggle('active',b.dataset.cls===cls));
+  renderAll();
+}
+
+// ── RENDER ALL ────────────────────────────────────────────────
+function renderAll() { renderProgress(); if(mode==='cards')initCards(); else if(mode==='quiz')initQuiz(); else initMatch(); }
+
+function renderProgress() {
+  const topics = ['темп','динамика','характер','форма','нотация'];
+  document.getElementById('progressRow').innerHTML = topics.map(tp => {
+    const all = TERMS.filter(x=>x.topic===tp);
+    const known = all.filter(x=>progress[x.term]==='known').length;
+    const pct = Math.round(known/all.length*100);
+    return `<div class="prog-item">
+      <div class="prog-label"><span>${topicLabel(tp)}</span><span>${known}/${all.length}</span></div>
+      <div class="prog-bar"><div class="prog-fill pf-${tp}" style="width:${pct}%"></div></div>
+    </div>`;
+  }).join('');
+}
+
+function showFeedback(text, ok) {
+  const m=document.getElementById('feedbackModal'), ft=document.getElementById('feedbackText');
+  ft.textContent=text; ft.className='feedback-text '+(ok?'correct':'wrong');
+  m.classList.remove('hidden');
+  setTimeout(()=>m.classList.add('hidden'), ok?700:900);
+}
+
+// ── FLASHCARDS ────────────────────────────────────────────────
+let deck=[], cardIdx=0, flipped=false;
+
+function initCards() {
+  deck=shuffle(filtered()); cardIdx=0; flipped=false; showCard();
+}
+
+function showCard() {
+  const mc=document.getElementById('mainContent');
+  if(!deck.length){mc.innerHTML=`<div class="empty-state">${t('emptyCards')}</div>`;return;}
+  if(cardIdx>=deck.length){
+    mc.innerHTML=`<div class="cards-wrap"><div class="done-box">
+      <h2>${t('deckDone')}</h2><p>${t('deckDoneMsg')}</p>
+      <button class="btn btn-primary" onclick="initCards()">${t('restart')}</button>
+    </div></div>`;return;
+  }
+  const c=deck[cardIdx];
+  mc.innerHTML=`<div class="cards-wrap">
+    <div class="card-counter">${cardIdx+1} ${t('cardOf')} ${deck.length}</div>
+    <div class="card-scene" id="cs" onclick="flipCard()">
+      <div class="card-inner" id="ci">
+        <div class="card-face card-front">
+          <div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:center">
+            <span class="badge b-${c.topic}">${topicLabel(c.topic)}</span>
+            <span class="badge b-cls">${clsLabel(c.cls)}</span>
+          </div>
+          <div class="card-term">${c.term}</div>
+          <div class="card-hint">${t('flipHint')}</div>
+        </div>
+        <div class="card-face card-back">
+          <div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:center">
+            <span class="badge b-${c.topic}">${topicLabel(c.topic)}</span>
+            <span class="badge b-cls">${clsLabel(c.cls)}</span>
+          </div>
+          <div class="card-def">${def(c)}</div>
+          <div class="card-example">"${ex(c)}"</div>
+        </div>
+      </div>
+    </div>
+    <div class="card-actions" id="ca" style="display:none">
+      <button class="btn btn-red" onclick="cardAns(false)">${t('unknown')}</button>
+      <button class="btn btn-green" onclick="cardAns(true)">${t('knew')}</button>
+    </div>
+    <button class="btn btn-sec" onclick="flipCard()">↩</button>
+  </div>`;
+}
+
+function flipCard() {
+  const s=document.getElementById('cs'), a=document.getElementById('ca');
+  if(!s)return; flipped=!flipped; s.classList.toggle('flipped',flipped);
+  if(flipped&&a)a.style.display='flex';
+}
+
+function cardAns(knew) {
+  const c=deck[cardIdx];
+  if(knew){progress[c.term]='known';cardIdx++;}
+  else{
+    progress[c.term]=progress[c.term]==='known'?'known':'unknown';
+    deck.push(deck.splice(cardIdx,1)[0]);
+    if(deck.slice(cardIdx).every(x=>progress[x.term]==='known')) cardIdx=deck.length;
+  }
+  save(); flipped=false; showCard();
+}
+
+// ── QUIZ ─────────────────────────────────────────────────────
+let qDeck=[], qIdx=0, qScore=0, qAnswered=false;
+
+function initQuiz() {
+  const f=filtered();
+  if(f.length<4){document.getElementById('mainContent').innerHTML=`<div class="empty-state">${t('emptyQuiz')}</div>`;return;}
+  qDeck=shuffle(f); qIdx=0; qScore=0; showQ();
+}
+
+function showQ() {
+  const mc=document.getElementById('mainContent');
+  if(qIdx>=qDeck.length){
+    const pct=Math.round(qScore/qDeck.length*100);
+    mc.innerHTML=`<div class="quiz-wrap"><div class="quiz-result-box">
+      <div class="score-big">${pct}%</div>
+      <div class="score-sub">${t('quizResult')} ${qScore} / ${qDeck.length}</div>
+      <button class="btn btn-primary" onclick="initQuiz()">${t('restart')}</button>
+    </div></div>`;return;
+  }
+  const q=qDeck[qIdx];
+  // Wrong options from ALL terms (same language)
+  const wrong=shuffle(TERMS.filter(x=>x.term!==q.term)).slice(0,3);
+  const opts=shuffle([q,...wrong]);
+  qAnswered=false;
+  mc.innerHTML=`<div class="quiz-wrap">
+    <div class="quiz-meta">
+      <span class="quiz-counter">${qIdx+1} / ${qDeck.length}</span>
+      <span class="quiz-score-badge">✓ ${qScore}</span>
+    </div>
+    <div class="quiz-card">
+      <div class="quiz-q">${q.term}</div>
+      <div class="quiz-topic-row">
+        <span class="badge b-${q.topic}">${topicLabel(q.topic)}</span>
+        <span class="badge b-cls">${clsLabel(q.cls)}</span>
+      </div>
+      <div class="quiz-options">
+        ${opts.map(o=>`<button class="quiz-opt" onclick="qAns(this,'${o.term}','${q.term}')">${def(o)}</button>`).join('')}
+      </div>
+    </div>
+    <button class="btn btn-primary" id="qnext" style="display:none" onclick="nextQ()">${t('nextQ')}</button>
+  </div>`;
+}
+
+function qAns(btn,chosen,correct) {
+  if(qAnswered)return; qAnswered=true;
+  document.querySelectorAll('.quiz-opt').forEach(b=>b.disabled=true);
+  if(chosen===correct){
+    btn.classList.add('correct'); qScore++; progress[correct]='known';
+  } else {
+    btn.classList.add('wrong');
+    // highlight correct
+    const correctCard = TERMS.find(x=>x.term===correct);
+    const correctDef = def(correctCard);
+    document.querySelectorAll('.quiz-opt').forEach(b=>{if(b.textContent===correctDef)b.classList.add('correct');});
+  }
+  save();
+  document.getElementById('qnext').style.display='inline-flex';
+}
+
+function nextQ(){qIdx++;showQ();}
+
+// ── MATCH ─────────────────────────────────────────────────────
+let mPairs=[], mSel=null, mMatched=[], mErrors=0, mStart=0;
+
+function initMatch() {
+  const f=filtered();
+  if(f.length<2){document.getElementById('mainContent').innerHTML=`<div class="empty-state">${t('emptyMatch')}</div>`;return;}
+  mPairs=shuffle(f).slice(0,6);
+  window._mT=shuffle(mPairs.map((p,i)=>({text:p.term,id:i})));
+  window._mD=shuffle(mPairs.map((p,i)=>({text:def(p),id:i})));
+  mSel=null; mMatched=[]; mErrors=0; mStart=Date.now();
+  renderMatch();
+}
+
+function renderMatch() {
+  const mc=document.getElementById('mainContent');
+  mc.innerHTML=`<div class="match-wrap">
+    <div class="match-info">${t('matchInfo')} · ${mPairs.length} ${t('matchOf')}</div>
+    <div class="match-grid">
+      <div class="match-col">
+        ${window._mT.map((x,i)=>`<div class="match-item" data-side="term" data-id="${x.id}" onclick="mClick(this)"><span class="match-term-text">${x.text}</span></div>`).join('')}
+      </div>
+      <div class="match-col">
+        ${window._mD.map((x,i)=>`<div class="match-item" data-side="def" data-id="${x.id}" onclick="mClick(this)">${x.text}</div>`).join('')}
+      </div>
+    </div>
+    <div class="match-status" id="mst">${t('matchStatus')(0,mPairs.length)}</div>
+  </div>`;
+}
+
+function mClick(el) {
+  if(el.classList.contains('matched'))return;
+  const side=el.dataset.side, id=parseInt(el.dataset.id);
+  if(!mSel){mSel={el,side,id};el.classList.add('selected');return;}
+  if(mSel.el===el){el.classList.remove('selected');mSel=null;return;}
+  if(mSel.side===side){mSel.el.classList.remove('selected');mSel={el,side,id};el.classList.add('selected');return;}
+  const prev=mSel; mSel=null;
+  if(prev.id===id){
+    prev.el.classList.remove('selected'); prev.el.classList.add('matched'); el.classList.add('matched');
+    mMatched.push(id);
+    document.getElementById('mst').textContent=t('matchStatus')(mMatched.length,mPairs.length);
+    if(mMatched.length===mPairs.length){
+      const sec=Math.round((Date.now()-mStart)/1000);
+      setTimeout(()=>{
+        document.getElementById('mainContent').innerHTML=`<div class="match-wrap"><div class="match-done-box">
+          <h2>${t('matchDone')}</h2>
+          <p>${t('matchDoneStats')(mErrors,sec)}</p>
+          <button class="btn btn-primary" onclick="initMatch()">${t('playAgain')}</button>
+        </div></div>`;
+      },350);
+    }
+  } else {
+    mErrors++;
+    prev.el.classList.remove('selected'); prev.el.classList.add('wrong-flash'); el.classList.add('wrong-flash');
+    setTimeout(()=>{prev.el.classList.remove('wrong-flash');el.classList.remove('wrong-flash');},550);
+  }
+}
+
+// ── INIT ──────────────────────────────────────────────────────
+applyUI();
+renderAll();
+</script>
+<script>
+(function(){
+  var b=document.querySelector('.hdr-btns,.hdr-actions,.header-actions');
+  if(b){var a=document.createElement('a');a.href='https://hits.seeyoufarm.com';a.target='_blank';a.rel='noopener';a.style.cssText='display:flex;align-items:center;text-decoration:none;';var img=document.createElement('img');img.src='https://hits.seeyoufarm.com/api/count/incr/badge.svg?url=https%3A%2F%2Fvysockiymark01-prog.github.io%2Fmusicapp%2F&count_bg=%232563eb&title_bg=%23334155&icon=&icon_color=%23ffffff&title=views&edge_flat=true';img.alt='Visitors';img.style.cssText='height:22px;border-radius:4px;';a.appendChild(img);b.insertBefore(a,b.firstChild);}
+})();
+</script>
+</body>
+</html>
