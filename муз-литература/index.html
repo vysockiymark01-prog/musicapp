@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="ru" data-theme="light">
+<head>
+<!-- Yandex.Metrika counter -->
+<script type="text/javascript">
+    (function(m,e,t,r,i,k,a){
+        m[i]=m[i]||function(){(m[i].a=m[i].a||[]).push(arguments)};
+        m[i].l=1*new Date();
+        for (var j = 0; j < document.scripts.length; j++) {if (document.scripts[j].src === r) { return; }}
+        k=e.createElement(t),a=e.getElementsByTagName(t)[0],k.async=1,k.src=r,a.parentNode.insertBefore(k,a)
+    })(window, document,'script','https://mc.yandex.ru/metrika/tag.js?id=110314124', 'ym');
+    ym(110314124, 'init', {ssr:true, webvisor:true, clickmap:true, ecommerce:"dataLayer", referrer: document.referrer, url: location.href, accurateTrackBounce:true, trackLinks:true});
+</script>
+<noscript><div><img src="https://mc.yandex.ru/watch/110314124" style="position:absolute; left:-9999px;" alt="" /></div></noscript>
+<!-- /Yandex.Metrika counter -->
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Муз. Литература</title>
+<script>(function(){var t=localStorage.getItem('musicapp_theme');if(t==='dark')document.documentElement.setAttribute('data-theme','dark');else document.documentElement.setAttribute('data-theme','light');})()</script>
+<style>
+:root{--bg:#f8fafc;--card:#fff;--text:#0f172a;--muted:#94a3b8;--border:#e2e8f0;
+  --sl100:#f1f5f9;--sl200:#e2e8f0;--blue:#2563eb;--blue2:#1d4ed8;
+  --green:#16a34a;--red:#dc2626;--shadow:0 1px 4px rgba(0,0,0,.07);}
+[data-theme="dark"]{--bg:#0f172a;--card:#1e293b;--text:#f1f5f9;--muted:#64748b;
+  --border:#334155;--sl100:#334155;--sl200:#475569;}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+  background:var(--bg);color:var(--text);transition:background .3s,color .3s;}
+.wrap{max-width:960px;margin:0 auto;padding:12px 14px;}
+.hdr{display:flex;justify-content:space-between;align-items:center;
+  padding:10px 16px;background:var(--card);border:1px solid var(--border);
+  border-radius:16px;margin-bottom:12px;box-shadow:var(--shadow);}
+.hdr-title{font-weight:900;font-size:15px;}
+.hdr-sub{font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;}
+.hdr-btns{display:flex;gap:6px;}
+.hbtn{padding:6px 11px;background:var(--sl100);border:none;border-radius:10px;
+  font-size:10px;font-weight:800;text-transform:uppercase;cursor:pointer;
+  color:var(--text);display:flex;align-items:center;gap:5px;}
+.hbtn:hover{background:var(--sl200);}
+.tabs{display:flex;gap:6px;margin-bottom:12px;background:var(--card);
+  padding:6px;border-radius:14px;border:1px solid var(--border);}
+.tab{flex:1;padding:8px;border:none;border-radius:10px;font-size:11px;font-weight:800;
+  cursor:pointer;background:none;color:var(--muted);transition:all .15s;}
+.tab.active{background:var(--blue);color:#fff;}
+.panel{display:none;}
+.panel.show{display:block;}
+/* FILTER BAR */
+.filter-bar{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px;}
+.chip{padding:5px 12px;border:1.5px solid var(--border);border-radius:20px;
+  background:var(--card);font-size:11px;font-weight:700;cursor:pointer;
+  color:var(--muted);transition:all .15s;white-space:nowrap;}
+.chip:hover{border-color:var(--blue);color:var(--text);}
+.chip.active{background:var(--blue);border-color:var(--blue);color:#fff;}
+/* COMPOSER CARDS */
+.cards{columns:2;column-gap:12px;}
+@media(max-width:560px){.cards{columns:1;}}
+.ccard{break-inside:avoid;background:var(--card);border:1px solid var(--border);
+  border-radius:18px;padding:16px;margin-bottom:12px;box-shadow:var(--shadow);
+  cursor:pointer;transition:transform .15s,box-shadow .15s;}
+.ccard:hover{transform:translateY(-2px);box-shadow:0 4px 12px rgba(0,0,0,.1);}
+.ccard.expanded{border-color:var(--blue);}
+.comp-row{display:flex;align-items:center;gap:10px;margin-bottom:10px;}
+.avatar{width:44px;height:44px;border-radius:50%;display:flex;align-items:center;
+  justify-content:center;font-size:12px;font-weight:900;color:#fff;flex-shrink:0;}
+.comp-name{font-size:14px;font-weight:800;line-height:1.2;}
+.comp-meta{font-size:10px;color:var(--muted);font-weight:600;margin-top:2px;}
+.era-badge{display:inline-block;padding:2px 8px;border-radius:10px;font-size:9px;
+  font-weight:900;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;}
+.era-baroque .era-badge{background:rgba(217,119,6,.15);color:#d97706;}
+.era-classicism .era-badge{background:rgba(5,150,105,.15);color:#059669;}
+.era-romanticism .era-badge{background:rgba(124,58,237,.15);color:#7c3aed;}
+.era-modern .era-badge{background:rgba(8,145,178,.15);color:#0891b2;}
+[data-theme="dark"] .era-baroque .era-badge{background:rgba(217,119,6,.25);}
+[data-theme="dark"] .era-classicism .era-badge{background:rgba(5,150,105,.25);}
+[data-theme="dark"] .era-romanticism .era-badge{background:rgba(124,58,237,.25);}
+[data-theme="dark"] .era-modern .era-badge{background:rgba(8,145,178,.25);}
+.bio{font-size:12px;line-height:1.6;color:var(--muted);margin-bottom:10px;}
+.works-section{display:none;}
+.works-section.open{display:block;}
+.works-title{font-size:10px;font-weight:900;text-transform:uppercase;color:var(--muted);
+  margin-bottom:8px;}
+.work{padding:8px 10px;background:var(--sl100);border-radius:10px;margin-bottom:6px;}
+.work-name{font-size:12px;font-weight:800;}
+.work-meta{font-size:10px;color:var(--muted);margin-top:2px;}
+.expand-btn{font-size:10px;font-weight:800;color:var(--blue);cursor:pointer;
+  text-transform:uppercase;letter-spacing:.4px;}
+/* TIMELINE */
+.timeline{position:relative;padding-left:30px;}
+.tl-line{position:absolute;left:12px;top:0;bottom:0;width:2px;background:var(--border);}
+.tl-item{position:relative;margin-bottom:16px;}
+.tl-dot{position:absolute;left:-22px;top:6px;width:12px;height:12px;border-radius:50%;
+  border:2px solid var(--card);}
+.tl-year{font-size:10px;font-weight:900;color:var(--muted);margin-bottom:2px;}
+.tl-name{font-size:13px;font-weight:800;}
+.tl-info{font-size:11px;color:var(--muted);margin-top:2px;}
+/* QUIZ */
+.quiz-wrap{background:var(--card);border:1px solid var(--border);border-radius:20px;
+  padding:22px;box-shadow:var(--shadow);}
+.score-row{display:flex;gap:20px;justify-content:center;margin-bottom:16px;}
+.sc2{text-align:center;}
+.sc2-v{font-size:28px;font-weight:900;}
+.sc2-v.g{color:var(--green);}
+.sc2-v.r{color:var(--red);}
+.sc2-l{font-size:9px;font-weight:900;text-transform:uppercase;color:var(--muted);}
+.quiz-q{font-size:14px;font-weight:800;margin-bottom:6px;line-height:1.5;}
+.quiz-sub{font-size:11px;color:var(--muted);margin-bottom:14px;font-style:italic;}
+.choices{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px;}
+.qc{padding:10px;border:2px solid var(--border);border-radius:12px;background:var(--card);
+  font-size:11px;font-weight:700;cursor:pointer;text-align:center;
+  transition:all .15s;color:var(--text);line-height:1.3;}
+.qc:hover:not(:disabled){border-color:var(--blue);}
+.qc.correct{background:#dcfce7;border-color:var(--green);color:#166534;}
+.qc.wrong{background:#fee2e2;border-color:var(--red);color:#991b1b;}
+[data-theme="dark"] .qc.correct{background:#166534;color:#bbf7d0;}
+[data-theme="dark"] .qc.wrong{background:#7f1d1d;color:#fecaca;}
+.quiz-next{width:100%;padding:11px;background:var(--blue);border:none;border-radius:12px;
+  color:#fff;font-size:12px;font-weight:900;cursor:pointer;display:none;}
+.quiz-next.show{display:block;}
+@media(max-width:600px){
+  .hdr{flex-wrap:wrap;gap:8px;padding:10px 12px;}
+  .hdr-btns{gap:4px;}
+  .hbtn{padding:7px 9px;font-size:9px;}
+  .wrap{padding:10px;}
+  .cards{columns:1;}
+  .choices{grid-template-columns:1fr;}
+  .tab-bar{overflow-x:auto;-webkit-overflow-scrolling:touch;}
+}
+@media(max-width:400px){
+  .hdr-title{font-size:13px;}
+  .comp-name{font-size:13px;}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+<a href="../index.html" style="display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:800;text-decoration:none;opacity:.65;padding:5px 11px;border:1px solid rgba(128,128,128,.25);border-radius:10px;margin-bottom:8px;color:inherit;">← Главная</a>
+<div class="hdr">
+  <div>
+    <div class="hdr-title">🎭 <span id="hdrTitle">Муз. литература</span></div>
+    <div class="hdr-sub" id="hdrSub">Композиторы и произведения</div>
+  </div>
+  <div class="hdr-btns">
+    <button class="hbtn" id="themeBtn">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" id="themeIco">
+        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+      </svg>
+      <span id="themeText">Тёмная</span>
+    </button>
+    <button class="hbtn" id="langBtn">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+        <path d="m5 8 6 6"/><path d="m4 14 6-6 2-3"/><path d="M2 5h12"/><path d="M7 2h1"/>
+        <path d="m22 22-5-10-5 10"/><path d="M14 18h6"/>
+      </svg>
+      <span id="langText">RU</span>
+    </button>
+  </div>
+</div>
+
+<div class="tabs">
+  <button class="tab active" id="tab0" onclick="showTab(0)"><span id="t0">Карточки</span></button>
+  <button class="tab" id="tab1" onclick="showTab(1)"><span id="t1">Хронология</span></button>
+  <button class="tab" id="tab2" onclick="showTab(2)"><span id="t2">Викторина</span></button>
+</div>
+
+<!-- CARDS -->
+<div class="panel show" id="panel0">
+  <div class="filter-bar" id="eraFilter"></div>
+  <div class="cards" id="compCards"></div>
+</div>
+
+<!-- TIMELINE -->
+<div class="panel" id="panel1">
+  <div class="timeline" id="timeline">
+    <div class="tl-line"></div>
+  </div>
+</div>
+
+<!-- QUIZ -->
+<div class="panel" id="panel2">
+  <div class="quiz-wrap">
+    <div class="score-row">
+      <div class="sc2"><div class="sc2-v g" id="qsc">0</div><div class="sc2-l" id="qslC">Верно</div></div>
+      <div class="sc2"><div class="sc2-v r" id="qsw">0</div><div class="sc2-l" id="qslW">Ошибки</div></div>
+    </div>
+    <div class="quiz-q" id="quizQ"></div>
+    <div class="quiz-sub" id="quizSub"></div>
+    <div class="choices" id="quizChoices"></div>
+    <button class="quiz-next" id="quizNext" onclick="nextQuiz()"><span id="qnTxt">Следующий →</span></button>
+  </div>
+</div>
+</div>
+
+<script>
+const COMPOSERS = [
+  {id:'bach',color:'#7c3aed',ini:'JSB',era:'baroque',origin:'foreign',birth:1685,death:1750,
+   name:{ru:'Иоганн Себастьян Бах',en:'J. S. Bach'},
+   country:{ru:'Германия',en:'Germany'},
+   bio:{ru:'Великий немецкий композитор эпохи барокко. Создал непревзойдённые образцы полифонии. Написал более 1000 произведений во всех жанрах.',
+        en:'The greatest composer of the Baroque era, known for his mastery of counterpoint and polyphony.'},
+   works:[
+     {name:{ru:'Хорошо темперированный клавир',en:'The Well-Tempered Clavier'},year:'1722–42',genre:{ru:'Клавирная музыка',en:'Keyboard music'}},
+     {name:{ru:'Месса си минор',en:'Mass in B minor'},year:'1749',genre:{ru:'Духовная музыка',en:'Sacred music'}},
+     {name:{ru:'Бранденбургские концерты',en:'Brandenburg Concertos'},year:'1721',genre:{ru:'Оркестровая музыка',en:'Orchestral'}},
+     {name:{ru:'Страсти по Матфею',en:'St Matthew Passion'},year:'1727',genre:{ru:'Оратория',en:'Oratorio'}},
+   ]},
+  {id:'handel',color:'#0891b2',ini:'GFH',era:'baroque',origin:'foreign',birth:1685,death:1759,
+   name:{ru:'Георг Фридрих Гендель',en:'G. F. Handel'},
+   country:{ru:'Германия / Англия',en:'Germany / England'},
+   bio:{ru:'Мастер оперы и оратории. Большую часть жизни провёл в Лондоне.',
+        en:'Master of opera and oratorio, spent most of his life in London.'},
+   works:[
+     {name:{ru:'Мессия',en:'Messiah'},year:'1741',genre:{ru:'Оратория',en:'Oratorio'}},
+     {name:{ru:'Музыка на воде',en:'Water Music'},year:'1717',genre:{ru:'Оркестровая музыка',en:'Orchestral'}},
+     {name:{ru:'Музыка фейерверка',en:'Music for the Royal Fireworks'},year:'1749',genre:{ru:'Оркестровая музыка',en:'Orchestral'}},
+   ]},
+  {id:'haydn',color:'#059669',ini:'JH',era:'classicism',origin:'foreign',birth:1732,death:1809,
+   name:{ru:'Йозеф Гайдн',en:'Joseph Haydn'},
+   country:{ru:'Австрия',en:'Austria'},
+   bio:{ru:'«Отец симфонии и квартета». Создал классические формы и жанры инструментальной музыки.',
+        en:'Father of the symphony and string quartet. Established classical forms.'},
+   works:[
+     {name:{ru:'Симфония № 94 «Сюрприз»',en:'Symphony No. 94 "Surprise"'},year:'1791',genre:{ru:'Симфония',en:'Symphony'}},
+     {name:{ru:'Оратория «Сотворение мира»',en:'The Creation'},year:'1798',genre:{ru:'Оратория',en:'Oratorio'}},
+     {name:{ru:'Квартет «Жаворонок»',en:'"Lark" Quartet'},year:'1790',genre:{ru:'Квартет',en:'String Quartet'}},
+   ]},
+  {id:'mozart',color:'#d97706',ini:'WAM',era:'classicism',origin:'foreign',birth:1756,death:1791,
+   name:{ru:'Вольфганг Амадей Моцарт',en:'W. A. Mozart'},
+   country:{ru:'Австрия',en:'Austria'},
+   bio:{ru:'Гений-вундеркинд, написавший более 600 произведений. Вершина классицизма.',
+        en:'Child prodigy who wrote 600+ works. The pinnacle of Classical style.'},
+   works:[
+     {name:{ru:'Симфония № 40',en:'Symphony No. 40'},year:'1788',genre:{ru:'Симфония',en:'Symphony'}},
+     {name:{ru:'Реквием',en:'Requiem'},year:'1791',genre:{ru:'Духовная музыка',en:'Sacred'}},
+     {name:{ru:'Опера «Дон Жуан»',en:'"Don Giovanni"'},year:'1787',genre:{ru:'Опера',en:'Opera'}},
+     {name:{ru:'Опера «Волшебная флейта»',en:'"The Magic Flute"'},year:'1791',genre:{ru:'Опера',en:'Opera'}},
+   ]},
+  {id:'beethoven',color:'#dc2626',ini:'LvB',era:'classicism',origin:'foreign',birth:1770,death:1827,
+   name:{ru:'Людвиг ван Бетховен',en:'Ludwig van Beethoven'},
+   country:{ru:'Германия',en:'Germany'},
+   bio:{ru:'Преодолевая глухоту, создал произведения, изменившие музыкальный мир. Связал классицизм и романтизм.',
+        en:'Despite deafness, created revolutionary works bridging Classicism and Romanticism.'},
+   works:[
+     {name:{ru:'Симфония № 5',en:'Symphony No. 5'},year:'1808',genre:{ru:'Симфония',en:'Symphony'}},
+     {name:{ru:'Симфония № 9 «Хоральная»',en:'Symphony No. 9 "Choral"'},year:'1824',genre:{ru:'Симфония',en:'Symphony'}},
+     {name:{ru:'Соната «Лунная» № 14',en:'"Moonlight" Sonata No. 14'},year:'1801',genre:{ru:'Соната',en:'Sonata'}},
+     {name:{ru:'Опера «Фиделио»',en:'"Fidelio"'},year:'1805',genre:{ru:'Опера',en:'Opera'}},
+   ]},
+  {id:'schubert',color:'#7c3aed',ini:'FS',era:'romanticism',origin:'foreign',birth:1797,death:1828,
+   name:{ru:'Франц Шуберт',en:'Franz Schubert'},
+   country:{ru:'Австрия',en:'Austria'},
+   bio:{ru:'Мастер лирики и песни (Lied). За короткую жизнь создал более 600 песен.',
+        en:'Master of the Lied. Despite a short life, wrote over 600 songs.'},
+   works:[
+     {name:{ru:'Симфония № 8 «Неоконченная»',en:'"Unfinished" Symphony No. 8'},year:'1822',genre:{ru:'Симфония',en:'Symphony'}},
+     {name:{ru:'«Зимний путь»',en:'"Winterreise"'},year:'1827',genre:{ru:'Вокальный цикл',en:'Song cycle'}},
+     {name:{ru:'«Форель» (квинтет)',en:'"Trout" Quintet'},year:'1819',genre:{ru:'Камерная музыка',en:'Chamber'}},
+   ]},
+  {id:'chopin',color:'#0891b2',ini:'FŠ',era:'romanticism',origin:'foreign',birth:1810,death:1849,
+   name:{ru:'Фридерик Шопен',en:'Frédéric Chopin'},
+   country:{ru:'Польша / Франция',en:'Poland / France'},
+   bio:{ru:'Поэт фортепиано. Создал неповторимый лирический стиль. Все произведения написаны для фортепиано.',
+        en:'The poet of the piano. Virtually all works are for solo piano.'},
+   works:[
+     {name:{ru:'Баллада № 1 соль минор',en:'Ballade No. 1 in G minor'},year:'1835',genre:{ru:'Фортепиано',en:'Piano'}},
+     {name:{ru:'24 прелюдии',en:'24 Preludes'},year:'1839',genre:{ru:'Фортепиано',en:'Piano'}},
+     {name:{ru:'Полонез ля♭ мажор «Героический»',en:'"Heroic" Polonaise'},year:'1842',genre:{ru:'Фортепиано',en:'Piano'}},
+   ]},
+  {id:'tchaikovsky',color:'#dc2626',ini:'ПЧ',era:'romanticism',origin:'russian',birth:1840,death:1893,
+   name:{ru:'Пётр Ильич Чайковский',en:'P. I. Tchaikovsky'},
+   country:{ru:'Россия',en:'Russia'},
+   bio:{ru:'Величайший русский композитор-романтик. Создал непревзойдённые балеты и симфонии.',
+        en:'The greatest Russian Romantic composer. His ballets and symphonies are unsurpassed.'},
+   works:[
+     {name:{ru:'Балет «Лебединое озеро»',en:'"Swan Lake"'},year:'1876',genre:{ru:'Балет',en:'Ballet'}},
+     {name:{ru:'Балет «Щелкунчик»',en:'"The Nutcracker"'},year:'1892',genre:{ru:'Балет',en:'Ballet'}},
+     {name:{ru:'Симфония № 6 «Патетическая»',en:'"Pathétique" Symphony No. 6'},year:'1893',genre:{ru:'Симфония',en:'Symphony'}},
+     {name:{ru:'Опера «Евгений Онегин»',en:'"Eugene Onegin"'},year:'1879',genre:{ru:'Опера',en:'Opera'}},
+   ]},
+  {id:'brahms',color:'#7c3aed',ini:'JB',era:'romanticism',origin:'foreign',birth:1833,death:1897,
+   name:{ru:'Иоганнес Брамс',en:'Johannes Brahms'},
+   country:{ru:'Германия',en:'Germany'},
+   bio:{ru:'Мастер крупных форм. Продолжатель классических традиций в эпоху романтизма.',
+        en:'Master of large forms. Continued Classical traditions in the Romantic era.'},
+   works:[
+     {name:{ru:'Симфония № 1 до минор',en:'Symphony No. 1 in C minor'},year:'1876',genre:{ru:'Симфония',en:'Symphony'}},
+     {name:{ru:'Немецкий реквием',en:'"A German Requiem"'},year:'1869',genre:{ru:'Хоровая музыка',en:'Choral'}},
+     {name:{ru:'Концерт для скрипки',en:'Violin Concerto'},year:'1878',genre:{ru:'Концерт',en:'Concerto'}},
+   ]},
+  {id:'debussy',color:'#d97706',ini:'CD',era:'romanticism',origin:'foreign',birth:1862,death:1918,
+   name:{ru:'Клод Дебюсси',en:'Claude Debussy'},
+   country:{ru:'Франция',en:'France'},
+   bio:{ru:'Основатель музыкального импрессионизма. Создал особый звуковой мир, передающий ощущения.',
+        en:'Founder of musical Impressionism. Created unique sound worlds evoking sensations.'},
+   works:[
+     {name:{ru:'Прелюдия к послеполудню фавна',en:'"Prélude à l\'après-midi d\'un faune"'},year:'1894',genre:{ru:'Оркестровая музыка',en:'Orchestral'}},
+     {name:{ru:'«Море»',en:'"La mer"'},year:'1905',genre:{ru:'Оркестровая музыка',en:'Orchestral'}},
+     {name:{ru:'«Лунный свет»',en:'"Clair de lune"'},year:'1905',genre:{ru:'Фортепиано',en:'Piano'}},
+   ]},
+  {id:'rachmaninoff',color:'#0891b2',ini:'СР',era:'modern',origin:'russian',birth:1873,death:1943,
+   name:{ru:'Сергей Рахманинов',en:'Sergei Rachmaninoff'},
+   country:{ru:'Россия',en:'Russia'},
+   bio:{ru:'Великий пианист и композитор. Сочетал русскую лирику с виртуозным фортепианным мастерством.',
+        en:'Great pianist-composer. Combined Russian lyricism with virtuosic piano writing.'},
+   works:[
+     {name:{ru:'Концерт № 2 для ф-но с оркестром',en:'Piano Concerto No. 2'},year:'1901',genre:{ru:'Концерт',en:'Concerto'}},
+     {name:{ru:'Рапсодия на тему Паганини',en:'"Rhapsody on a Theme of Paganini"'},year:'1934',genre:{ru:'Концерт',en:'Concerto'}},
+     {name:{ru:'Симфония № 2',en:'Symphony No. 2'},year:'1907',genre:{ru:'Симфония',en:'Symphony'}},
+   ]},
+  {id:'stravinsky',color:'#dc2626',ini:'ИС',era:'modern',origin:'russian',birth:1882,death:1971,
+   name:{ru:'Игорь Стравинский',en:'Igor Stravinsky'},
+   country:{ru:'Россия / США',en:'Russia / USA'},
+   bio:{ru:'Революционер XX века. Балеты «Русских сезонов» потрясли музыкальный мир.',
+        en:'Revolutionary of the 20th century. His Ballets Russes works shook the musical world.'},
+   works:[
+     {name:{ru:'Балет «Весна священная»',en:'"The Rite of Spring"'},year:'1913',genre:{ru:'Балет',en:'Ballet'}},
+     {name:{ru:'Балет «Жар-птица»',en:'"The Firebird"'},year:'1910',genre:{ru:'Балет',en:'Ballet'}},
+     {name:{ru:'Балет «Петрушка»',en:'"Petrushka"'},year:'1911',genre:{ru:'Балет',en:'Ballet'}},
+   ]},
+  {id:'prokofiev',color:'#059669',ini:'СП',era:'modern',origin:'russian',birth:1891,death:1953,
+   name:{ru:'Сергей Прокофьев',en:'Sergei Prokofiev'},
+   country:{ru:'Россия',en:'Russia'},
+   bio:{ru:'Яркий новатор с острым ритмом и неожиданными гармониями. Создатель «Пети и Волка».',
+        en:'Innovative composer with sharp rhythms. Creator of "Peter and the Wolf".'},
+   works:[
+     {name:{ru:'Симфоническая сказка «Петя и Волк»',en:'"Peter and the Wolf"'},year:'1936',genre:{ru:'Оркестровая музыка',en:'Orchestral'}},
+     {name:{ru:'Балет «Ромео и Джульетта»',en:'"Romeo and Juliet"'},year:'1935',genre:{ru:'Балет',en:'Ballet'}},
+     {name:{ru:'Симфония № 1 «Классическая»',en:'"Classical" Symphony No. 1'},year:'1917',genre:{ru:'Симфония',en:'Symphony'}},
+   ]},
+  {id:'shostakovich',color:'#d97706',ini:'ДШ',era:'modern',origin:'russian',birth:1906,death:1975,
+   name:{ru:'Дмитрий Шостакович',en:'Dmitri Shostakovich'},
+   country:{ru:'Россия',en:'Russia'},
+   bio:{ru:'Голос трагической эпохи. Симфонии — летопись XX века. Мастер контраста.',
+        en:'Voice of a tragic era. Symphonies chronicle the 20th century.'},
+   works:[
+     {name:{ru:'Симфония № 5',en:'Symphony No. 5'},year:'1937',genre:{ru:'Симфония',en:'Symphony'}},
+     {name:{ru:'Симфония № 7 «Ленинградская»',en:'"Leningrad" Symphony No. 7'},year:'1941',genre:{ru:'Симфония',en:'Symphony'}},
+     {name:{ru:'Квартет № 8',en:'String Quartet No. 8'},year:'1960',genre:{ru:'Квартет',en:'String Quartet'}},
+   ]},
+];
+
+const ERA_LABELS={
+  baroque:{ru:'Барокко',en:'Baroque'},
+  classicism:{ru:'Классицизм',en:'Classicism'},
+  romanticism:{ru:'Романтизм',en:'Romanticism'},
+  modern:{ru:'XX век',en:'20th Century'}
+};
+const ERA_COLORS={baroque:'#d97706',classicism:'#059669',romanticism:'#7c3aed',modern:'#0891b2'};
+
+let lang=localStorage.getItem('musicapp_lang')||'ru', eraFilter='all', expandedId=null, quizScore={c:0,w:0}, quizCorrect=null;
+
+/* ─── CARDS ─────────────────────────────────── */
+function getFiltered(){
+  return COMPOSERS.filter(c=>eraFilter==='all'||c.era===eraFilter);
+}
+
+function renderCards(){
+  const list=getFiltered();
+  const grid=document.getElementById('compCards');
+  grid.innerHTML=list.map(c=>{
+    const eraLabel=(ERA_LABELS[c.era]||{})[lang];
+    const isExp=expandedId===c.id;
+    const worksHtml=c.works.map(w=>
+      `<div class="work">
+        <div class="work-name">${w.name[lang]||w.name.ru}</div>
+        <div class="work-meta">${w.year} · ${w.genre[lang]||w.genre.ru}</div>
+      </div>`
+    ).join('');
+    return `<div class="ccard era-${c.era}${isExp?' expanded':''}" onclick="toggleCard('${c.id}')">
+      <div class="comp-row">
+        <div class="avatar" style="background:${c.color}">${c.ini}</div>
+        <div>
+          <div class="comp-name">${c.name[lang]||c.name.ru}</div>
+          <div class="comp-meta">${c.birth}–${c.death} · ${c.country[lang]||c.country.ru}</div>
+        </div>
+      </div>
+      <span class="era-badge">${eraLabel}</span>
+      <div class="bio">${c.bio[lang]||c.bio.ru}</div>
+      <div class="works-section${isExp?' open':''}">
+        <div class="works-title">${lang==='ru'?'Основные произведения':'Key Works'}</div>
+        ${worksHtml}
+      </div>
+      <div class="expand-btn">${isExp?(lang==='ru'?'▲ Скрыть':'▲ Hide'):(lang==='ru'?'▼ Произведения':'▼ Works')}</div>
+    </div>`;
+  }).join('');
+}
+
+function toggleCard(id){
+  expandedId=expandedId===id?null:id;
+  renderCards();
+}
+
+/* ─── ERA FILTER ────────────────────────────── */
+function renderEraFilter(){
+  const eras=['all','baroque','classicism','romanticism','modern'];
+  const labels={all:{ru:'Все',en:'All'},...ERA_LABELS};
+  document.getElementById('eraFilter').innerHTML=eras.map(e=>
+    `<button class="chip${eraFilter===e?' active':''}" onclick="setEra('${e}')">${labels[e][lang]||labels[e].ru}</button>`
+  ).join('');
+}
+
+function setEra(e){
+  eraFilter=e;
+  renderEraFilter();
+  renderCards();
+}
+
+/* ─── TIMELINE ──────────────────────────────── */
+function renderTimeline(){
+  const sorted=[...COMPOSERS].sort((a,b)=>a.birth-b.birth);
+  const tl=document.getElementById('timeline');
+  tl.innerHTML='<div class="tl-line"></div>'+sorted.map(c=>
+    `<div class="tl-item">
+      <div class="tl-dot" style="background:${ERA_COLORS[c.era]};left:-22px;"></div>
+      <div class="tl-year">${c.birth}–${c.death}</div>
+      <div class="tl-name">${c.name[lang]||c.name.ru}</div>
+      <div class="tl-info">${c.country[lang]||c.country.ru} · ${(ERA_LABELS[c.era]||{})[lang]}</div>
+    </div>`
+  ).join('');
+}
+
+/* ─── QUIZ ──────────────────────────────────── */
+function nextQuiz(){
+  document.getElementById('quizNext').classList.remove('show');
+  const types=['work_to_comp','comp_to_work','birth_year'];
+  const type=types[Math.floor(Math.random()*types.length)];
+  const idx=Math.floor(Math.random()*COMPOSERS.length);
+  const c=COMPOSERS[idx];
+  quizCorrect=null;
+  let qText='',qSub='',correct='',wrongPool=[];
+
+  if(type==='work_to_comp'){
+    const wi=Math.floor(Math.random()*c.works.length);
+    const work=c.works[wi];
+    qText=lang==='ru'?'Чьё это произведение?':'Who composed this work?';
+    qSub=work.name[lang]||work.name.ru;
+    correct=c.name[lang]||c.name.ru;
+    wrongPool=COMPOSERS.filter(x=>x.id!==c.id).map(x=>x.name[lang]||x.name.ru);
+  } else if(type==='comp_to_work'){
+    qText=(lang==='ru'?'Какое произведение написал ':'Which work was composed by ')
+      +(c.name[lang]||c.name.ru)+'?';
+    qSub='';
+    const wi=Math.floor(Math.random()*c.works.length);
+    correct=c.works[wi].name[lang]||c.works[wi].name.ru;
+    wrongPool=COMPOSERS.filter(x=>x.id!==c.id).flatMap(x=>
+      x.works.map(w=>w.name[lang]||w.name.ru)
+    ).filter(n=>n!==correct);
+  } else {
+    qText=(lang==='ru'?'Год рождения ':'Birth year of ')
+      +(c.name[lang]||c.name.ru)+'?';
+    qSub='';
+    correct=String(c.birth);
+    wrongPool=COMPOSERS.filter(x=>x.id!==c.id).map(x=>String(x.birth));
+  }
+
+  quizCorrect=correct;
+  document.getElementById('quizQ').textContent=qText;
+  document.getElementById('quizSub').textContent=qSub;
+
+  const wrongs=[...new Set(wrongPool)].sort(()=>Math.random()-.5).slice(0,3);
+  const choices=[correct,...wrongs].sort(()=>Math.random()-.5);
+  document.getElementById('quizChoices').innerHTML=choices.map(ch=>
+    `<button class="qc" onclick="answerQuiz(this,'${esc(ch)}','${esc(correct)}')">${ch}</button>`
+  ).join('');
+}
+
+function esc(s){return s.replace(/'/g,"\\'").replace(/"/g,'&quot;')}
+
+function answerQuiz(btn,chosen,correct){
+  document.querySelectorAll('#quizChoices .qc').forEach(b=>{
+    b.disabled=true;
+    if(b.textContent===correct)b.classList.add('correct');
+    else if(b===btn&&chosen!==correct)b.classList.add('wrong');
+  });
+  if(chosen===correct){quizScore.c++;}else{quizScore.w++;}
+  document.getElementById('qsc').textContent=quizScore.c;
+  document.getElementById('qsw').textContent=quizScore.w;
+  document.getElementById('quizNext').classList.add('show');
+  if(chosen===correct)setTimeout(nextQuiz,1500);
+}
+
+/* ─── TABS ──────────────────────────────────── */
+function showTab(n){
+  for(let i=0;i<3;i++){
+    document.getElementById(`tab${i}`).classList.toggle('active',i===n);
+    document.getElementById(`panel${i}`).classList.toggle('show',i===n);
+  }
+  if(n===1)renderTimeline();
+  if(n===2&&!document.getElementById('quizQ').textContent)nextQuiz();
+}
+
+/* ─── LANG / THEME ──────────────────────────── */
+function applyLang(){
+  const L=lang==='ru';
+  document.getElementById('hdrTitle').textContent=L?'Муз. литература':'Music History';
+  document.getElementById('hdrSub').textContent=L?'Композиторы и произведения':'Composers & Works';
+  document.getElementById('t0').textContent=L?'Карточки':'Cards';
+  document.getElementById('t1').textContent=L?'Хронология':'Timeline';
+  document.getElementById('t2').textContent=L?'Викторина':'Quiz';
+  document.getElementById('qslC').textContent=L?'Верно':'Correct';
+  document.getElementById('qslW').textContent=L?'Ошибки':'Errors';
+  document.getElementById('qnTxt').textContent=L?'Следующий →':'Next →';
+  const dk=document.documentElement.getAttribute('data-theme')==='dark';
+  document.getElementById('themeText').textContent=dk?(L?'Светлая':'Light'):(L?'Тёмная':'Dark');
+  renderEraFilter();
+  renderCards();
+  if(document.getElementById('panel1').classList.contains('show'))renderTimeline();
+  if(document.getElementById('quizQ').textContent)nextQuiz();
+}
+
+document.getElementById('langBtn').addEventListener('click',()=>{
+  lang=lang==='ru'?'en':'ru';
+  localStorage.setItem('musicapp_lang',lang);
+  document.getElementById('langText').textContent=lang==='ru'?'RU':'EN';
+  applyLang();
+});
+document.getElementById('themeBtn').addEventListener('click',()=>{
+  const dk=document.documentElement.getAttribute('data-theme')==='dark';
+  document.documentElement.setAttribute('data-theme',dk?'light':'dark');
+  localStorage.setItem('musicapp_theme',dk?'light':'dark');
+  const L=lang==='ru';
+  document.getElementById('themeText').textContent=dk?(L?'Тёмная':'Dark'):(L?'Светлая':'Light');
+  document.getElementById('themeIco').innerHTML=dk
+    ?'<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>'
+    :'<circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>';
+});
+
+renderEraFilter();
+renderCards();
+</script></body>
+</html>
