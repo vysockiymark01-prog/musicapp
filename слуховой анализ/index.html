@@ -1,0 +1,1354 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<!-- Yandex.Metrika counter -->
+<script type="text/javascript">
+    (function(m,e,t,r,i,k,a){
+        m[i]=m[i]||function(){(m[i].a=m[i].a||[]).push(arguments)};
+        m[i].l=1*new Date();
+        for (var j = 0; j < document.scripts.length; j++) {if (document.scripts[j].src === r) { return; }}
+        k=e.createElement(t),a=e.getElementsByTagName(t)[0],k.async=1,k.src=r,a.parentNode.insertBefore(k,a)
+    })(window, document,'script','https://mc.yandex.ru/metrika/tag.js?id=110314124', 'ym');
+    ym(110314124, 'init', {ssr:true, webvisor:true, clickmap:true, ecommerce:"dataLayer", referrer: document.referrer, url: location.href, accurateTrackBounce:true, trackLinks:true});
+</script>
+<noscript><div><img src="https://mc.yandex.ru/watch/110314124" style="position:absolute; left:-9999px;" alt="" /></div></noscript>
+<!-- /Yandex.Metrika counter -->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Слуховой анализ</title>
+    <script>(function(){var t=localStorage.getItem('musicapp_theme');if(t==='dark')document.documentElement.setAttribute('data-theme','dark');else document.documentElement.setAttribute('data-theme','light');})()</script>
+    <style>
+        :root {
+            --bg:#f8fafc;--card:#fff;--text:#0f172a;--muted:#94a3b8;--border:#e2e8f0;
+            --sl100:#f1f5f9;--sl200:#e2e8f0;--sl300:#cbd5e1;--sl400:#94a3b8;--sl500:#64748b;
+            --sl600:#475569;--sl700:#334155;--sl800:#1e293b;--sl900:#0f172a;
+            --blue:#2563eb;--blue2:#1d4ed8;--green:#10b981;--red:#ef4444;--amber:#f59e0b;
+            --shadow:0 1px 3px rgba(0,0,0,.05);--shadow-md:0 10px 15px rgba(0,0,0,.05);
+        }
+        [data-theme="dark"]{
+            --bg:#0f172a;--card:#1e293b;--text:#f1f5f9;--muted:#64748b;--border:#334155;
+            --sl100:#334155;--sl200:#334155;--sl300:#475569;--sl400:#64748b;--sl500:#94a3b8;
+            --sl600:#cbd5e1;--sl700:#e2e8f0;--sl800:#475569;--sl900:#f1f5f9;
+            --blue:#3b82f6;--blue2:#2563eb;
+            --shadow:0 1px 3px rgba(0,0,0,.3);--shadow-md:0 10px 15px rgba(0,0,0,.3);
+        }
+        *{margin:0;padding:0;box-sizing:border-box;}
+        body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--text);user-select:none;-webkit-user-select:none;transition:background .3s,color .3s;overflow-x:hidden;}
+        .container{max-width:860px;margin:0 auto;padding:12px;}
+
+        /* HEADER */
+        .header{display:flex;justify-content:space-between;align-items:center;padding:12px 16px;background:var(--card);border:1px solid var(--border);border-radius:16px;margin-bottom:16px;box-shadow:var(--shadow);}
+        .header-title{display:flex;align-items:center;gap:8px;font-weight:900;font-size:14px;text-transform:uppercase;letter-spacing:-.5px;}
+        .header-actions{display:flex;gap:8px;}
+        .icon-btn{display:flex;align-items:center;gap:6px;padding:6px 12px;background:var(--sl100);border:none;border-radius:12px;font-weight:700;font-size:10px;text-transform:uppercase;cursor:pointer;color:var(--text);transition:background .2s;}
+
+        /* TABS */
+        .tabs{display:flex;background:var(--card);padding:4px;border-radius:12px;border:1px solid var(--border);margin-bottom:16px;box-shadow:var(--shadow);overflow-x:auto;gap:2px;}.tabs::-webkit-scrollbar{display:none;}
+        .tab{flex:0 0 auto;padding:12px 16px;border:none;background:none;border-radius:8px;font-size:10px;font-weight:900;text-transform:uppercase;color:var(--muted);cursor:pointer;transition:all .2s;white-space:nowrap;}
+        .tab.active{background:var(--blue);color:#fff;box-shadow:0 4px 6px rgba(37,99,235,.2);}
+
+        /* CARD */
+        .card{background:var(--card);border:1px solid var(--border);border-radius:24px;padding:20px;margin-bottom:16px;box-shadow:var(--shadow);}
+
+        /* SETTINGS */
+        .settings-row{display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;}
+        .sg{display:flex;flex-direction:column;gap:5px;flex:1;min-width:100px;}
+        .sg-label{font-size:9px;font-weight:900;text-transform:uppercase;color:var(--muted);}
+        .sg-select{padding:8px 10px;background:var(--sl100);border:1px solid var(--border);border-radius:10px;font-size:12px;font-weight:700;color:var(--text);cursor:pointer;}
+
+        /* SCORE */
+        .score-row{display:flex;justify-content:center;gap:24px;margin-bottom:16px;}
+        .sc-item{text-align:center;}
+        .sc-val{font-size:36px;font-weight:900;}
+        .sc-val.c{color:var(--green);}
+        .sc-val.w{color:var(--red);}
+        .sc-lbl{font-size:9px;font-weight:900;text-transform:uppercase;color:var(--muted);}
+
+        /* PLAY PANEL */
+        .play-panel{background:var(--sl900);border-radius:20px;padding:28px 20px;margin-bottom:16px;display:flex;flex-direction:column;align-items:center;gap:16px;}
+        [data-theme="dark"] .play-panel{background:#000;}
+        .play-label{font-size:11px;font-weight:900;text-transform:uppercase;color:rgba(255,255,255,.35);letter-spacing:2px;}
+        .play-answer{font-size:22px;font-weight:900;color:#fff;min-height:30px;letter-spacing:.5px;transition:all .3s;}
+        .play-answer.correct{color:#4ade80;}
+        .play-answer.wrong{color:#f87171;}
+        .play-answer.hidden-ans{color:rgba(255,255,255,.1);}
+
+        /* LISTEN BUTTON */
+        .listen-btn{width:100%;padding:20px;border-radius:20px;border:none;background:var(--blue);color:#fff;font-size:14px;font-weight:900;text-transform:uppercase;letter-spacing:2px;cursor:pointer;transition:all .1s;box-shadow:0 8px 20px rgba(37,99,235,.25);margin-bottom:16px;display:flex;align-items:center;justify-content:center;gap:10px;}
+        .listen-btn:active{transform:scale(.98);background:var(--blue2);}
+        .listen-btn:disabled{background:var(--sl300);color:var(--sl500);box-shadow:none;cursor:default;}
+        .listen-btn.playing{background:#7c3aed;}
+
+        /* ANSWER GRID */
+        .answer-grid{display:grid;gap:10px;margin-bottom:16px;}
+        .answer-grid.cols-2{grid-template-columns:repeat(2,1fr);}
+        .answer-grid.cols-3{grid-template-columns:repeat(3,1fr);}
+        .answer-grid.cols-4{grid-template-columns:repeat(4,1fr);}
+
+        .ans-btn{padding:14px 10px;border:2px solid var(--border);border-radius:14px;background:var(--card);color:var(--text);font-size:12px;font-weight:900;cursor:pointer;transition:all .15s;text-align:center;line-height:1.3;}
+        .ans-btn:hover:not(:disabled){border-color:var(--blue);background:rgba(37,99,235,.06);}
+        .ans-btn:active:not(:disabled){transform:scale(.97);}
+        .ans-btn.correct{border-color:var(--green);background:rgba(16,185,129,.12);color:var(--green);}
+        .ans-btn.wrong{border-color:var(--red);background:rgba(239,68,68,.12);color:var(--red);}
+        .ans-btn.reveal{border-color:var(--green);background:rgba(16,185,129,.08);}
+        .ans-btn:disabled{cursor:default;opacity:.6;}
+        .ans-btn-name{font-size:14px;}
+        .ans-btn-sub{font-size:9px;font-weight:700;color:var(--muted);text-transform:uppercase;margin-top:3px;}
+
+        /* CHAIN display */
+        .chain-display{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;min-height:60px;align-items:center;}
+        .chain-item{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;padding:8px 12px;border-radius:12px;border:2px solid var(--sl700);background:var(--sl800);min-width:60px;}
+        .chain-item.active{border-color:#60a5fa;background:#1e3a8a;}
+        .chain-item.done-c{border-color:var(--green);background:#064e3b;}
+        .chain-item.done-w{border-color:var(--red);background:#450a0a;}
+        .chain-num{font-size:9px;font-weight:900;color:rgba(255,255,255,.35);text-transform:uppercase;}
+        .chain-name{font-size:13px;font-weight:900;color:#fff;}
+
+        /* BUTTONS ROW */
+        .btn-row{display:flex;gap:10px;margin-bottom:12px;}
+        .btn{flex:1;padding:14px;border:none;border-radius:14px;font-size:10px;font-weight:900;text-transform:uppercase;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:7px;transition:all .15s;}
+        .btn:active{transform:scale(.97);}
+        .btn-primary{background:var(--blue);color:#fff;}
+        .btn-secondary{background:var(--sl100);color:var(--text);border:1px solid var(--border);}
+        .btn-success{background:var(--green);color:#fff;}
+
+        .status-bar{text-align:center;font-size:11px;font-weight:700;color:var(--muted);padding:6px;}
+
+        /* FEEDBACK MODAL */
+        .feedback-modal{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.2);backdrop-filter:blur(4px);z-index:9999;}
+        .feedback-content{background:var(--card);padding:40px 56px;border-radius:40px;box-shadow:0 25px 50px rgba(0,0,0,.25);}
+        .feedback-text{font-size:28px;font-weight:900;text-align:center;}
+        .feedback-text.correct{color:var(--green);}
+        .feedback-text.wrong{color:var(--red);}
+
+        .hidden{display:none;}
+        @media(max-width:600px){
+            .answer-grid.cols-4{grid-template-columns:repeat(2,1fr);}
+            .answer-grid.cols-3{grid-template-columns:repeat(2,1fr);}
+            .header{flex-wrap:wrap;gap:8px;padding:10px 12px;}
+            .header-actions{gap:4px;}
+            .icon-btn{padding:7px 9px;font-size:9px;}
+            .container{padding:8px;}
+            .play-panel{padding:18px 12px;border-radius:16px;}
+            .btn-row{gap:8px;}
+            .btn{padding:11px;font-size:9px;}
+            .score-row{gap:14px;}
+            .sc-val{font-size:28px;}
+            .feedback-content{padding:28px 28px;border-radius:28px;}
+            .feedback-text{font-size:22px;}
+            .settings-row{gap:8px;}
+        }
+        @media(max-width:400px){
+            .header-title{font-size:12px;}
+            .answer-grid.cols-2{grid-template-columns:1fr 1fr;}
+            .ans-btn{padding:11px 8px;font-size:11px;}
+            .chain-item{min-width:48px;padding:6px 8px;}
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+<a href="../index.html" style="display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:800;text-decoration:none;opacity:.65;padding:5px 11px;border:1px solid rgba(128,128,128,.25);border-radius:10px;margin-bottom:8px;color:inherit;">← Главная</a>
+
+    <div class="header">
+        <div class="header-title">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M3 18v-6a9 9 0 0 1 18 0v6"/>
+                <path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"/>
+            </svg>
+            <span id="appTitle">Слуховой анализ</span>
+        </div>
+        <div class="header-actions">
+            <button class="icon-btn" id="themeBtn">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" id="themeIcon"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+                <span id="themeText">Тёмная</span>
+            </button>
+            <button class="icon-btn" id="langBtn">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m5 8 6 6"/><path d="m4 14 6-6 2-3"/><path d="M2 5h12"/><path d="M7 2h1"/><path d="m22 22-5-10-5 10"/><path d="M14 18h6"/></svg>
+                <span id="langText">RU</span>
+            </button>
+        </div>
+    </div>
+
+    <div class="tabs">
+        <button class="tab active" data-tab="intervals" id="tabIntervals">Интервалы</button>
+        <button class="tab" data-tab="chords" id="tabChords">Аккорды</button>
+        <button class="tab" data-tab="chains" id="tabChains">Цепочки</button>
+        <button class="tab" data-tab="resolution" id="tabResolution">Разрешение</button>
+        <button class="tab" data-tab="modes" id="tabModes">Лад/Вид</button>
+    </div>
+
+    <!-- INTERVALS -->
+    <div id="intervalsContent">
+        <div class="card">
+            <div class="settings-row">
+                <div class="sg"><div class="sg-label" id="iLblLevel">Уровень</div>
+                    <select class="sg-select" id="iLevel">
+                        <option value="1">1–2 класс</option><option value="2">3–4 класс</option>
+                        <option value="3">5–6 класс</option><option value="4">7–8 класс</option>
+                    </select>
+                </div>
+                <div class="sg"><div class="sg-label" id="iLblMode">Звучание</div>
+                    <select class="sg-select" id="iMode">
+                        <option value="harmonic" id="iModeH">Одновременно</option>
+                        <option value="melodic" id="iModeM">Мелодически</option>
+                        <option value="both" id="iModeBoth">Оба</option>
+                    </select>
+                </div>
+                <div class="sg"><div class="sg-label" id="iLblRoot">Тоника</div>
+                    <select class="sg-select" id="iRoot">
+                        <option value="fixed" id="iRootFixed">До (фиксировано)</option>
+                        <option value="random" id="iRootRandom">Случайная</option>
+                    </select>
+                </div>
+                <div class="sg"><div class="sg-label" id="iLblSpeed">Скорость</div>
+                    <select class="sg-select" id="iSpeed">
+                        <option value="slow" id="iSpeedS">Медленно</option>
+                        <option value="medium" selected id="iSpeedM">Средне</option>
+                        <option value="fast" id="iSpeedF">Быстро</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <div class="score-row">
+            <div class="sc-item"><div class="sc-val c" id="iCorrect">0</div><div class="sc-lbl" id="iLblC">Верно</div></div>
+            <div style="font-size:32px;font-weight:900;color:var(--muted)">:</div>
+            <div class="sc-item"><div class="sc-val w" id="iWrong">0</div><div class="sc-lbl" id="iLblW">Ошибки</div></div>
+        </div>
+
+        <div class="play-panel">
+            <div class="play-label" id="iPlayLabel">Нажмите Слушать</div>
+            <div class="play-answer hidden-ans" id="iAnswer">—</div>
+        </div>
+
+        <button class="listen-btn" id="iListenBtn">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="white"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+            <span id="iListenText">Слушать</span>
+        </button>
+
+        <div class="answer-grid cols-3" id="iAnswerGrid"></div>
+
+        <div class="btn-row">
+            <button class="btn btn-secondary" id="iRepeatBtn">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>
+                <span id="iRepeatText">Повторить</span>
+            </button>
+            <button class="btn btn-secondary" id="iHintBtn">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                <span id="iHintText">Подсказка</span>
+            </button>
+            <button class="btn btn-primary" id="iNextBtn">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M1 4v6h6"/><path d="M23 20v-6h-6"/><path d="M20.49 9A9 9 0 005.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 013.51 15"/></svg>
+                <span id="iNextText">Следующий</span>
+            </button>
+        </div>
+        <div class="status-bar" id="iStatus">Нажмите «Слушать» и выберите интервал</div>
+    </div>
+
+    <!-- CHORDS -->
+    <div id="chordsContent" class="hidden">
+        <div class="card">
+            <div class="settings-row">
+                <div class="sg"><div class="sg-label" id="cLblLevel">Уровень</div>
+                    <select class="sg-select" id="cLevel">
+                        <option value="1">1–2 класс</option><option value="2">3–4 класс</option>
+                        <option value="3">5–6 класс</option><option value="4">7–8 класс</option>
+                    </select>
+                </div>
+                <div class="sg"><div class="sg-label" id="cLblMode">Звучание</div>
+                    <select class="sg-select" id="cMode">
+                        <option value="harmonic" id="cModeH">Одновременно</option>
+                        <option value="arpeggio" id="cModeA">Арпеджио</option>
+                        <option value="both" id="cModeBoth">Оба</option>
+                    </select>
+                </div>
+                <div class="sg"><div class="sg-label" id="cLblRoot">Тоника</div>
+                    <select class="sg-select" id="cRoot">
+                        <option value="fixed" id="cRootFixed">До (фиксировано)</option>
+                        <option value="random" id="cRootRandom">Случайная</option>
+                    </select>
+                </div>
+                <div class="sg"><div class="sg-label" id="cLblSpeed">Скорость</div>
+                    <select class="sg-select" id="cSpeed">
+                        <option value="slow" id="cSpeedS">Медленно</option>
+                        <option value="medium" selected id="cSpeedM">Средне</option>
+                        <option value="fast" id="cSpeedF">Быстро</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <div class="score-row">
+            <div class="sc-item"><div class="sc-val c" id="cCorrect">0</div><div class="sc-lbl" id="cLblC">Верно</div></div>
+            <div style="font-size:32px;font-weight:900;color:var(--muted)">:</div>
+            <div class="sc-item"><div class="sc-val w" id="cWrong">0</div><div class="sc-lbl" id="cLblW">Ошибки</div></div>
+        </div>
+
+        <div class="play-panel">
+            <div class="play-label" id="cPlayLabel">Нажмите Слушать</div>
+            <div class="play-answer hidden-ans" id="cAnswer">—</div>
+        </div>
+
+        <button class="listen-btn" id="cListenBtn">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="white"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+            <span id="cListenText">Слушать</span>
+        </button>
+
+        <div class="answer-grid cols-4" id="cAnswerGrid"></div>
+
+        <div class="btn-row">
+            <button class="btn btn-secondary" id="cRepeatBtn">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>
+                <span id="cRepeatText">Повторить</span>
+            </button>
+            <button class="btn btn-secondary" id="cHintBtn">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                <span id="cHintText">Подсказка</span>
+            </button>
+            <button class="btn btn-primary" id="cNextBtn">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M1 4v6h6"/><path d="M23 20v-6h-6"/><path d="M20.49 9A9 9 0 005.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 013.51 15"/></svg>
+                <span id="cNextText">Следующий</span>
+            </button>
+        </div>
+        <div class="status-bar" id="cStatus">Нажмите «Слушать» и выберите аккорд</div>
+    </div>
+
+    <!-- CHAINS -->
+    <div id="chainsContent" class="hidden">
+        <div class="card">
+            <div class="settings-row">
+                <div class="sg"><div class="sg-label" id="chLblLevel">Уровень</div>
+                    <select class="sg-select" id="chLevel">
+                        <option value="1">1–2 класс</option><option value="2">3–4 класс</option>
+                        <option value="3">5–6 класс</option><option value="4">7–8 класс</option>
+                    </select>
+                </div>
+                <div class="sg"><div class="sg-label" id="chLblType">Тип</div>
+                    <select class="sg-select" id="chType">
+                        <option value="intervals" id="chTypeI">Интервалы</option>
+                        <option value="chords" id="chTypeC">Аккорды</option>
+                        <option value="mixed" id="chTypeMix">Смешанные</option>
+                    </select>
+                </div>
+                <div class="sg"><div class="sg-label" id="chLblLen">Длина</div>
+                    <select class="sg-select" id="chLen">
+                        <option value="3">3</option>
+                        <option value="4">4</option>
+                        <option value="5" selected>5</option>
+                    </select>
+                </div>
+                <div class="sg"><div class="sg-label" id="chLblSpeed">Скорость</div>
+                    <select class="sg-select" id="chSpeed">
+                        <option value="slow" id="chSpeedS">Медленно</option>
+                        <option value="medium" selected id="chSpeedM">Средне</option>
+                        <option value="fast" id="chSpeedF">Быстро</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <div class="score-row">
+            <div class="sc-item"><div class="sc-val c" id="chCorrect">0</div><div class="sc-lbl" id="chLblC">Верно</div></div>
+            <div style="font-size:32px;font-weight:900;color:var(--muted)">:</div>
+            <div class="sc-item"><div class="sc-val w" id="chWrong">0</div><div class="sc-lbl" id="chLblW">Ошибки</div></div>
+        </div>
+
+        <div class="play-panel">
+            <div class="play-label" id="chPlayLabel">Нажмите Слушать</div>
+            <div class="chain-display" id="chainDisplay"></div>
+        </div>
+
+        <button class="listen-btn" id="chListenBtn">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="white"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+            <span id="chListenText">Слушать цепочку</span>
+        </button>
+
+        <div class="answer-grid cols-3" id="chAnswerGrid"></div>
+
+        <div class="btn-row">
+            <button class="btn btn-secondary" id="chRepeatBtn">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>
+                <span id="chRepeatText">Повторить</span>
+            </button>
+            <button class="btn btn-secondary" id="chHintBtn">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                <span id="chHintText">Подсказка</span>
+            </button>
+            <button class="btn btn-primary" id="chNewBtn">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M1 4v6h6"/><path d="M23 20v-6h-6"/><path d="M20.49 9A9 9 0 005.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 013.51 15"/></svg>
+                <span id="chNewText">Новая цепочка</span>
+            </button>
+        </div>
+        <div class="status-bar" id="chStatus">Нажмите «Слушать» и определите каждый элемент по порядку</div>
+    </div>
+
+</div>
+    <!-- RESOLUTION -->
+    <div id="resolutionContent" class="hidden">
+        <div class="card">
+            <div class="settings-row">
+                <div class="sg"><div class="sg-label" id="rLblLevel">Уровень</div>
+                    <select class="sg-select" id="rLevel">
+                        <option value="1">1–2 класс</option><option value="2">3–4 класс</option>
+                        <option value="3">5–6 класс</option><option value="4">7–8 класс</option>
+                    </select>
+                </div>
+                <div class="sg"><div class="sg-label" id="rLblType">Тип</div>
+                    <select class="sg-select" id="rType">
+                        <option value="intervals" id="rTypeI">Интервалы</option>
+                        <option value="chords" id="rTypeC">Аккорды</option>
+                    </select>
+                </div>
+                <div class="sg"><div class="sg-label" id="rLblSpeed">Скорость</div>
+                    <select class="sg-select" id="rSpeed">
+                        <option value="slow" id="rSpeedS">Медленно</option>
+                        <option value="medium" selected id="rSpeedM">Средне</option>
+                        <option value="fast" id="rSpeedF">Быстро</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <div class="score-row">
+            <div class="sc-item"><div class="sc-val c" id="rCorrect">0</div><div class="sc-lbl" id="rLblC">Верно</div></div>
+            <div style="font-size:32px;font-weight:900;color:var(--muted)">:</div>
+            <div class="sc-item"><div class="sc-val w" id="rWrong">0</div><div class="sc-lbl" id="rLblW">Ошибки</div></div>
+        </div>
+
+        <div class="play-panel">
+            <div class="play-label" id="rPlayLabel">Нажмите Слушать</div>
+            <div class="play-answer hidden-ans" id="rAnswer">—</div>
+        </div>
+
+        <button class="listen-btn" id="rListenBtn">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="white"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+            <span id="rListenText">Слушать</span>
+        </button>
+
+        <div class="answer-grid cols-3" id="rAnswerGrid"></div>
+
+        <div class="btn-row">
+            <button class="btn btn-secondary" id="rRepeatBtn">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>
+                <span id="rRepeatText">Повторить</span>
+            </button>
+            <button class="btn btn-secondary" id="rHintBtn">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                <span id="rHintText">Подсказка</span>
+            </button>
+            <button class="btn btn-primary" id="rNextBtn">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M1 4v6h6"/><path d="M23 20v-6h-6"/><path d="M20.49 9A9 9 0 005.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 013.51 15"/></svg>
+                <span id="rNextText">Следующий</span>
+            </button>
+        </div>
+        <div class="status-bar" id="rStatus">Нажмите «Слушать» — услышите интервал и его разрешение</div>
+    </div>
+
+    <!-- MODES -->
+    <div id="modesContent" class="hidden">
+        <div class="card">
+            <div class="settings-row">
+                <div class="sg"><div class="sg-label" id="mLblLevel">Уровень</div>
+                    <select class="sg-select" id="mLevel">
+                        <option value="1">1–2 класс</option><option value="2">3–4 класс</option>
+                        <option value="3">5–6 класс</option><option value="4">7–8 класс</option>
+                    </select>
+                </div>
+                <div class="sg"><div class="sg-label" id="mLblSpeed">Скорость</div>
+                    <select class="sg-select" id="mSpeed">
+                        <option value="slow" id="mSpeedS">Медленно</option>
+                        <option value="medium" selected id="mSpeedM">Средне</option>
+                        <option value="fast" id="mSpeedF">Быстро</option>
+                    </select>
+                </div>
+                <div class="sg"><div class="sg-label" id="mLblDir">Направление</div>
+                    <select class="sg-select" id="mDir">
+                        <option value="up" id="mDirUp">Вверх</option>
+                        <option value="down" id="mDirDown">Вниз</option>
+                        <option value="both" id="mDirBoth">Оба</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <div class="score-row">
+            <div class="sc-item"><div class="sc-val c" id="mCorrect">0</div><div class="sc-lbl" id="mLblC">Верно</div></div>
+            <div style="font-size:32px;font-weight:900;color:var(--muted)">:</div>
+            <div class="sc-item"><div class="sc-val w" id="mWrong">0</div><div class="sc-lbl" id="mLblW">Ошибки</div></div>
+        </div>
+
+        <div class="play-panel">
+            <div class="play-label" id="mPlayLabel">Нажмите Слушать</div>
+            <div class="play-answer hidden-ans" id="mAnswer">—</div>
+        </div>
+
+        <button class="listen-btn" id="mListenBtn">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="white"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+            <span id="mListenText">Слушать</span>
+        </button>
+
+        <div class="answer-grid cols-2" id="mAnswerGrid"></div>
+
+        <div class="btn-row">
+            <button class="btn btn-secondary" id="mRepeatBtn">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>
+                <span id="mRepeatText">Повторить</span>
+            </button>
+            <button class="btn btn-secondary" id="mHintBtn">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                <span id="mHintText">Подсказка</span>
+            </button>
+            <button class="btn btn-primary" id="mNextBtn">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M1 4v6h6"/><path d="M23 20v-6h-6"/><path d="M20.49 9A9 9 0 005.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 013.51 15"/></svg>
+                <span id="mNextText">Следующий</span>
+            </button>
+        </div>
+        <div class="status-bar" id="mStatus">Нажмите «Слушать» и определите вид лада</div>
+    </div>
+
+
+<div id="feedbackModal" class="feedback-modal hidden">
+    <div class="feedback-content"><div class="feedback-text" id="feedbackText">Верно!</div></div>
+</div>
+
+<script>
+// ── TRANSLATIONS ─────────────────────────────
+const T = {
+ru:{appTitle:'Слуховой анализ',tabIntervals:'Интервалы',tabChords:'Аккорды',tabChains:'Цепочки',
+    lightTheme:'Светлая',darkTheme:'Тёмная',
+    lblSpeed:'Скорость',speedSlow:'Медленно',speedMed:'Средне',speedFast:'Быстро',
+    hint:'Подсказка',
+    lblLevel:'Уровень',lblMode:'Звучание',lblRoot:'Тоника',lblType:'Тип',lblLen:'Длина',
+    lvl1:'1–2 класс',lvl2:'3–4 класс',lvl3:'5–6 класс',lvl4:'7–8 класс',
+    modeH:'Одновременно',modeM:'Мелодически',modeBoth:'Оба',modeArp:'Арпеджио',
+    rootFixed:'До (фиксировано)',rootRandom:'Случайная',
+    typeI:'Интервалы',typeC:'Аккорды',typeMix:'Смешанные',
+    lblC:'Верно',lblW:'Ошибки',
+    listen:'Слушать',listenChain:'Слушать цепочку',repeat:'Повторить',next:'Следующий',newChain:'Новая цепочка',
+    pressListen:'Нажмите Слушать',
+    statusI:'Нажмите «Слушать» и выберите интервал',
+    statusC:'Нажмите «Слушать» и выберите аккорд',
+    statusCh:'Нажмите «Слушать» и определите каждый элемент по порядку',
+    correct:'Верно! 🎉',wrong:'Попробуй ещё 🎧',
+    chainDone:'Цепочка завершена!',
+    tabResolution:'Разрешение',tabModes:'Лад/Вид',
+    rTypeI:'Интервалы',rTypeC:'Аккорды',
+    statusR:'Нажмите «Слушать» — услышите интервал и его разрешение',
+    statusM:'Нажмите «Слушать» и определите вид лада',
+    dirUp:'Вверх',dirDown:'Вниз',dirBoth:'Оба',
+    scales:{
+        natMaj:{ru:'Натуральный мажор',en:'Natural Major'},
+        harmMaj:{ru:'Гармонический мажор',en:'Harmonic Major'},
+        melMaj:{ru:'Мелодический мажор',en:'Melodic Major'},
+        natMin:{ru:'Натуральный минор',en:'Natural Minor'},
+        harmMin:{ru:'Гармонический минор',en:'Harmonic Minor'},
+        melMin:{ru:'Мелодический минор',en:'Melodic Minor'},
+    },
+    chain3:'3',chain4:'4',chain5:'5',
+    showAnswer:'Ответ показан'},
+en:{appTitle:'Ear Training',tabIntervals:'Intervals',tabChords:'Chords',tabChains:'Chains',
+    lightTheme:'Light',darkTheme:'Dark',
+    lblSpeed:'Speed',speedSlow:'Slow',speedMed:'Medium',speedFast:'Fast',
+    hint:'Hint',
+    lblLevel:'Level',lblMode:'Playing',lblRoot:'Root',lblType:'Type',lblLen:'Length',
+    lvl1:'Grade 1–2',lvl2:'Grade 3–4',lvl3:'Grade 5–6',lvl4:'Grade 7–8',
+    modeH:'Harmonic',modeM:'Melodic',modeBoth:'Both',modeArp:'Arpeggio',
+    rootFixed:'C (fixed)',rootRandom:'Random',
+    typeI:'Intervals',typeC:'Chords',typeMix:'Mixed',
+    lblC:'Correct',lblW:'Errors',
+    listen:'Listen',listenChain:'Listen to chain',repeat:'Repeat',next:'Next',newChain:'New Chain',
+    pressListen:'Press Listen',
+    statusI:'Press Listen and choose the interval',
+    statusC:'Press Listen and choose the chord',
+    statusCh:'Press Listen and identify each element in order',
+    correct:'Correct! 🎉',wrong:'Try again 🎧',
+    chainDone:'Chain complete!',
+    tabResolution:'Resolution',tabModes:'Mode/Type',
+    rTypeI:'Intervals',rTypeC:'Chords',
+    statusR:'Press Listen — you will hear the interval and its resolution',
+    statusM:'Press Listen and identify the scale type',
+    dirUp:'Ascending',dirDown:'Descending',dirBoth:'Both',
+    scales:{
+        natMaj:{ru:'Natural Major',en:'Natural Major'},
+        harmMaj:{ru:'Harmonic Major',en:'Harmonic Major'},
+        melMaj:{ru:'Melodic Major',en:'Melodic Major'},
+        natMin:{ru:'Natural Minor',en:'Natural Minor'},
+        harmMin:{ru:'Harmonic Minor',en:'Harmonic Minor'},
+        melMin:{ru:'Melodic Minor',en:'Melodic Minor'},
+    },
+    chain3:'3',chain4:'4',chain5:'5',
+    showAnswer:'Answer revealed'}
+};
+
+// ── INTERVALS ────────────────────────────────
+const INTERVALS = [
+    {id:'p1', semi:0,  ru:'ч1',  en:'P1',  ruFull:'Чистая прима',    enFull:'Perfect Unison'},
+    {id:'m2', semi:1,  ru:'м2',  en:'m2',  ruFull:'Малая секунда',   enFull:'Minor 2nd'},
+    {id:'M2', semi:2,  ru:'б2',  en:'M2',  ruFull:'Большая секунда', enFull:'Major 2nd'},
+    {id:'m3', semi:3,  ru:'м3',  en:'m3',  ruFull:'Малая терция',    enFull:'Minor 3rd'},
+    {id:'M3', semi:4,  ru:'б3',  en:'M3',  ruFull:'Большая терция',  enFull:'Major 3rd'},
+    {id:'p4', semi:5,  ru:'ч4',  en:'P4',  ruFull:'Чистая кварта',   enFull:'Perfect 4th'},
+    {id:'tt', semi:6,  ru:'ув4/ум5',en:'TT',ruFull:'Тритон',         enFull:'Tritone'},
+    {id:'p5', semi:7,  ru:'ч5',  en:'P5',  ruFull:'Чистая квинта',   enFull:'Perfect 5th'},
+    {id:'m6', semi:8,  ru:'м6',  en:'m6',  ruFull:'Малая секста',    enFull:'Minor 6th'},
+    {id:'M6', semi:9,  ru:'б6',  en:'M6',  ruFull:'Большая секста',  enFull:'Major 6th'},
+    {id:'m7', semi:10, ru:'м7',  en:'m7',  ruFull:'Малая септима',   enFull:'Minor 7th'},
+    {id:'M7', semi:11, ru:'б7',  en:'M7',  ruFull:'Большая септима', enFull:'Major 7th'},
+    {id:'p8', semi:12, ru:'ч8',  en:'P8',  ruFull:'Октава',          enFull:'Octave'},
+];
+
+// Intervals available per level
+const INTERVAL_LEVELS = {
+    1: ['m2','M2','m3','M3','p4','p5'],
+    2: ['m2','M2','m3','M3','p4','p5','m6','M6','p8'],
+    3: ['m2','M2','m3','M3','p4','tt','p5','m6','M6','m7','M7','p8'],
+    4: ['m2','M2','m3','M3','p4','tt','p5','m6','M6','m7','M7','p8'],
+};
+
+// ── CHORDS ───────────────────────────────────
+const CHORDS = [
+    {id:'M',    semis:[0,4,7],    ru:'М',      en:'Maj',   ruFull:'Мажорное трезвучие',      enFull:'Major Triad'},
+    {id:'m',    semis:[0,3,7],    ru:'м',      en:'min',   ruFull:'Минорное трезвучие',       enFull:'Minor Triad'},
+    {id:'aug',  semis:[0,4,8],    ru:'ув',     en:'aug',   ruFull:'Увеличенное трезвучие',    enFull:'Augmented'},
+    {id:'dim',  semis:[0,3,6],    ru:'ум',     en:'dim',   ruFull:'Уменьшённое трезвучие',    enFull:'Diminished'},
+    {id:'M6',   semis:[0,3,8],    ru:'М6',     en:'M6',    ruFull:'Мажорный секстаккорд',     enFull:'Major 1st inv.'},
+    {id:'M64',  semis:[0,5,9],    ru:'М64',    en:'M64',   ruFull:'Мажорный квартсекстаккорд',enFull:'Major 2nd inv.'},
+    {id:'m6',   semis:[0,4,9],    ru:'м6',     en:'m6',    ruFull:'Минорный секстаккорд',     enFull:'Minor 1st inv.'},
+    {id:'m64',  semis:[0,5,8],    ru:'м64',    en:'m64',   ruFull:'Минорный квартсекстаккорд',enFull:'Minor 2nd inv.'},
+    {id:'D7',   semis:[0,4,7,10], ru:'D7',     en:'Dom7',  ruFull:'Доминантовый септаккорд',  enFull:'Dominant 7th'},
+    {id:'M7',   semis:[0,4,7,11], ru:'Б7',     en:'Maj7',  ruFull:'Большой мажорный септаккорд',enFull:'Major 7th'},
+    {id:'m7',   semis:[0,3,7,10], ru:'М7',     en:'min7',  ruFull:'Малый минорный септаккорд', enFull:'Minor 7th'},
+    {id:'dim7', semis:[0,3,6,9],  ru:'ум7',    en:'dim7',  ruFull:'Уменьшённый септаккорд',   enFull:'Dim 7th'},
+];
+
+const CHORD_LEVELS = {
+    1: ['M','m'],
+    2: ['M','m','aug','dim'],
+    3: ['M','m','aug','dim','M6','M64','m6','m64'],
+    4: ['M','m','aug','dim','M6','M64','m6','m64','D7','M7','m7','dim7'],
+};
+
+// ── STATE ────────────────────────────────────
+let lang=localStorage.getItem('musicapp_lang')||'ru', isDark=localStorage.getItem('musicapp_theme')==='dark', activeTab='intervals';
+let audioCtx=null;
+
+// Intervals state
+let iLevel=1, iMode='harmonic', iRoot='fixed', iSpeed='medium';
+let iCurrent=null, iCorrect=0, iWrong=0, iAnswered=false, iPlayed=false, iLastCorrect=false;
+
+// Chords state
+let cLevel=1, cMode='harmonic', cRoot='fixed', cSpeed='medium';
+let cCurrent=null, cCorrect=0, cWrong=0, cAnswered=false, cPlayed=false, cLastCorrect=false;
+
+// Chains state
+let chLevel=1, chType='intervals', chLen=5, chSpeed='medium';
+let chChain=[], chStep=0, chCorrect=0, chWrong=0, chPlayed=false;
+
+// ── AUDIO ─────────────────────────────────────
+function getCtx(){
+    if(!audioCtx) audioCtx=new(window.AudioContext||window.webkitAudioContext)();
+    if(audioCtx.state==='suspended') audioCtx.resume();
+    return audioCtx;
+}
+function noteFreq(midi){ return 440*Math.pow(2,(midi-69)/12); }
+function midiFromOctaveNote(note,octave){
+    const map={C:0,'C#':1,D:2,'D#':3,E:4,F:5,'F#':6,G:7,'G#':8,A:9,'A#':10,B:11};
+    return (octave+1)*12+map[note];
+}
+
+function speedDur(speed,base){return speed==='slow'?base*2:speed==='fast'?base*0.55:base;}
+function speedGap(speed,base){return speed==='slow'?base*2:speed==='fast'?base*0.5:base;}
+
+function playTone(midi, startTime, dur=0.6, vol=0.35){
+    const ctx=getCtx();
+    const osc=ctx.createOscillator();
+    const gain=ctx.createGain();
+    osc.type='triangle';
+    osc.frequency.value=noteFreq(midi);
+    gain.gain.setValueAtTime(0,startTime);
+    gain.gain.linearRampToValueAtTime(vol,startTime+0.02);
+    gain.gain.exponentialRampToValueAtTime(0.001,startTime+dur);
+    osc.connect(gain);gain.connect(ctx.destination);
+    osc.start(startTime);osc.stop(startTime+dur);
+}
+
+function getRootMidi(rootType){
+    if(rootType==='fixed') return 60; // C4
+    const roots=[60,62,64,65,67,69,71,72]; // C D E F G A B C5
+    return roots[Math.floor(Math.random()*roots.length)];
+}
+
+function playInterval(semi, mode, rootMidi, speed='medium'){
+    const ctx=getCtx();
+    const now=ctx.currentTime+0.05;
+    const dur=speedDur(speed,0.9);
+    const gap=speedGap(speed,0.45);
+    if(mode==='harmonic'||(mode==='both'&&Math.random()<0.5)){
+        playTone(rootMidi,now,dur);
+        playTone(rootMidi+semi,now,dur);
+    } else {
+        playTone(rootMidi,now,dur*0.7);
+        playTone(rootMidi+semi,now+gap,dur*0.7);
+    }
+}
+
+function playChord(semis, mode, rootMidi, cb, speed='medium'){
+    const ctx=getCtx();
+    const now=ctx.currentTime+0.05;
+    const dur=speedDur(speed,1.0);
+    const step=speedGap(speed,0.18);
+    if(mode==='harmonic'||(mode==='both'&&Math.random()<0.5)){
+        semis.forEach(s=>playTone(rootMidi+s,now,dur));
+        if(cb) setTimeout(cb,(dur*1000)+100);
+    } else {
+        semis.forEach((s,i)=>playTone(rootMidi+s,now+i*step,dur*0.8));
+        if(cb) setTimeout(cb,(semis.length*step*1000+dur*800)+100);
+    }
+}
+
+// ── INTERVALS TAB ──────────────────────────────
+function iGetPool(){ return INTERVAL_LEVELS[iLevel].map(id=>INTERVALS.find(x=>x.id===id)); }
+
+function iNewQuestion(){
+    iAnswered=false; iPlayed=false;
+    const pool=iGetPool();
+    iCurrent=pool[Math.floor(Math.random()*pool.length)];
+    const ans=document.getElementById('iAnswer');
+    ans.textContent='—';ans.className='play-answer hidden-ans';
+    document.getElementById('iPlayLabel').textContent=T[lang].pressListen;
+    document.getElementById('iStatus').textContent=T[lang].statusI;
+    iRenderGrid();
+    // disable answer buttons until played
+    document.querySelectorAll('#iAnswerGrid .ans-btn').forEach(b=>b.disabled=true);
+}
+
+function iRenderGrid(){
+    const pool=iGetPool();
+    const grid=document.getElementById('iAnswerGrid');
+    const cols=pool.length<=6?'cols-3':'cols-4';
+    grid.className='answer-grid '+cols;
+    grid.innerHTML=pool.map(iv=>`
+        <button class="ans-btn" data-id="${iv.id}" ${iAnswered?'disabled':''}>
+            <div class="ans-btn-name">${lang==='ru'?iv.ru:iv.en}</div>
+            <div class="ans-btn-sub">${lang==='ru'?iv.ruFull:iv.enFull}</div>
+        </button>`).join('');
+    grid.querySelectorAll('.ans-btn').forEach(btn=>{
+        btn.addEventListener('click',()=>iSelectAnswer(btn.dataset.id));
+    });
+}
+
+function iPlayCurrent(){
+    if(!iCurrent) iNewQuestion();
+    const rootMidi=getRootMidi(iRoot);
+    playInterval(iCurrent.semi,iMode,rootMidi,iSpeed);
+    iPlayed=true;
+    document.getElementById('iPlayLabel').textContent=lang==='ru'?'Выберите интервал':'Choose the interval';
+    document.querySelectorAll('#iAnswerGrid .ans-btn').forEach(b=>b.disabled=false);
+}
+
+function iSelectAnswer(id){
+    if(!iPlayed) return;
+    const isOk=(id===iCurrent.id);
+    if(isOk){
+        iAnswered=true; iLastCorrect=true; iCorrect++;
+        document.getElementById('iCorrect').textContent=iCorrect;
+        const ans=document.getElementById('iAnswer');
+        ans.textContent=lang==='ru'?iCurrent.ruFull:iCurrent.enFull;
+        ans.className='play-answer correct';
+        document.querySelectorAll('#iAnswerGrid .ans-btn').forEach(btn=>{btn.disabled=true;if(btn.dataset.id===id)btn.classList.add('correct');});
+        showFeedback(T[lang].correct,true);
+        document.getElementById('iStatus').textContent=T[lang].showAnswer;
+    } else {
+        iWrong++;
+        document.getElementById('iWrong').textContent=iWrong;
+        const btn=document.querySelector('#iAnswerGrid .ans-btn[data-id="'+id+'"]');
+        if(btn){btn.classList.add('wrong');setTimeout(()=>btn.classList.remove('wrong'),600);}
+        showFeedback(T[lang].wrong,false);
+    }
+}
+
+// ── CHORDS TAB ────────────────────────────────
+function cGetPool(){ return CHORD_LEVELS[cLevel].map(id=>CHORDS.find(x=>x.id===id)); }
+
+function cNewQuestion(){
+    cAnswered=false; cPlayed=false;
+    const pool=cGetPool();
+    cCurrent=pool[Math.floor(Math.random()*pool.length)];
+    const ans=document.getElementById('cAnswer');
+    ans.textContent='—';ans.className='play-answer hidden-ans';
+    document.getElementById('cPlayLabel').textContent=T[lang].pressListen;
+    document.getElementById('cStatus').textContent=T[lang].statusC;
+    cRenderGrid();
+    document.querySelectorAll('#cAnswerGrid .ans-btn').forEach(b=>b.disabled=true);
+}
+
+function cRenderGrid(){
+    const pool=cGetPool();
+    const grid=document.getElementById('cAnswerGrid');
+    const cols=pool.length<=4?'cols-2':pool.length<=6?'cols-3':'cols-4';
+    grid.className='answer-grid '+cols;
+    grid.innerHTML=pool.map(ch=>`
+        <button class="ans-btn" data-id="${ch.id}" ${cAnswered?'disabled':''}>
+            <div class="ans-btn-name">${lang==='ru'?ch.ru:ch.en}</div>
+            <div class="ans-btn-sub">${lang==='ru'?ch.ruFull:ch.enFull}</div>
+        </button>`).join('');
+    grid.querySelectorAll('.ans-btn').forEach(btn=>{
+        btn.addEventListener('click',()=>cSelectAnswer(btn.dataset.id));
+    });
+}
+
+function cPlayCurrent(){
+    if(!cCurrent) cNewQuestion();
+    const rootMidi=getRootMidi(cRoot);
+    playChord(cCurrent.semis,cMode,rootMidi,null,cSpeed);
+    cPlayed=true;
+    document.getElementById('cPlayLabel').textContent=lang==='ru'?'Выберите аккорд':'Choose the chord';
+    document.querySelectorAll('#cAnswerGrid .ans-btn').forEach(b=>b.disabled=false);
+}
+
+function cSelectAnswer(id){
+    if(!cPlayed) return;
+    const isOk=(id===cCurrent.id);
+    if(isOk){
+        cAnswered=true; cLastCorrect=true; cCorrect++;
+        document.getElementById('cCorrect').textContent=cCorrect;
+        const ans=document.getElementById('cAnswer');
+        ans.textContent=lang==='ru'?cCurrent.ruFull:cCurrent.enFull;
+        ans.className='play-answer correct';
+        document.querySelectorAll('#cAnswerGrid .ans-btn').forEach(btn=>{btn.disabled=true;if(btn.dataset.id===id)btn.classList.add('correct');});
+        showFeedback(T[lang].correct,true);
+        document.getElementById('cStatus').textContent=T[lang].showAnswer;
+    } else {
+        cWrong++;
+        document.getElementById('cWrong').textContent=cWrong;
+        const btn=document.querySelector('#cAnswerGrid .ans-btn[data-id="'+id+'"]');
+        if(btn){btn.classList.add('wrong');setTimeout(()=>btn.classList.remove('wrong'),600);}
+        showFeedback(T[lang].wrong,false);
+    }
+}
+
+// ── CHAINS TAB ─────────────────────────────────
+function chBuildItem(){
+    const iPool=INTERVAL_LEVELS[chLevel].map(id=>INTERVALS.find(x=>x.id===id));
+    const cPool=CHORD_LEVELS[chLevel].map(id=>CHORDS.find(x=>x.id===id));
+    if(chType==='intervals') return {kind:'interval',data:iPool[Math.floor(Math.random()*iPool.length)],rootMidi:getRootMidi('random')};
+    if(chType==='chords')    return {kind:'chord',   data:cPool[Math.floor(Math.random()*cPool.length)], rootMidi:getRootMidi('random')};
+    return Math.random()<0.5
+        ? {kind:'interval',data:iPool[Math.floor(Math.random()*iPool.length)],rootMidi:getRootMidi('random')}
+        : {kind:'chord',   data:cPool[Math.floor(Math.random()*cPool.length)], rootMidi:getRootMidi('random')};
+}
+
+function chNewChain(){
+    chChain=[];
+    for(let i=0;i<chLen;i++) chChain.push(chBuildItem());
+    chStep=0; chPlayed=false;
+    chRenderDisplay();
+    chRenderGrid();
+    document.getElementById('chPlayLabel').textContent=T[lang].pressListen;
+    document.getElementById('chStatus').textContent=T[lang].statusCh;
+}
+
+function chRenderDisplay(){
+    const display=document.getElementById('chainDisplay');
+    display.innerHTML=chChain.map((item,i)=>{
+        let cls='chain-item';
+        if(i===chStep&&chPlayed) cls+=' active';
+        if(i<chStep) cls+=(item.answered?' done-c':' done-c'); // shown after chain done
+        const lbl=i<chStep?(lang==='ru'?(item.kind==='interval'?item.data.ruFull:item.data.ruFull):(item.kind==='interval'?item.data.enFull:item.data.enFull)):'?';
+        return `<div class="${cls}">
+            <div class="chain-num">${i+1}</div>
+            <div class="chain-name">${lbl}</div>
+        </div>`;
+    }).join('');
+}
+
+function chPlayChain(){
+    const ctx=getCtx();
+    let delay=0.1;
+    const gap=0.3;
+    chChain.forEach(item=>{
+        if(item.kind==='interval'){
+            const dur=speedDur(chSpeed,0.7);
+            playTone(item.rootMidi,ctx.currentTime+delay,dur);
+            playTone(item.rootMidi+item.data.semi,ctx.currentTime+delay,dur);
+            delay+=dur+speedGap(chSpeed,0.3);
+        } else {
+            const dur=speedDur(chSpeed,0.9);
+            item.data.semis.forEach(s=>playTone(item.rootMidi+s,ctx.currentTime+delay,dur));
+            delay+=dur+speedGap(chSpeed,0.3);
+        }
+    });
+    chPlayed=true;
+    chStep=0;
+    document.getElementById('chPlayLabel').textContent=lang==='ru'?'Определите элемент №1':'Identify element #1';
+    chRenderDisplay();
+    chRenderGrid();
+    document.querySelectorAll('#chAnswerGrid .ans-btn').forEach(b=>b.disabled=false);
+}
+
+function chRenderGrid(){
+    const grid=document.getElementById('chAnswerGrid');
+    if(!chPlayed){grid.innerHTML='';return;}
+    const cur=chChain[chStep];
+    if(!cur){grid.innerHTML='';return;}
+
+    let pool=[];
+    if(cur.kind==='interval'){
+        pool=INTERVAL_LEVELS[chLevel].map(id=>INTERVALS.find(x=>x.id===id)).map(iv=>({
+            id:iv.id,kind:'interval',
+            name:lang==='ru'?iv.ru:iv.en,
+            full:lang==='ru'?iv.ruFull:iv.enFull
+        }));
+    } else {
+        pool=CHORD_LEVELS[chLevel].map(id=>CHORDS.find(x=>x.id===id)).map(ch=>({
+            id:ch.id,kind:'chord',
+            name:lang==='ru'?ch.ru:ch.en,
+            full:lang==='ru'?ch.ruFull:ch.enFull
+        }));
+    }
+    const cols=pool.length<=6?'cols-3':'cols-4';
+    grid.className='answer-grid '+cols;
+    grid.innerHTML=pool.map(p=>`
+        <button class="ans-btn" data-id="${p.id}" data-kind="${p.kind}">
+            <div class="ans-btn-name">${p.name}</div>
+            <div class="ans-btn-sub">${p.full}</div>
+        </button>`).join('');
+    grid.querySelectorAll('.ans-btn').forEach(btn=>{
+        btn.addEventListener('click',()=>chSelectAnswer(btn.dataset.id,btn));
+    });
+}
+
+function chSelectAnswer(id, btn){
+    if(!chPlayed) return;
+    const cur=chChain[chStep];
+    if(!cur) return;
+    const isOk=(id===cur.data.id);
+    cur.answered=isOk;
+    if(isOk) chCorrect++; else chWrong++;
+    document.getElementById('chCorrect').textContent=chCorrect;
+    document.getElementById('chWrong').textContent=chWrong;
+
+    // Mark button
+    document.querySelectorAll('#chAnswerGrid .ans-btn').forEach(b=>{
+        b.disabled=true;
+        if(b.dataset.id===cur.data.id) b.classList.add('reveal');
+    });
+    if(!isOk) btn.classList.add('wrong');
+    else btn.classList.add('correct');
+
+    chStep++;
+    // Update display to show answered item
+    chRenderDisplay();
+
+    if(chStep>=chChain.length){
+        document.getElementById('chStatus').textContent=T[lang].chainDone;
+        document.getElementById('chAnswerGrid').innerHTML='';
+        document.getElementById('chPlayLabel').textContent=T[lang].chainDone;
+    } else {
+        setTimeout(()=>{
+            document.getElementById('chPlayLabel').textContent=(lang==='ru'?'Определите элемент №':'Identify element #')+(chStep+1);
+            chRenderGrid();
+            document.querySelectorAll('#chAnswerGrid .ans-btn').forEach(b=>b.disabled=false);
+        },600);
+    }
+}
+
+function chPlaySingle(){
+    if(!chChain.length) return;
+    const ctx=getCtx();
+    const item=chChain[Math.min(chStep,chChain.length-1)];
+    const now=ctx.currentTime+0.05;
+    if(item.kind==='interval'){
+        playTone(item.rootMidi,now,0.8);
+        playTone(item.rootMidi+item.data.semi,now,0.8);
+    } else {
+        item.data.semis.forEach(s=>playTone(item.rootMidi+s,now,0.9));
+    }
+}
+
+
+// ── RESOLUTION DATA ──────────────────────────
+// Each entry: what is played, then its resolution
+// unstable: {semis from root}, stable: {semis from root}, label
+const RESOLUTIONS_INT = [
+    {id:'tt_m3', level:2, semi:6, resSemis:[0,3], ru:'ув4 → м3', en:'A4 → m3', ruFull:'Тритон (ув4) → малая терция', enFull:'Tritone (A4) → minor 3rd'},
+    {id:'tt_M6', level:2, semi:6, resSemis:[0,9], ru:'ум5 → б6', en:'d5 → M6', ruFull:'Тритон (ум5) → большая секста', enFull:'Tritone (d5) → major 6th'},
+    {id:'M7_p8', level:3, semi:11, resSemis:[0,12], ru:'б7 → ч8', en:'M7 → P8', ruFull:'Большая септима → октава', enFull:'Major 7th → octave'},
+    {id:'m2_p1', level:2, semi:1, resSemis:[0,0], ru:'м2 → ч1', en:'m2 → P1', ruFull:'Малая секунда → прима', enFull:'Minor 2nd → unison'},
+    {id:'m7_p5', level:3, semi:10, resSemis:[0,7], ru:'м7 → ч5', en:'m7 → P5', ruFull:'Малая септима → квинта', enFull:'Minor 7th → 5th'},
+    {id:'M2_p1', level:2, semi:2, resSemis:[0,0], ru:'б2 → ч1', en:'M2 → P1', ruFull:'Большая секунда → прима', enFull:'Major 2nd → unison'},
+];
+const RESOLUTIONS_CHD = [
+    {id:'D7_T', level:2, semis:[0,4,7,10], resSemis:[0,4,7], ru:'D7 → Т', en:'D7 → T', ruFull:'Доминантсептаккорд → тоника', enFull:'Dominant 7th → Tonic'},
+    {id:'D_T',  level:1, semis:[0,4,7],    resSemis:[0,4,7], ru:'D → Т',  en:'D → T',  ruFull:'Доминанта → тоника', enFull:'Dominant → Tonic'},
+    {id:'dim7_T',level:3,semis:[0,3,6,9],  resSemis:[0,4,7], ru:'ум7 → Т',en:'dim7→T', ruFull:'Уменьшённый септаккорд → тоника', enFull:'Dim 7th → Tonic'},
+    {id:'S_T',  level:2, semis:[0,5,9],    resSemis:[0,4,7], ru:'S → Т',  en:'S → T',  ruFull:'Субдоминанта → тоника', enFull:'Subdominant → Tonic'},
+];
+
+const RES_INT_LEVELS  = {1:['m2_p1','M2_p1'],2:['tt_m3','tt_M6','m2_p1','M2_p1'],3:['tt_m3','tt_M6','M7_p8','m7_p5'],4:['tt_m3','tt_M6','M7_p8','m7_p5','m2_p1']};
+const RES_CHD_LEVELS  = {1:['D_T'],2:['D7_T','D_T','S_T'],3:['D7_T','D_T','S_T','dim7_T'],4:['D7_T','D_T','S_T','dim7_T']};
+
+let rLevel=1, rType='intervals', rSpeed='medium';
+let rCurrent=null, rCorrect=0, rWrong=0, rAnswered=false, rPlayed=false, rLastCorrect=false;
+const ROOT_MIDI = 60; // always C4 for resolution
+
+function rGetPool(){
+    if(rType==='intervals'){
+        const ids=RES_INT_LEVELS[rLevel];
+        return ids.map(id=>RESOLUTIONS_INT.find(x=>x.id===id)).filter(Boolean);
+    } else {
+        const ids=RES_CHD_LEVELS[rLevel];
+        return ids.map(id=>RESOLUTIONS_CHD.find(x=>x.id===id)).filter(Boolean);
+    }
+}
+
+function rNewQuestion(){
+    rAnswered=false; rPlayed=false;
+    const pool=rGetPool();
+    rCurrent=pool[Math.floor(Math.random()*pool.length)];
+    const ans=document.getElementById('rAnswer');
+    ans.textContent='—'; ans.className='play-answer hidden-ans';
+    document.getElementById('rPlayLabel').textContent=T[lang].pressListen;
+    document.getElementById('rStatus').textContent=T[lang].statusR;
+    rRenderGrid();
+    document.querySelectorAll('#rAnswerGrid .ans-btn').forEach(b=>b.disabled=true);
+}
+
+function rRenderGrid(){
+    const pool=rGetPool();
+    const grid=document.getElementById('rAnswerGrid');
+    const cols=pool.length<=4?'cols-2':'cols-3';
+    grid.className='answer-grid '+cols;
+    grid.innerHTML=pool.map(item=>`
+        <button class="ans-btn" data-id="${item.id}">
+            <div class="ans-btn-name">${lang==='ru'?item.ru:item.en}</div>
+            <div class="ans-btn-sub">${lang==='ru'?item.ruFull:item.enFull}</div>
+        </button>`).join('');
+    grid.querySelectorAll('.ans-btn').forEach(btn=>btn.addEventListener('click',()=>rSelectAnswer(btn.dataset.id)));
+}
+
+function rPlayCurrent(){
+    if(!rCurrent) rNewQuestion();
+    const ctx=getCtx();
+    const now=ctx.currentTime+0.05;
+    const dur=speedDur(rSpeed,0.8);
+    const gap=speedGap(rSpeed,0.2);
+    const pauseLen=speedDur(rSpeed,0.5);
+    if(rType==='intervals'){
+        playTone(ROOT_MIDI, now, dur);
+        playTone(ROOT_MIDI+rCurrent.semi, now, dur);
+        // pause then resolution
+        const resStart=now+dur+pauseLen;
+        rCurrent.resSemis.forEach(s=>playTone(ROOT_MIDI+s, resStart, dur));
+    } else {
+        rCurrent.semis.forEach((s,i)=>playTone(ROOT_MIDI+s, now+i*gap, dur));
+        const resStart=now+rCurrent.semis.length*gap+dur+pauseLen;
+        rCurrent.resSemis.forEach((s,i)=>playTone(ROOT_MIDI+s, resStart+i*gap*0.5, dur));
+    }
+    rPlayed=true;
+    document.getElementById('rPlayLabel').textContent=lang==='ru'?'Выберите ответ':'Choose your answer';
+    document.querySelectorAll('#rAnswerGrid .ans-btn').forEach(b=>b.disabled=false);
+}
+
+function rSelectAnswer(id){
+    if(!rPlayed) return;
+    const isOk=(id===rCurrent.id);
+    if(isOk){
+        rAnswered=true; rLastCorrect=true; rCorrect++;
+        document.getElementById('rCorrect').textContent=rCorrect;
+        const ans=document.getElementById('rAnswer');
+        ans.textContent=lang==='ru'?rCurrent.ruFull:rCurrent.enFull;
+        ans.className='play-answer correct';
+        document.querySelectorAll('#rAnswerGrid .ans-btn').forEach(btn=>{btn.disabled=true;if(btn.dataset.id===id)btn.classList.add('correct');});
+        showFeedback(T[lang].correct,true);
+        document.getElementById('rStatus').textContent=T[lang].showAnswer;
+    } else {
+        rWrong++;
+        document.getElementById('rWrong').textContent=rWrong;
+        const btn=document.querySelector('#rAnswerGrid .ans-btn[data-id="'+id+'"]');
+        if(btn){btn.classList.add('wrong');setTimeout(()=>btn.classList.remove('wrong'),600);}
+        showFeedback(T[lang].wrong,false);
+    }
+}
+
+// ── MODES / SCALES DATA ───────────────────────
+const SCALES = [
+    {id:'natMaj', steps:[2,2,1,2,2,2,1], level:1},
+    {id:'natMin', steps:[2,1,2,2,1,2,2], level:1},
+    {id:'harmMin',steps:[2,1,2,2,1,3,1], level:2},
+    {id:'harmMaj',steps:[2,2,1,2,1,3,1], level:3},
+    {id:'melMin', steps:[2,1,2,2,2,2,1], level:3},
+    {id:'melMaj', steps:[2,2,1,2,1,2,2], level:4},
+];
+const SCALE_LEVELS={1:['natMaj','natMin'],2:['natMaj','natMin','harmMin'],3:['natMaj','natMin','harmMin','harmMaj','melMin'],4:['natMaj','natMin','harmMin','harmMaj','melMin','melMaj']};
+
+let mLevel=1, mSpeed='medium', mDir='up';
+let mCurrent=null, mCorrect=0, mWrong=0, mAnswered=false, mPlayed=false, mLastCorrect=false;
+
+function mGetPool(){return SCALE_LEVELS[mLevel].map(id=>SCALES.find(x=>x.id===id)).filter(Boolean);}
+
+function mNewQuestion(){
+    mAnswered=false; mPlayed=false;
+    const pool=mGetPool();
+    mCurrent=pool[Math.floor(Math.random()*pool.length)];
+    const ans=document.getElementById('mAnswer');
+    ans.textContent='—'; ans.className='play-answer hidden-ans';
+    document.getElementById('mPlayLabel').textContent=T[lang].pressListen;
+    document.getElementById('mStatus').textContent=T[lang].statusM;
+    mRenderGrid();
+    document.querySelectorAll('#mAnswerGrid .ans-btn').forEach(b=>b.disabled=true);
+}
+
+function mRenderGrid(){
+    const pool=mGetPool();
+    const grid=document.getElementById('mAnswerGrid');
+    const cols=pool.length<=2?'cols-2':pool.length<=4?'cols-2':'cols-3';
+    grid.className='answer-grid '+cols;
+    grid.innerHTML=pool.map(sc=>`
+        <button class="ans-btn" data-id="${sc.id}">
+            <div class="ans-btn-name">${lang==='ru'?T.ru.scales[sc.id].ru:T.en.scales[sc.id].en}</div>
+        </button>`).join('');
+    grid.querySelectorAll('.ans-btn').forEach(btn=>btn.addEventListener('click',()=>mSelectAnswer(btn.dataset.id)));
+}
+
+function mPlayCurrent(){
+    if(!mCurrent) mNewQuestion();
+    const ctx=getCtx();
+    const stepDur=speedDur(mSpeed,0.3);
+    const noteDur=stepDur*0.85;
+    let midi=60; // C4
+    const notes=[midi];
+    mCurrent.steps.forEach(s=>{midi+=s;notes.push(midi);});
+
+    let playNotes=notes;
+    const direction=(mDir==='both')?(Math.random()<0.5?'up':'down'):mDir;
+    if(direction==='down') playNotes=[...notes].reverse();
+
+    const now=ctx.currentTime+0.05;
+    playNotes.forEach((m,i)=>playTone(m, now+i*stepDur, noteDur, 0.3));
+    mPlayed=true;
+    document.getElementById('mPlayLabel').textContent=lang==='ru'?'Определите вид лада':'Identify the scale type';
+    document.querySelectorAll('#mAnswerGrid .ans-btn').forEach(b=>b.disabled=false);
+}
+
+function mSelectAnswer(id){
+    if(!mPlayed) return;
+    const isOk=(id===mCurrent.id);
+    if(isOk){
+        mAnswered=true; mLastCorrect=true; mCorrect++;
+        document.getElementById('mCorrect').textContent=mCorrect;
+        const ans=document.getElementById('mAnswer');
+        ans.textContent=lang==='ru'?T.ru.scales[mCurrent.id].ru:T.en.scales[mCurrent.id].en;
+        ans.className='play-answer correct';
+        document.querySelectorAll('#mAnswerGrid .ans-btn').forEach(btn=>{btn.disabled=true;if(btn.dataset.id===id)btn.classList.add('correct');});
+        showFeedback(T[lang].correct,true);
+        document.getElementById('mStatus').textContent=T[lang].showAnswer;
+    } else {
+        mWrong++;
+        document.getElementById('mWrong').textContent=mWrong;
+        const btn=document.querySelector('#mAnswerGrid .ans-btn[data-id="'+id+'"]');
+        if(btn){btn.classList.add('wrong');setTimeout(()=>btn.classList.remove('wrong'),600);}
+        showFeedback(T[lang].wrong,false);
+    }
+}
+
+// ── FEEDBACK MODAL ────────────────────────────
+function showFeedback(text,isOk){
+    const modal=document.getElementById('feedbackModal');
+    const ftxt=document.getElementById('feedbackText');
+    ftxt.textContent=text;
+    ftxt.className='feedback-text '+(isOk?'correct':'wrong');
+    modal.classList.remove('hidden');
+    setTimeout(()=>modal.classList.add('hidden'),isOk?700:900);
+}
+
+// ── LANG & THEME ─────────────────────────────
+function applyLang(){
+    const t=T[lang];
+    document.getElementById('appTitle').textContent=t.appTitle;
+    document.getElementById('langText').textContent=lang==='ru'?'RU':'EN';
+    document.getElementById('themeText').textContent=isDark?t.lightTheme:t.darkTheme;
+    document.getElementById('tabIntervals').textContent=t.tabIntervals;
+    document.getElementById('tabChords').textContent=t.tabChords;
+    document.getElementById('tabChains').textContent=t.tabChains;
+    // Settings labels
+    ['i','c','ch'].forEach(p=>{
+        const le=document.getElementById(p+'LblLevel');if(le)le.textContent=t.lblLevel;
+    });
+    const im=document.getElementById('iLblMode');if(im)im.textContent=t.lblMode;
+    const cm=document.getElementById('cLblMode');if(cm)cm.textContent=t.lblMode;
+    const ir=document.getElementById('iLblRoot');if(ir)ir.textContent=t.lblRoot;
+    const cr=document.getElementById('cLblRoot');if(cr)cr.textContent=t.lblRoot;
+    const ct=document.getElementById('chLblType');if(ct)ct.textContent=t.lblType;
+    const cl=document.getElementById('chLblLen');if(cl)cl.textContent=t.lblLen;
+    // Option texts
+    ['iModeH','cModeH'].forEach(id=>{const e=document.getElementById(id);if(e)e.textContent=t.modeH;});
+    ['iModeM'].forEach(id=>{const e=document.getElementById(id);if(e)e.textContent=t.modeM;});
+    ['iModeBoth','cModeBoth'].forEach(id=>{const e=document.getElementById(id);if(e)e.textContent=t.modeBoth;});
+    const ca=document.getElementById('cModeA');if(ca)ca.textContent=t.modeArp;
+    ['iRootFixed','cRootFixed'].forEach(id=>{const e=document.getElementById(id);if(e)e.textContent=t.rootFixed;});
+    ['iRootRandom','cRootRandom'].forEach(id=>{const e=document.getElementById(id);if(e)e.textContent=t.rootRandom;});
+    const ti=document.getElementById('chTypeI');if(ti)ti.textContent=t.typeI;
+    const tc=document.getElementById('chTypeC');if(tc)tc.textContent=t.typeC;
+    const tm=document.getElementById('chTypeMix');if(tm)tm.textContent=t.typeMix;
+    // Scores
+    ['iLblC','cLblC','chLblC'].forEach(id=>{const e=document.getElementById(id);if(e)e.textContent=t.lblC;});
+    ['iLblW','cLblW','chLblW'].forEach(id=>{const e=document.getElementById(id);if(e)e.textContent=t.lblW;});
+    // Buttons
+    ['iListenText','cListenText'].forEach(id=>{const e=document.getElementById(id);if(e)e.textContent=t.listen;});
+    document.getElementById('chListenText').textContent=t.listenChain;
+    ['iRepeatText','cRepeatText','chRepeatText'].forEach(id=>{const e=document.getElementById(id);if(e)e.textContent=t.repeat;});
+    ['iNextText','cNextText'].forEach(id=>{const e=document.getElementById(id);if(e)e.textContent=t.next;});
+    document.getElementById('chNewText').textContent=t.newChain;
+    ['iLblSpeed','cLblSpeed','chLblSpeed'].forEach(function(id){const e=document.getElementById(id);if(e)e.textContent=t.lblSpeed;});
+    ['iSpeedS','cSpeedS','chSpeedS'].forEach(function(id){const e=document.getElementById(id);if(e)e.textContent=t.speedSlow;});
+    ['iSpeedM','cSpeedM','chSpeedM'].forEach(function(id){const e=document.getElementById(id);if(e)e.textContent=t.speedMed;});
+    ['iSpeedF','cSpeedF','chSpeedF'].forEach(function(id){const e=document.getElementById(id);if(e)e.textContent=t.speedFast;});
+    ['iHintText','cHintText','chHintText','rHintText','mHintText'].forEach(function(id){const e=document.getElementById(id);if(e)e.textContent=t.hint;});
+    const tabR=document.getElementById('tabResolution');if(tabR)tabR.textContent=t.tabResolution;
+    const tabM=document.getElementById('tabModes');if(tabM)tabM.textContent=t.tabModes;
+    const rTI=document.getElementById('rTypeI');if(rTI)rTI.textContent=t.rTypeI;
+    const rTC=document.getElementById('rTypeC');if(rTC)rTC.textContent=t.rTypeC;
+    ['rRepeatText','mRepeatText'].forEach(function(id){const e=document.getElementById(id);if(e)e.textContent=t.repeat;});
+    ['rNextText','mNextText'].forEach(function(id){const e=document.getElementById(id);if(e)e.textContent=t.next;});
+    ['rListenText','mListenText'].forEach(function(id){const e=document.getElementById(id);if(e)e.textContent=t.listen;});
+    ['rLblC','mLblC'].forEach(function(id){const e=document.getElementById(id);if(e)e.textContent=t.lblC;});
+    ['rLblW','mLblW'].forEach(function(id){const e=document.getElementById(id);if(e)e.textContent=t.lblW;});
+    ['rLblLevel','mLblLevel'].forEach(function(id){const e=document.getElementById(id);if(e)e.textContent=t.lblLevel;});
+    ['rLblSpeed','mLblSpeed'].forEach(function(id){const e=document.getElementById(id);if(e)e.textContent=t.lblSpeed;});
+    ['rSpeedS','mSpeedS'].forEach(function(id){const e=document.getElementById(id);if(e)e.textContent=t.speedSlow;});
+    ['rSpeedM','mSpeedM'].forEach(function(id){const e=document.getElementById(id);if(e)e.textContent=t.speedMed;});
+    ['rSpeedF','mSpeedF'].forEach(function(id){const e=document.getElementById(id);if(e)e.textContent=t.speedFast;});
+    const mdu=document.getElementById('mDirUp');if(mdu)mdu.textContent=t.dirUp;
+    const mdd=document.getElementById('mDirDown');if(mdd)mdd.textContent=t.dirDown;
+    const mdb=document.getElementById('mDirBoth');if(mdb)mdb.textContent=t.dirBoth;
+    const rlt=document.getElementById('rLblType');if(rlt)rlt.textContent=t.lblType;
+    const mld=document.getElementById('mLblDir');if(mld)mld.textContent=lang==='ru'?'Направление':'Direction';
+    ['rLevel','mLevel'].forEach(function(id){
+        const s=document.getElementById(id);if(!s)return;
+        [t.lvl1,t.lvl2,t.lvl3,t.lvl4].forEach(function(lbl,i){if(s.options[i])s.options[i].text=lbl;});
+    });
+    if(rCurrent) document.getElementById('rStatus').textContent=t.statusR;
+    if(mCurrent) document.getElementById('mStatus').textContent=t.statusM;
+    mRenderGrid(); rRenderGrid();
+    // Level selects
+    ['iLevel','cLevel','chLevel'].forEach(id=>{
+        const s=document.getElementById(id);if(!s)return;
+        [t.lvl1,t.lvl2,t.lvl3,t.lvl4].forEach((lbl,i)=>{if(s.options[i])s.options[i].text=lbl;});
+    });
+    // Rebuild grids with new lang
+    iRenderGrid();cRenderGrid();
+}
+
+function applyTheme(){
+    document.documentElement.setAttribute('data-theme',isDark?'dark':'');
+    const t=T[lang];
+    document.getElementById('themeText').textContent=isDark?t.lightTheme:t.darkTheme;
+    document.getElementById('themeIcon').innerHTML=isDark
+        ?'<circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>'
+        :'<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>';
+}
+
+// ── INIT ─────────────────────────────────────
+document.addEventListener('DOMContentLoaded',function(){
+    document.getElementById('themeBtn').addEventListener('click',function(){isDark=!isDark;localStorage.setItem('musicapp_theme',isDark?'dark':'light');applyTheme();});
+    document.getElementById('langBtn').addEventListener('click',function(){lang=lang==='ru'?'en':'ru';localStorage.setItem('musicapp_lang',lang);applyLang();});
+
+    document.querySelectorAll('.tab').forEach(function(tab){
+        tab.addEventListener('click',function(){
+            activeTab=tab.dataset.tab;
+            ['intervals','chords','chains','resolution','modes'].forEach(function(id){
+                document.getElementById(id+'Content').classList.toggle('hidden',id!==activeTab);
+                const tabEl=document.getElementById('tab'+id[0].toUpperCase()+id.slice(1));
+                if(tabEl) tabEl.classList.toggle('active',id===activeTab);
+            });
+        });
+    });
+
+    // Intervals
+    document.getElementById('iLevel').addEventListener('change',function(e){iLevel=parseInt(e.target.value);iNewQuestion();});
+    document.getElementById('iMode').addEventListener('change',function(e){iMode=e.target.value;});
+    document.getElementById('iRoot').addEventListener('change',function(e){iRoot=e.target.value;});
+    document.getElementById('iListenBtn').addEventListener('click',function(){if(!iPlayed||iLastCorrect){iLastCorrect=false;iNewQuestion();}iPlayCurrent();});
+    document.getElementById('iRepeatBtn').addEventListener('click',iPlayCurrent);
+    document.getElementById('iSpeed').addEventListener('change',function(e){iSpeed=e.target.value;});
+    document.getElementById('iHintBtn').addEventListener('click',function(){
+        if(!iCurrent) return;
+        const ans=document.getElementById('iAnswer');
+        ans.textContent=lang==='ru'?iCurrent.ruFull:iCurrent.enFull;
+        ans.className='play-answer correct';
+    });
+    document.getElementById('iNextBtn').addEventListener('click',function(){iNewQuestion();});
+
+    // Chords
+    document.getElementById('cLevel').addEventListener('change',function(e){cLevel=parseInt(e.target.value);cNewQuestion();});
+    document.getElementById('cMode').addEventListener('change',function(e){cMode=e.target.value;});
+    document.getElementById('cRoot').addEventListener('change',function(e){cRoot=e.target.value;});
+    document.getElementById('cListenBtn').addEventListener('click',function(){if(!cPlayed||cLastCorrect){cLastCorrect=false;cNewQuestion();}cPlayCurrent();});
+    document.getElementById('cRepeatBtn').addEventListener('click',cPlayCurrent);
+    document.getElementById('cSpeed').addEventListener('change',function(e){cSpeed=e.target.value;});
+    document.getElementById('cHintBtn').addEventListener('click',function(){
+        if(!cCurrent) return;
+        const ans=document.getElementById('cAnswer');
+        ans.textContent=lang==='ru'?cCurrent.ruFull:cCurrent.enFull;
+        ans.className='play-answer correct';
+    });
+    document.getElementById('cNextBtn').addEventListener('click',function(){cNewQuestion();});
+
+    // Chains
+    document.getElementById('chLevel').addEventListener('change',function(e){chLevel=parseInt(e.target.value);chNewChain();});
+    document.getElementById('chType').addEventListener('change',function(e){chType=e.target.value;chNewChain();});
+    document.getElementById('chLen').addEventListener('change',function(e){chLen=parseInt(e.target.value);chNewChain();});
+    document.getElementById('chListenBtn').addEventListener('click',function(){var done=chStep>=chChain.length&&chChain.length>0;if(!chPlayed||done){chNewChain();}chPlayChain();});
+    document.getElementById('chRepeatBtn').addEventListener('click',chPlaySingle);
+    document.getElementById('chSpeed').addEventListener('change',function(e){chSpeed=e.target.value;});
+    document.getElementById('chHintBtn').addEventListener('click',function(){
+        if(!chChain.length) return;
+        const cur=chChain[Math.min(chStep,chChain.length-1)];
+        document.getElementById('chPlayLabel').textContent=lang==='ru'?
+            (cur.kind==='interval'?cur.data.ruFull:cur.data.ruFull):
+            (cur.kind==='interval'?cur.data.enFull:cur.data.enFull);
+    });
+    document.getElementById('chNewBtn').addEventListener('click',chNewChain);
+
+    // Resolution
+    document.getElementById('rLevel').addEventListener('change',function(e){rLevel=parseInt(e.target.value);rNewQuestion();});
+    document.getElementById('rType').addEventListener('change',function(e){rType=e.target.value;rNewQuestion();});
+    document.getElementById('rSpeed').addEventListener('change',function(e){rSpeed=e.target.value;});
+    document.getElementById('rListenBtn').addEventListener('click',function(){if(!rPlayed||rLastCorrect){rLastCorrect=false;rNewQuestion();}rPlayCurrent();});
+    document.getElementById('rRepeatBtn').addEventListener('click',rPlayCurrent);
+    document.getElementById('rNextBtn').addEventListener('click',rNewQuestion);
+    document.getElementById('rHintBtn').addEventListener('click',function(){
+        if(!rCurrent) return;
+        const ans=document.getElementById('rAnswer');
+        ans.textContent=lang==='ru'?rCurrent.ruFull:rCurrent.enFull;
+        ans.className='play-answer correct';
+    });
+
+    // Modes
+    document.getElementById('mLevel').addEventListener('change',function(e){mLevel=parseInt(e.target.value);mNewQuestion();});
+    document.getElementById('mSpeed').addEventListener('change',function(e){mSpeed=e.target.value;});
+    document.getElementById('mDir').addEventListener('change',function(e){mDir=e.target.value;});
+    document.getElementById('mListenBtn').addEventListener('click',function(){if(!mPlayed||mLastCorrect){mLastCorrect=false;mNewQuestion();}mPlayCurrent();});
+    document.getElementById('mRepeatBtn').addEventListener('click',mPlayCurrent);
+    document.getElementById('mNextBtn').addEventListener('click',mNewQuestion);
+    document.getElementById('mHintBtn').addEventListener('click',function(){
+        if(!mCurrent) return;
+        const ans=document.getElementById('mAnswer');
+        ans.textContent=lang==='ru'?T.ru.scales[mCurrent.id].ru:T.en.scales[mCurrent.id].en;
+        ans.className='play-answer correct';
+    });
+
+    // Init questions
+    iNewQuestion();
+    cNewQuestion();
+    chNewChain();
+    rNewQuestion();
+    mNewQuestion();
+
+    applyLang();
+    applyTheme();
+});
+</script></body>
+</html>
