@@ -1,0 +1,1411 @@
+<!DOCTYPE html>
+<html lang="ru" data-theme="light">
+<head>
+<!-- Yandex.Metrika counter -->
+<script type="text/javascript">
+    (function(m,e,t,r,i,k,a){
+        m[i]=m[i]||function(){(m[i].a=m[i].a||[]).push(arguments)};
+        m[i].l=1*new Date();
+        for (var j = 0; j < document.scripts.length; j++) {if (document.scripts[j].src === r) { return; }}
+        k=e.createElement(t),a=e.getElementsByTagName(t)[0],k.async=1,k.src=r,a.parentNode.insertBefore(k,a)
+    })(window, document,'script','https://mc.yandex.ru/metrika/tag.js?id=110314124', 'ym');
+    ym(110314124, 'init', {ssr:true, webvisor:true, clickmap:true, ecommerce:"dataLayer", referrer: document.referrer, url: location.href, accurateTrackBounce:true, trackLinks:true});
+</script>
+<noscript><div><img src="https://mc.yandex.ru/watch/110314124" style="position:absolute; left:-9999px;" alt="" /></div></noscript>
+<!-- /Yandex.Metrika counter -->
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Цифровка</title>
+<script>(function(){var t=localStorage.getItem('musicapp_theme');if(t==='dark')document.documentElement.setAttribute('data-theme','dark');else document.documentElement.setAttribute('data-theme','light');})()</script>
+<style>
+:root{
+  --bg:#f8fafc;--card:#fff;--text:#0f172a;--muted:#94a3b8;--border:#e2e8f0;
+  --sl100:#f1f5f9;--sl200:#e2e8f0;--sl300:#cbd5e1;--sl400:#94a3b8;--sl500:#64748b;
+  --sl600:#475569;--sl700:#334155;--sl800:#1e293b;--sl900:#0f172a;
+  --blue:#2563eb;--blue2:#1d4ed8;--green:#16a34a;--red:#dc2626;--amber:#f59e0b;
+  --shadow:0 1px 3px rgba(0,0,0,.06);
+}
+[data-theme="dark"]{
+  --bg:#0f172a;--card:#1e293b;--text:#f1f5f9;--muted:#64748b;--border:#334155;
+  --sl100:#334155;--sl200:#334155;--sl300:#475569;--sl400:#64748b;--sl500:#94a3b8;
+  --sl600:#cbd5e1;--sl700:#e2e8f0;--sl800:#475569;--sl900:#f1f5f9;
+  --shadow:0 1px 3px rgba(0,0,0,.3);
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+  background:var(--bg);color:var(--text);user-select:none;transition:background .3s,color .3s;overflow-x:hidden;}
+.wrap{max-width:860px;margin:0 auto;padding:12px;}
+
+/* HEADER */
+.hdr{display:flex;justify-content:space-between;align-items:center;
+  padding:10px 16px;background:var(--card);border:1px solid var(--border);
+  border-radius:16px;margin-bottom:14px;box-shadow:var(--shadow);}
+.hdr-title{font-weight:900;font-size:15px;letter-spacing:-.5px;display:flex;align-items:center;gap:8px;}
+.hdr-sub{font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;}
+.hdr-actions{display:flex;gap:6px;}
+.hbtn{display:flex;align-items:center;gap:5px;padding:6px 11px;background:var(--sl100);
+  border:none;border-radius:10px;font-weight:800;font-size:10px;text-transform:uppercase;
+  cursor:pointer;color:var(--text);transition:background .2s;}
+.hbtn:hover{background:var(--sl200);}
+
+/* GRADE TABS */
+.grade-tabs{display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap;}
+.gtab{padding:8px 18px;border:2px solid var(--border);border-radius:20px;
+  background:var(--card);font-size:11px;font-weight:800;cursor:pointer;
+  color:var(--muted);transition:all .2s;}
+.gtab.active{background:var(--blue);border-color:var(--blue);color:#fff;
+  box-shadow:0 4px 10px rgba(37,99,235,.25);}
+
+/* MAIN TABS */
+.main-tabs{display:flex;background:var(--card);padding:4px;border-radius:12px;
+  border:1px solid var(--border);margin-bottom:14px;gap:2px;overflow-x:auto;}
+.main-tabs::-webkit-scrollbar{display:none;}
+.mtab{flex:0 0 auto;padding:10px 14px;border:none;background:none;border-radius:8px;
+  font-size:10px;font-weight:900;text-transform:uppercase;color:var(--muted);
+  cursor:pointer;transition:all .2s;white-space:nowrap;}
+.mtab.active{background:var(--blue);color:#fff;}
+
+/* CARD */
+.card{background:var(--card);border:1px solid var(--border);border-radius:20px;
+  padding:20px;margin-bottom:14px;box-shadow:var(--shadow);}
+
+/* THEORY CARDS */
+.theory-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px;}
+.th-card{background:var(--card);border:1px solid var(--border);border-radius:16px;
+  padding:16px;cursor:pointer;transition:transform .2s,box-shadow .2s;}
+.th-card:hover{transform:translateY(-2px);box-shadow:0 8px 20px rgba(0,0,0,.08);}
+.th-card-badge{display:inline-block;padding:3px 10px;border-radius:20px;
+  font-size:9px;font-weight:900;text-transform:uppercase;margin-bottom:8px;}
+.th-card h3{font-size:14px;font-weight:800;margin-bottom:6px;}
+.th-card p{font-size:12px;color:var(--muted);line-height:1.5;}
+.th-detail{display:none;background:var(--card);border:1px solid var(--border);
+  border-radius:20px;padding:20px;margin-bottom:14px;}
+.th-detail.open{display:block;}
+.th-detail h2{font-size:16px;font-weight:900;margin-bottom:12px;}
+.th-formula{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0;}
+.badge{display:inline-flex;align-items:center;justify-content:center;
+  padding:5px 12px;border-radius:10px;font-size:12px;font-weight:800;}
+.badge-T{background:#dcfce7;color:#166534;}
+.badge-S{background:#dbeafe;color:#1e40af;}
+.badge-D{background:#fee2e2;color:#991b1b;}
+.badge-gray{background:var(--sl100);color:var(--sl600);}
+[data-theme="dark"] .badge-T{background:#166534;color:#bbf7d0;}
+[data-theme="dark"] .badge-S{background:#1e3a8a;color:#bfdbfe;}
+[data-theme="dark"] .badge-D{background:#991b1b;color:#fecaca;}
+[data-theme="dark"] .badge-gray{background:var(--sl700);color:var(--sl400);}
+.th-row{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0;align-items:center;}
+.th-label{font-size:11px;font-weight:700;color:var(--muted);min-width:100px;}
+.th-note{font-size:12px;color:var(--text);line-height:1.7;}
+.back-btn{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;
+  background:var(--sl100);border:none;border-radius:10px;font-size:11px;
+  font-weight:800;cursor:pointer;color:var(--text);margin-bottom:14px;}
+
+/* EXERCISE AREA */
+.ex-panel{background:var(--sl800);border-radius:20px;padding:24px 20px;
+  margin-bottom:14px;display:flex;flex-direction:column;align-items:center;gap:14px;}
+[data-theme="dark"] .ex-panel{background:#000;}
+.ex-label{font-size:10px;font-weight:900;text-transform:uppercase;
+  color:rgba(255,255,255,.35);letter-spacing:2px;}
+.ex-main{font-size:20px;font-weight:900;color:#fff;text-align:center;line-height:1.4;}
+.ex-sub{font-size:12px;font-weight:700;color:rgba(255,255,255,.5);text-align:center;}
+.ex-answer{font-size:22px;font-weight:900;min-height:28px;text-align:center;
+  transition:color .3s;}
+.ex-answer.correct{color:#4ade80;}
+.ex-answer.wrong{color:#f87171;}
+
+/* PIANO */
+.piano-wrap{position:relative;display:inline-flex;padding-bottom:0;}
+.piano-key-w{width:34px;height:100px;background:#fff;border:1px solid #cbd5e1;
+  border-top:none;border-radius:0 0 7px 7px;cursor:pointer;position:relative;
+  z-index:1;display:flex;align-items:flex-end;justify-content:center;
+  padding-bottom:5px;font-size:9px;font-weight:700;color:#94a3b8;
+  transition:background .1s;}
+.piano-key-w:hover{background:#dbeafe;}
+.piano-key-w.active{background:#60a5fa;color:#fff;}
+.piano-key-w.highlight{background:#fbbf24;}
+.piano-key-b{width:20px;height:62px;background:#1e293b;border:2px solid #000;
+  border-top:none;border-radius:0 0 5px 5px;box-shadow:0 4px 6px rgba(0,0,0,.4);
+  cursor:pointer;position:absolute;z-index:2;top:0;
+  display:flex;align-items:flex-end;justify-content:center;padding-bottom:3px;
+  font-size:8px;font-weight:700;color:rgba(255,255,255,.4);transition:background .1s;}
+.piano-key-b:hover{background:#1e3a8a;}
+.piano-key-b.active{background:#1d4ed8;}
+.piano-key-b.highlight{background:#d97706;}
+
+/* STAFF SVG */
+.staff-wrap{background:#fff;border-radius:12px;padding:8px 12px;
+  display:flex;justify-content:center;}
+[data-theme="dark"] .staff-wrap{background:#1e293b;border:1px solid #334155;}
+
+/* Dark theme extra */
+[data-theme="dark"] .th-card{background:#1e293b;border-color:#334155;}
+[data-theme="dark"] .th-card p{color:#94a3b8;}
+[data-theme="dark"] .th-detail{background:#1e293b;border-color:#334155;}
+[data-theme="dark"] .back-btn{background:#334155;color:#f1f5f9;}
+[data-theme="dark"] .seq-slot{border-color:#475569;color:#94a3b8;}
+[data-theme="dark"] .seq-opt{background:#1e293b;border-color:#475569;color:#f1f5f9;}
+[data-theme="dark"] .seq-opt:hover{border-color:#3b82f6;}
+[data-theme="dark"] .piano-key-w{background:#f8fafc;border-color:#94a3b8;}
+[data-theme="dark"] .piano-key-w:hover{background:#dbeafe;}
+
+/* ANSWER BUTTONS */
+.ans-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;width:100%;max-width:440px;}
+.ans-btn{padding:14px 10px;border:2px solid var(--border);border-radius:14px;
+  background:var(--card);font-size:16px;font-weight:900;cursor:pointer;
+  color:var(--text);transition:all .15s;text-align:center;line-height:1.2;}
+.ans-btn:hover:not(:disabled){border-color:var(--blue);background:var(--sl100);}
+.ans-btn.correct{background:#dcfce7;border-color:#16a34a;color:#166534;}
+.ans-btn.wrong{background:#fee2e2;border-color:#dc2626;color:#991b1b;}
+.ans-btn:disabled{cursor:default;}
+.ans-btn .ans-sub{font-size:9px;font-weight:700;color:var(--muted);display:block;margin-top:3px;}
+[data-theme="dark"] .ans-btn.correct{background:#166534;border-color:#22c55e;color:#bbf7d0;}
+[data-theme="dark"] .ans-btn.wrong{background:#7f1d1d;border-color:#ef4444;color:#fecaca;}
+
+/* BUILD PIANO AREA */
+.build-info{font-size:13px;color:var(--muted);text-align:center;margin-top:-6px;}
+.check-btn{width:100%;padding:14px;border-radius:14px;border:none;background:var(--blue);
+  color:#fff;font-size:13px;font-weight:900;text-transform:uppercase;cursor:pointer;
+  transition:all .15s;letter-spacing:1px;}
+.check-btn:hover{background:var(--blue2);}
+.check-btn:disabled{background:var(--sl300);color:var(--sl500);cursor:default;}
+.selected-notes{min-height:28px;text-align:center;font-size:14px;
+  font-weight:800;color:var(--text);letter-spacing:1px;}
+
+/* SEQUENCE */
+.seq-chain{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin:8px 0;}
+.seq-slot{width:70px;height:56px;border:2px dashed var(--border);border-radius:12px;
+  display:flex;align-items:center;justify-content:center;font-size:16px;
+  font-weight:900;color:var(--muted);cursor:pointer;transition:all .2s;}
+.seq-slot.filled{border-style:solid;border-color:var(--blue);
+  background:var(--sl100);color:var(--text);}
+.seq-slot.correct{border-color:var(--green);background:#dcfce7;color:#166534;}
+.seq-slot.wrong{border-color:var(--red);background:#fee2e2;color:#991b1b;}
+[data-theme="dark"] .seq-slot.correct{background:#166534;color:#bbf7d0;}
+[data-theme="dark"] .seq-slot.wrong{background:#7f1d1d;color:#fecaca;}
+.seq-opts{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;}
+.seq-opt{padding:8px 14px;border:2px solid var(--border);border-radius:10px;
+  background:var(--card);font-size:14px;font-weight:900;cursor:pointer;
+  transition:all .15s;}
+.seq-opt:hover{border-color:var(--blue);}
+.seq-opt.used{opacity:.35;cursor:default;}
+
+/* SCORE ROW */
+.score-row{display:flex;justify-content:center;gap:28px;margin-bottom:14px;}
+.sc{text-align:center;}
+.sc-v{font-size:32px;font-weight:900;}
+.sc-v.g{color:var(--green);}
+.sc-v.r{color:var(--red);}
+.sc-l{font-size:9px;font-weight:900;text-transform:uppercase;color:var(--muted);}
+
+/* FEEDBACK */
+.feedback{padding:12px 16px;border-radius:12px;font-size:13px;font-weight:700;
+  text-align:center;margin-top:8px;}
+.feedback.ok{background:#dcfce7;color:#166534;}
+.feedback.err{background:#fee2e2;color:#991b1b;}
+[data-theme="dark"] .feedback.ok{background:#166534;color:#bbf7d0;}
+[data-theme="dark"] .feedback.err{background:#7f1d1d;color:#fecaca;}
+
+/* NEXT BUTTON */
+.next-btn{width:100%;padding:14px;border-radius:14px;border:none;
+  background:var(--green);color:#fff;font-size:13px;font-weight:900;
+  text-transform:uppercase;cursor:pointer;letter-spacing:1px;
+  display:none;margin-top:8px;}
+.next-btn.visible{display:block;}
+
+/* FUNCTION COLOR */
+.fc-T{color:#16a34a;}.fc-S{color:#2563eb;}.fc-D{color:#dc2626;}
+
+/* PROGRESS */
+.progress-bar{height:4px;background:var(--sl200);border-radius:2px;margin-bottom:14px;overflow:hidden;}
+.progress-fill{height:100%;background:var(--blue);transition:width .3s;}
+@media(max-width:640px){
+  .hdr{flex-wrap:wrap;gap:8px;padding:10px 12px;}
+  .hdr-btns,.hdr-actions{gap:4px;}
+  .hbtn{padding:7px 9px;font-size:9px;}
+  .wrap{padding:10px;}
+  .grade-tabs{gap:4px;}
+  .gtab{padding:7px 12px;font-size:10px;}
+  /* Piano scroll on mobile */
+  .ex-panel{padding:16px 12px;}
+  .piano-outer{width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch;padding-bottom:8px;}
+  .piano-outer::-webkit-scrollbar{height:4px;}
+  .piano-outer::-webkit-scrollbar-track{background:var(--sl100);}
+  .piano-outer::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px;}
+  .ans-grid{max-width:100%;}
+}
+@media(max-width:400px){
+  .hdr-title{font-size:13px;}
+  .theory-grid{grid-template-columns:1fr;}
+  .score-row{gap:16px;}
+  .sc-v{font-size:26px;}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+<a href="../index.html" style="display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:800;text-decoration:none;opacity:.65;padding:5px 11px;border:1px solid rgba(128,128,128,.25);border-radius:10px;margin-bottom:8px;color:inherit;">← Главная</a>
+
+<!-- HEADER -->
+<div class="hdr">
+  <div>
+    <div class="hdr-title">🎼 <span id="hdrTitle">Цифровка</span></div>
+    <div class="hdr-sub" id="hdrSub">Ступени · Аккорды · Кадансы</div>
+  </div>
+  <div class="hdr-actions">
+    <button class="hbtn" id="themeBtn">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" id="themeIco">
+        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+      </svg>
+      <span id="themeText">Тёмная</span>
+    </button>
+    <button class="hbtn" id="langBtn">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="m5 8 6 6"/><path d="m4 14 6-6 2-3"/><path d="M2 5h12"/><path d="M7 2h1"/>
+        <path d="m22 22-5-10-5 10"/><path d="M14 18h6"/>
+      </svg>
+      <span id="langText">RU</span>
+    </button>
+  </div>
+</div>
+
+<!-- GRADE TABS -->
+<div class="grade-tabs" id="gradeTabs">
+  <button class="gtab active" data-g="1-2">1–2 класс</button>
+  <button class="gtab" data-g="3-4">3–4 класс</button>
+  <button class="gtab" data-g="5-6">5–6 класс</button>
+  <button class="gtab" data-g="7-8">7–8 класс</button>
+</div>
+
+<!-- MAIN TABS -->
+<div class="main-tabs" id="mainTabs">
+  <button class="mtab active" data-t="theory" id="mtab-theory">📖 Теория</button>
+  <button class="mtab" data-t="identify" id="mtab-identify">🎯 Определи</button>
+  <button class="mtab" data-t="build" id="mtab-build">🔨 Построй</button>
+  <button class="mtab" data-t="sequence" id="mtab-sequence">🔗 Последовательность</button>
+</div>
+
+<!-- PROGRESS -->
+<div class="progress-bar"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
+
+<!-- THEORY TAB -->
+<div id="tab-theory">
+  <div id="theoryList" class="theory-grid"></div>
+  <div id="theoryDetail" class="th-detail">
+    <button class="back-btn" onclick="closeTheory()">← Назад</button>
+    <div id="theoryDetailContent"></div>
+  </div>
+</div>
+
+<!-- IDENTIFY TAB -->
+<div id="tab-identify" style="display:none">
+  <div class="score-row">
+    <div class="sc"><div class="sc-v g" id="idCorrect">0</div><div class="sc-l" id="idCLabel">Верно</div></div>
+    <div class="sc"><div class="sc-v r" id="idWrong">0</div><div class="sc-l" id="idWLabel">Ошибки</div></div>
+  </div>
+  <div class="card">
+    <div class="ex-panel">
+      <div class="ex-label" id="idExLabel">Определи аккорд</div>
+      <div class="ex-main" id="idKeyName">До мажор</div>
+      <div class="staff-wrap" id="idStaff" style="min-width:220px;min-height:90px;"></div>
+      <div class="ex-sub" id="idNoteNames"></div>
+      <div class="ex-answer" id="idAnswer"></div>
+    </div>
+    <div class="ans-grid" id="idAnswers"></div>
+    <button onclick="showIdHint()" style="margin-top:6px;width:100%;padding:10px;border:none;border-radius:10px;background:var(--sl100);color:var(--muted);font-size:11px;font-weight:800;cursor:pointer;text-transform:uppercase;" id="idHintBtn">💡 Подсказка</button>
+    <div id="idHintText" style="display:none;text-align:center;font-size:13px;font-weight:700;color:var(--text);padding:8px;"></div>
+    <button class="next-btn" id="idNext" onclick="nextIdentify()">Следующий →</button>
+  </div>
+</div>
+
+<!-- BUILD TAB -->
+<div id="tab-build" style="display:none">
+  <div class="score-row">
+    <div class="sc"><div class="sc-v g" id="bdCorrect">0</div><div class="sc-l" id="bdCLabel">Верно</div></div>
+    <div class="sc"><div class="sc-v r" id="bdWrong">0</div><div class="sc-l" id="bdWLabel">Ошибки</div></div>
+  </div>
+  <div class="card">
+    <div class="ex-panel">
+      <div class="ex-label" id="bdExLabel">Построй аккорд</div>
+      <div class="ex-main" id="bdChordName"></div>
+      <div class="ex-sub" id="bdKeyName"></div>
+    </div>
+    <div style="text-align:center;margin-bottom:10px;">
+      <div class="selected-notes" id="bdSelected">–</div>
+      <div class="build-info" id="bdInfo">Нажимай на клавиши пианино</div>
+    </div>
+    <div style="display:flex;justify-content:center;margin-bottom:12px;">
+      <div class="piano-outer"><div class="piano-wrap" id="bdPiano"></div></div>
+    </div>
+    <div id="bdFeedback"></div>
+    <div style="display:flex;gap:8px;margin-top:8px;">
+      <button class="check-btn" id="bdCheck" onclick="checkBuild()" style="flex:1">✓ Проверить</button>
+      <button id="bdHint" onclick="showBuildHint()" style="padding:8px 14px;border:none;border-radius:10px;background:var(--sl400);color:#fff;font-size:10px;font-weight:900;text-transform:uppercase;cursor:pointer;white-space:nowrap;">💡 Подсказка</button>
+    </div>
+    <button class="next-btn" id="bdNext" onclick="nextBuild()">Следующий →</button>
+  </div>
+</div>
+
+<!-- SEQUENCE TAB -->
+<div id="tab-sequence" style="display:none">
+  <div class="score-row">
+    <div class="sc"><div class="sc-v g" id="sqCorrect">0</div><div class="sc-l" id="sqCLabel">Верно</div></div>
+    <div class="sc"><div class="sc-v r" id="sqWrong">0</div><div class="sc-l" id="sqWLabel">Ошибки</div></div>
+  </div>
+  <div style="display:flex;gap:6px;margin-bottom:10px;justify-content:center;">
+    <button id="sqModeB" onclick="setSqMode('build')" style="padding:8px 18px;border:2px solid var(--blue);border-radius:20px;background:var(--blue);color:#fff;font-size:11px;font-weight:800;cursor:pointer;">Составь</button>
+    <button id="sqModeI" onclick="setSqMode('identify')" style="padding:8px 18px;border:2px solid var(--border);border-radius:20px;background:var(--card);color:var(--muted);font-size:11px;font-weight:800;cursor:pointer;">Определи каданс</button>
+  </div>
+  <div class="card">
+    <div class="ex-panel">
+      <div class="ex-label" id="sqExLabel">Каданс</div>
+      <div class="ex-main" id="sqKeyName"></div>
+      <div class="ex-sub" id="sqTypeName"></div>
+    </div>
+    <!-- BUILD MODE -->
+    <div id="sqBuildArea" style="margin-bottom:12px;">
+      <div class="seq-chain" id="sqChain"></div>
+      <div class="seq-opts" id="sqOpts"></div>
+      <div style="display:flex;gap:6px;margin-top:8px;justify-content:center;">
+        <button id="sqUndoBtn" onclick="sqUndo()" style="padding:7px 14px;border:1px solid var(--border);border-radius:10px;background:var(--card);color:var(--text);font-size:10px;font-weight:800;cursor:pointer;">↩ Отменить</button>
+        <button id="sqClearBtn" onclick="sqClear()" style="padding:7px 14px;border:1px solid var(--border);border-radius:10px;background:var(--card);color:var(--text);font-size:10px;font-weight:800;cursor:pointer;">✕ Очистить</button>
+      </div>
+    </div>
+    <!-- IDENTIFY MODE -->
+    <div id="sqIdentifyArea" style="display:none;margin-bottom:12px;">
+      <div class="seq-chain" id="sqDisplayChain" style="margin-bottom:12px;"></div>
+      <div class="ans-grid" id="sqCadAnswers"></div>
+    </div>
+    <button onclick="showSqHint()" id="sqHintBtn" style="width:100%;padding:10px;border:none;border-radius:10px;background:var(--sl100);color:var(--muted);font-size:11px;font-weight:800;cursor:pointer;text-transform:uppercase;margin-bottom:6px;">💡 Подсказка</button>
+    <div id="sqHintText" style="display:none;text-align:center;font-size:13px;font-weight:700;color:var(--text);padding:8px;margin-bottom:6px;"></div>
+    <div id="sqFeedback"></div>
+    <button class="next-btn" id="sqNext" onclick="nextSequence()">Следующий →</button>
+  </div>
+</div>
+
+</div><!-- /wrap -->
+
+<script>
+/* ============================================================
+   DATA
+   ============================================================ */
+const NOTES=['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
+const MAJOR=[0,2,4,5,7,9,11];
+const NAT_MIN=[0,2,3,5,7,8,10];
+const HARM_MIN=[0,2,3,5,7,8,11];
+
+// Keys: tonic as semitone index (C=0)
+const KEYS_MAJOR=[
+  {ru:'До мажор',   en:'C major',   t:0,  signs:0},
+  {ru:'Соль мажор', en:'G major',   t:7,  signs:1, st:'#'},
+  {ru:'Ре мажор',   en:'D major',   t:2,  signs:2, st:'#'},
+  {ru:'Ля мажор',   en:'A major',   t:9,  signs:3, st:'#'},
+  {ru:'Ми мажор',   en:'E major',   t:4,  signs:4, st:'#'},
+  {ru:'Си мажор',   en:'B major',   t:11, signs:5, st:'#'},
+  {ru:'Фа мажор',   en:'F major',   t:5,  signs:1, st:'b'},
+  {ru:'Си♭ мажор',  en:'Bb major',  t:10, signs:2, st:'b'},
+  {ru:'Ми♭ мажор',  en:'Eb major',  t:3,  signs:3, st:'b'},
+  {ru:'Ля♭ мажор',  en:'Ab major',  t:8,  signs:4, st:'b'},
+  {ru:'Ре♭ мажор',  en:'Db major',  t:1,  signs:5, st:'b'},
+];
+const KEYS_MINOR=[
+  {ru:'Ля минор',  en:'A minor',  t:9, signs:0},
+  {ru:'Ми минор',  en:'E minor',  t:4, signs:1, st:'#'},
+  {ru:'Си минор',  en:'B minor',  t:11,signs:2, st:'#'},
+  {ru:'Фа# минор', en:'F# minor', t:6, signs:3, st:'#'},
+  {ru:'До# минор', en:'C# minor', t:1, signs:4, st:'#'},
+  {ru:'Ре минор',  en:'D minor',  t:2, signs:1, st:'b'},
+  {ru:'Соль минор',en:'G minor',  t:7, signs:2, st:'b'},
+  {ru:'До минор',  en:'C minor',  t:0, signs:3, st:'b'},
+  {ru:'Фа минор',  en:'F minor',  t:5, signs:4, st:'b'},
+];
+
+// Grade configs
+const GRADES={
+  '1-2':{maxSigns:2, harmMinor:false, degrees:[1,4,5], inversions:[], sevenths:[], cadences:['full','half']},
+  '3-4':{maxSigns:4, harmMinor:false, degrees:[1,2,4,5], inversions:['6','64'], sevenths:['V7','V65','V43','V2'], cadences:['full','half','plagal']},
+  '5-6':{maxSigns:6, harmMinor:true,  degrees:[1,2,3,4,5,6,7], inversions:['6','64'], sevenths:['V7','V65','V43','V2','II7','II65','II43','II2'], cadences:['full','half','interrupted','plagal']},
+  '7-8':{maxSigns:7, harmMinor:true,  degrees:[1,2,3,4,5,6,7], inversions:['6','64'], sevenths:['V7','V65','V43','V2','II7','II65','II43','II2','VII7'], cadences:['full','half','interrupted','plagal'], altered:true},
+};
+
+// Chord quality per degree in major / natural minor / harmonic minor
+// [quality, interval set]
+const QUALITY={
+  maj:[0,4,7], min:[0,3,7], dim:[0,3,6], aug:[0,4,8],
+  dom7:[0,4,7,10], min7:[0,3,7,10], halfdim7:[0,3,6,10], dim7:[0,3,6,9], minmaj7:[0,3,7,11],
+};
+const DEG_MAJOR=[
+  null,
+  {sym:'I',   q:'maj',      func:'T'},
+  {sym:'II',  q:'min',      func:'S'},
+  {sym:'III', q:'min',      func:'T'},
+  {sym:'IV',  q:'maj',      func:'S'},
+  {sym:'V',   q:'maj',      func:'D'},
+  {sym:'VI',  q:'min',      func:'T'},
+  {sym:'VII', q:'dim',      func:'D'},
+];
+const DEG_NATMIN=[
+  null,
+  {sym:'I',   q:'min',      func:'T'},
+  {sym:'II',  q:'dim',      func:'S'},
+  {sym:'III', q:'maj',      func:'T'},
+  {sym:'IV',  q:'min',      func:'S'},
+  {sym:'V',   q:'min',      func:'D'},
+  {sym:'VI',  q:'maj',      func:'T'},
+  {sym:'VII', q:'maj',      func:'D'},
+];
+const DEG_HARMMIN=[
+  null,
+  {sym:'I',   q:'min',      func:'T'},
+  {sym:'II',  q:'dim',      func:'S'},
+  {sym:'III', q:'aug',      func:'T'},
+  {sym:'IV',  q:'min',      func:'S'},
+  {sym:'V',   q:'maj',      func:'D'},
+  {sym:'VI',  q:'maj',      func:'T'},
+  {sym:'VII', q:'dim',      func:'D'},
+];
+// V7 quality in major = dom7, in harmonic minor = dom7 too
+const SEVENTH_Q={
+  major:{  'V7':'dom7','II7':'min7','VII7':'halfdim7'},
+  harmMin:{'V7':'dom7','II7':'halfdim7','VII7':'dim7'},
+  natMin:{ 'V7':'min7','II7':'halfdim7','VII7':'maj'},
+};
+
+// Cadence types
+const CADENCES={
+  full:{       ru:'Полный каданс',       en:'Authentic cadence',   seq:[1,4,5,1]},
+  half:{       ru:'Половинный каданс',   en:'Half cadence',        seq:[1,4,5]},
+  interrupted:{ru:'Прерванный каданс',  en:'Deceptive cadence',   seq:[1,4,5,6]},
+  plagal:{     ru:'Плагальный каданс',   en:'Plagal cadence',      seq:[4,1]},
+};
+
+// Note names RU
+const FLAT_NAMES_RU={'A#':'Си♭','D#':'Ми♭','G#':'Ля♭','C#':'Ре♭','F#':'Соль♭'};
+const FLAT_NAMES_EN={'A#':'Bb','D#':'Eb','G#':'Ab','C#':'Db','F#':'Gb'};
+function noteDisplayName(midi,key,langVal){
+  const n=midiToNoteName(midi);
+  if(key&&key.st==='b'&&(langVal==='ru'?FLAT_NAMES_RU:FLAT_NAMES_EN)[n])
+    return (langVal==='ru'?FLAT_NAMES_RU:FLAT_NAMES_EN)[n];
+  return langVal==='ru'?(NOTE_RU[n]||n):n;
+}
+const NOTE_RU={C:'До',D:'Ре',E:'Ми',F:'Фа',G:'Соль',A:'Ля',B:'Си',
+  'C#':'До#','D#':'Ре#','F#':'Фа#','G#':'Соль#','A#':'Ля#',
+  'Cb':'Си♭','Db':'Ре♭','Eb':'Ми♭','Gb':'Соль♭','Ab':'Ля♭','Bb':'Си♭'};
+
+// Function labels
+const FUNC_RU={T:'Т (тоника)',S:'С (субдоминанта)',D:'Д (доминанта)'};
+const FUNC_EN={T:'T (tonic)',S:'S (subdominant)',D:'D (dominant)'};
+
+let lang=localStorage.getItem('musicapp_lang')||'ru', grade='1-2', tab='theory';
+let idScore={c:0,w:0}, bdScore={c:0,w:0}, sqScore={c:0,w:0};
+let idEx=null, bdEx=null, sqEx=null;
+let bdSelected=[];
+
+/* ============================================================
+   AUDIO
+   ============================================================ */
+let audioCtx=null;
+function getAudio(){if(!audioCtx)audioCtx=new(window.AudioContext||window.webkitAudioContext)();return audioCtx;}
+function playNote(freq,start,dur,vol=0.18){
+  const ctx=getAudio();
+  const osc=ctx.createOscillator();
+  const gain=ctx.createGain();
+  osc.connect(gain);gain.connect(ctx.destination);
+  osc.type='triangle';
+  osc.frequency.value=freq;
+  gain.gain.setValueAtTime(0,ctx.currentTime+start);
+  gain.gain.linearRampToValueAtTime(vol,ctx.currentTime+start+0.02);
+  gain.gain.setValueAtTime(vol,ctx.currentTime+start+dur-0.05);
+  gain.gain.linearRampToValueAtTime(0,ctx.currentTime+start+dur);
+  osc.start(ctx.currentTime+start);
+  osc.stop(ctx.currentTime+start+dur);
+}
+function midiToFreq(m){return 440*Math.pow(2,(m-69)/12);}
+function playChord(midis,arpegg=false){
+  midis.forEach((m,i)=>playNote(midiToFreq(m),arpegg?i*0.07:0,1.1));
+}
+
+/* ============================================================
+   MUSIC MATH
+   ============================================================ */
+function getScale(tonicSemi,mode){
+  const pat=mode==='major'?MAJOR:mode==='harmMin'?HARM_MIN:NAT_MIN;
+  return pat.map(i=>(tonicSemi+i)%12);
+}
+function degreeChordInfo(degree,mode){
+  if(mode==='major') return DEG_MAJOR[degree];
+  if(mode==='harmMin') return DEG_HARMMIN[degree];
+  return DEG_NATMIN[degree];
+}
+function buildChordMidi(tonicSemi,mode,degree,inversion,seventh){
+  const scale=getScale(tonicSemi,mode);
+  const root=scale[degree-1];
+  let ints;
+  if(seventh){
+    const qKey=mode==='major'?'major':mode==='harmMin'?'harmMin':'natMin';
+    const qName=SEVENTH_Q[qKey][seventh] || 'dom7';
+    ints=[...QUALITY[qName]];
+  } else {
+    const info=degreeChordInfo(degree,mode);
+    ints=[...QUALITY[info.q]];
+  }
+  let notes=ints.map(i=>(root+i));
+  // Apply inversion
+  for(let i=0;i<inversion;i++){
+    notes[0]+=12;
+    notes.sort((a,b)=>a-b);
+  }
+  // Convert to MIDI (octave 4 area, root around 60-72)
+  let base=60;
+  notes=notes.map(n=>{
+    let m=base+(((n-tonicSemi)%12+12)%12);
+    // rough octave adjustment
+    while(m<57)m+=12;
+    while(m>76)m-=12;
+    return m;
+  });
+  // Re-sort and apply inversion offsets properly
+  // Simpler: build from scratch with exact MIDI
+  const rootMidi=60+((root-0+12*5)%12);
+  let exactMidi=ints.map(i=>rootMidi+i);
+  // inversion: cycle bass up
+  for(let i=0;i<inversion;i++){
+    exactMidi[0]+=12;
+    exactMidi.sort((a,b)=>a-b);
+  }
+  // normalize range
+  while(exactMidi[0]<57){exactMidi=exactMidi.map(n=>n+12);}
+  while(exactMidi[0]>72){exactMidi=exactMidi.map(n=>n-12);}
+  return exactMidi;
+}
+function midiToNoteName(midi){
+  const pc=((midi%12)+12)%12;
+  return NOTES[pc];
+}
+function chordSymbol(degree,inversion,seventh,mode){
+  const degStrs=['','I','II','III','IV','V','VI','VII'];
+  let s=degStrs[degree];
+  if(seventh){
+    // e.g. V7, V65, V43, V2
+    s=seventh;
+  } else if(inversion===1) s+='6';
+  else if(inversion===2) s+='64';
+  return s;
+}
+
+/* ============================================================
+   STAFF RENDERING
+   ============================================================ */
+// Treble staff: E4=slot0, each slot = 5px vertical
+// C4=MIDI60 => slot -2
+const STAFF_SLOT_C4=-2; // C4 is 2 slots below E4 (line 1)
+// Natural note within octave → slot offset from C
+const NAT_SLOT={C:0,D:1,E:2,F:3,G:4,A:5,B:6};
+// pitch class → {natural note, accidental}
+const PC_TO_NAT=[
+  {n:'C',a:null},{n:'C',a:'#'},{n:'D',a:null},{n:'D',a:'#'},
+  {n:'E',a:null},{n:'F',a:null},{n:'F',a:'#'},{n:'G',a:null},
+  {n:'G',a:'#'},{n:'A',a:null},{n:'A',a:'#'},{n:'B',a:null}
+];
+function midiToStaff(midi){
+  const octave=Math.floor(midi/12)-1; // C4=60 → oct4
+  const pc=midi%12;
+  const {n,a}=PC_TO_NAT[pc];
+  const slot=(octave-4)*7+NAT_SLOT[n]+STAFF_SLOT_C4;
+  // slot=0: E4 (first line), slot=2: G4 (second line), slot=4: B4 (middle line)
+  return{slot,acc:a};
+}
+function drawStaff(midis,dark){
+  const SP=9, TOP=40, W=220, staffH=TOP+SP*4;
+  const H=staffH+30;
+  const sc=dark?'#94a3b8':'#334155';
+  const nc=dark?'#f1f5f9':'#1e293b';
+  const ac=dark?'#fbbf24':'#d97706';
+  let svg=`<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;overflow:visible">`;
+  // staff lines
+  for(let i=0;i<5;i++)
+    svg+=`<line x1="0" y1="${TOP+i*SP}" x2="${W}" y2="${TOP+i*SP}" stroke="${sc}" stroke-width="1.2"/>`;
+  // treble clef
+  const cy=TOP+SP*4-2;
+  svg+=`<text x="4" y="${cy}" font-size="52" font-family="serif" fill="${nc}" dominant-baseline="auto">𝄞</text>`;
+  // notes
+  const noteX=[];
+  midis.forEach((m,idx)=>{
+    const{slot,acc}=midiToStaff(m);
+    const y=TOP+SP*4-slot*(SP/2);
+    const x=60+idx*28;
+    noteX.push({x,y,slot,acc});
+    // ledger lines
+    if(slot<=-2){
+      for(let s=0;s>=slot;s-=2)
+        if(s%2===0&&s<=0&&s>=-8){
+          const ly=TOP+SP*4-s*(SP/2);
+          svg+=`<line x1="${x-10}" y1="${ly}" x2="${x+18}" y2="${ly}" stroke="${sc}" stroke-width="1.5"/>`;
+        }
+    }
+    if(slot>=10){
+      for(let s=10;s<=slot;s+=2){
+        const ly=TOP+SP*4-s*(SP/2);
+        svg+=`<line x1="${x-10}" y1="${ly}" x2="${x+18}" y2="${ly}" stroke="${sc}" stroke-width="1.5"/>`;
+      }
+    }
+    // accidental
+    if(acc==='#')
+      svg+=`<text x="${x-15}" y="${y+5}" font-size="18" font-family="serif" font-weight="bold" fill="${ac}">♯</text>`;
+    else if(acc==='b')
+      svg+=`<text x="${x-14}" y="${y+5}" font-size="20" font-family="serif" fill="${ac}">♭</text>`;
+    // note head
+    svg+=`<ellipse cx="${x+4}" cy="${y}" rx="6" ry="4.5" fill="${nc}" transform="rotate(-15,${x+4},${y})"/>`;
+    // stem always up
+    svg+=`<line x1="${x+10}" y1="${y}" x2="${x+10}" y2="${y-SP*3.5}" stroke="${nc}" stroke-width="1.5"/>`;
+  });
+  svg+='</svg>';
+  return svg;
+}
+
+/* ============================================================
+   PIANO RENDER
+   ============================================================ */
+// 2-octave piano from C4 to B5
+const WHITE_KEYS=['C','D','E','F','G','A','B','C','D','E','F','G','A','B'];
+const BLACK_MAP={C:1,D:1,F:1,G:1,A:1}; // has black key to the right
+const BLACK_OFFSETS={1:18,2:50,4:104,5:136,6:168, 8:18+196,9:50+196,11:104+196,12:136+196,13:168+196};
+function renderPiano(containerId,clickCb,highlights=[]){
+  const c=document.getElementById(containerId);
+  if(!c)return;
+  // whites
+  const whites=[];
+  for(let i=0;i<14;i++){
+    const noteName=WHITE_KEYS[i];
+    const octave=i<7?4:5;
+    const pc=NOTES.indexOf(noteName);
+    const midi=12*(octave+1)+pc;
+    whites.push({noteName,octave,midi,i});
+  }
+  let html='<div style="position:relative;display:inline-flex;">';
+  whites.forEach(({noteName,octave,midi,i})=>{
+    const hl=highlights.includes(midi);
+    html+=`<div class="piano-key-w${hl?' highlight':''}" data-midi="${midi}" `+
+      `style="margin-right:1px;" onclick="${clickCb}(${midi})">`;
+    html+=`<span style="font-size:8px;color:${hl?'#92400e':'#94a3b8'}">${noteName}${octave}</span>`;
+    html+='</div>';
+  });
+  // blacks
+  const blackDefs=[
+    {i:0,note:'C#',oct:4},{i:1,note:'D#',oct:4},{i:3,note:'F#',oct:4},
+    {i:4,note:'G#',oct:4},{i:5,note:'A#',oct:4},
+    {i:7,note:'C#',oct:5},{i:8,note:'D#',oct:5},{i:10,note:'F#',oct:5},
+    {i:11,note:'G#',oct:5},{i:12,note:'A#',oct:5}
+  ];
+  blackDefs.forEach(({i,note,oct})=>{
+    const pc=NOTES.indexOf(note);
+    const midi=12*(oct+1)+pc;
+    const left=i*35+22;
+    const hl=highlights.includes(midi);
+    html+=`<div class="piano-key-b${hl?' highlight':''}" data-midi="${midi}" `+
+      `style="left:${left}px;" onclick="${clickCb}(${midi})"></div>`;
+  });
+  html+='</div>';
+  c.innerHTML=html;
+}
+
+/* ============================================================
+   THEORY DATA
+   ============================================================ */
+const THEORY=[
+  {id:'degrees', grade:['1-2','3-4','5-6','7-8'],
+   color:'#dcfce7', colorDark:'#166534', icon:'🎯',
+   ru:{title:'Ступени и функции',
+    short:'7 ступеней тональности. Каждая — Т, С или Д.',
+    body:`<h2>Ступени и функции</h2>
+    <p style="margin-bottom:12px;font-size:13px;color:var(--muted)">Каждая тональность состоит из 7 ступеней. Они делятся на три функциональные группы:</p>
+    <div class="th-formula">
+      <span class="badge badge-T">T — тоника</span>
+      <span class="badge badge-S">S — субдоминанта</span>
+      <span class="badge badge-D">D — доминанта</span>
+    </div>
+    <div class="th-row"><span class="th-label badge badge-T">Тоника (T)</span>
+      <span class="th-note">I, III, VI ступени — покой, завершённость</span></div>
+    <div class="th-row"><span class="th-label badge badge-S">Субдоминанта (S)</span>
+      <span class="th-note">II, IV ступени — отдаление от тоники</span></div>
+    <div class="th-row"><span class="th-label badge badge-D">Доминанта (D)</span>
+      <span class="th-note">V, VII ступени — напряжение, стремление к тонике</span></div>
+    <p style="margin-top:12px;font-size:12px;color:var(--muted)">Порядок функций в кадансе: <b>T → S → D → T</b></p>`
+   },
+   en:{title:'Scale Degrees & Functions',
+    short:'7 degrees. Each belongs to T, S or D.',
+    body:`<h2>Scale Degrees & Functions</h2>
+    <p style="margin-bottom:12px;font-size:13px;color:var(--muted)">Every key has 7 scale degrees grouped into three harmonic functions:</p>
+    <div class="th-formula">
+      <span class="badge badge-T">T — Tonic</span>
+      <span class="badge badge-S">S — Subdominant</span>
+      <span class="badge badge-D">D — Dominant</span>
+    </div>
+    <div class="th-row"><span class="th-label badge badge-T">Tonic (T)</span>
+      <span class="th-note">Degrees I, III, VI — rest, stability</span></div>
+    <div class="th-row"><span class="th-label badge badge-S">Subdominant (S)</span>
+      <span class="th-note">Degrees II, IV — moving away from tonic</span></div>
+    <div class="th-row"><span class="th-label badge badge-D">Dominant (D)</span>
+      <span class="th-note">Degrees V, VII — tension, pull toward tonic</span></div>
+    <p style="margin-top:12px;font-size:12px;color:var(--muted)">Cadential order: <b>T → S → D → T</b></p>`
+   }
+  },
+  {id:'triads', grade:['1-2','3-4','5-6','7-8'],
+   color:'#dbeafe', colorDark:'#1e3a8a', icon:'🎹',
+   ru:{title:'Трезвучия и обращения',
+    short:'Основной вид, секстаккорд (6), квартсекстаккорд (64).',
+    body:`<h2>Трезвучия и обращения</h2>
+    <div class="th-row"><span class="th-label">Основной вид</span>
+      <span class="th-note">Терция + Терция. Квинта в основании. Обозначается: <b>I, IV, V</b>…</span></div>
+    <div class="th-row"><span class="th-label">Секстаккорд (6)</span>
+      <span class="th-note">Терция в басу. Основной вид повёрнут на одну позицию: <b>I<sup>6</sup></b></span></div>
+    <div class="th-row"><span class="th-label">Квартсекстаккорд (64)</span>
+      <span class="th-note">Квинта в басу. <b>I<sup>64</sup></b> — самый неустойчивый, требует разрешения</span></div>
+    <div class="th-formula">
+      <span class="badge badge-gray">Мажорное: б.3 + м.3</span>
+      <span class="badge badge-gray">Минорное: м.3 + б.3</span>
+      <span class="badge badge-gray">Уменьшенное: м.3 + м.3</span>
+      <span class="badge badge-gray">Увеличенное: б.3 + б.3</span>
+    </div>`
+   },
+   en:{title:'Triads & Inversions',
+    short:'Root position, First (6), Second (64).',
+    body:`<h2>Triads & Inversions</h2>
+    <div class="th-row"><span class="th-label">Root position</span>
+      <span class="th-note">Third + Third stacked. Root in bass: <b>I, IV, V</b>…</span></div>
+    <div class="th-row"><span class="th-label">First inversion (6)</span>
+      <span class="th-note">Third in bass: <b>I<sup>6</sup></b></span></div>
+    <div class="th-row"><span class="th-label">Second inversion (64)</span>
+      <span class="th-note">Fifth in bass: <b>I<sup>64</sup></b> — most unstable, needs resolution</span></div>
+    <div class="th-formula">
+      <span class="badge badge-gray">Major: M3 + m3</span>
+      <span class="badge badge-gray">Minor: m3 + M3</span>
+      <span class="badge badge-gray">Diminished: m3 + m3</span>
+      <span class="badge badge-gray">Augmented: M3 + M3</span>
+    </div>`
+   }
+  },
+  {id:'sevenths', grade:['3-4','5-6','7-8'],
+   color:'#fef9c3', colorDark:'#713f12', icon:'🎶',
+   ru:{title:'Септаккорды',
+    short:'V7, II7, VII7 и их обращения.',
+    body:`<h2>Септаккорды</h2>
+    <p style="margin-bottom:10px;font-size:13px;color:var(--muted)">Четыре звука: трезвучие + септима.</p>
+    <div class="th-row"><span class="th-label">V7 (доминантовый)</span>
+      <span class="th-note">Самый важный. Обращения: <b>V<sup>65</sup>, V<sup>43</sup>, V<sup>2</sup></b></span></div>
+    <div class="th-row"><span class="th-label">II7 (субдоминантовый)</span>
+      <span class="th-note">В мажоре — малый; в гарм. миноре — уменьшённый. Обращения: II<sup>65</sup>, II<sup>43</sup>, II<sup>2</sup></span></div>
+    <div class="th-row"><span class="th-label">VII7 (вводный)</span>
+      <span class="th-note">Уменьшённый. Очень напряжённый, разрешается в тонику. 7–8 класс.</span></div>
+    <div class="th-formula">
+      <span class="badge badge-D">V7 → I</span>
+      <span class="badge badge-S">II7 → V или I64</span>
+      <span class="badge badge-D">VII7 → I или I6</span>
+    </div>`
+   },
+   en:{title:'Seventh Chords',
+    short:'V7, II7, VII7 and inversions.',
+    body:`<h2>Seventh Chords</h2>
+    <p style="margin-bottom:10px;font-size:13px;color:var(--muted)">Triad + seventh interval = 4 notes.</p>
+    <div class="th-row"><span class="th-label">V7 (dominant 7th)</span>
+      <span class="th-note">Most important. Inversions: <b>V<sup>65</sup>, V<sup>43</sup>, V<sup>2</sup></b></span></div>
+    <div class="th-row"><span class="th-label">II7 (subdominant 7th)</span>
+      <span class="th-note">Minor in major; diminished in harmonic minor. Inversions: II<sup>65</sup>, II<sup>43</sup>, II<sup>2</sup></span></div>
+    <div class="th-row"><span class="th-label">VII7 (leading-tone 7th)</span>
+      <span class="th-note">Fully diminished. Highly tense, resolves to tonic. Grade 7–8.</span></div>
+    <div class="th-formula">
+      <span class="badge badge-D">V7 → I</span>
+      <span class="badge badge-S">II7 → V or I64</span>
+      <span class="badge badge-D">VII7 → I or I6</span>
+    </div>`
+   }
+  },
+  {id:'cadences', grade:['3-4','5-6','7-8'],
+   color:'#fce7f3', colorDark:'#831843', icon:'🎵',
+   ru:{title:'Кадансы',
+    short:'Полный, половинный, прерванный.',
+    body:`<h2>Кадансы</h2>
+    <p style="margin-bottom:10px;font-size:13px;color:var(--muted)">Каданс — гармонический оборот, завершающий фразу или произведение.</p>
+    <div class="th-row"><span class="th-label">Полный</span>
+      <span class="th-note"><b>T → S → D → T</b> (I–IV–V–I). Ощущение завершённости.</span></div>
+    <div class="th-row"><span class="th-label">Половинный</span>
+      <span class="th-note"><b>T → S → D</b> (I–IV–V). Заканчивается на доминанте — вопрос без ответа.</span></div>
+    <div class="th-row"><span class="th-label">Прерванный</span>
+      <span class="th-note"><b>T → S → D → VI</b> (I–IV–V–VI). Вместо тоники — VI ступень. Неожиданный поворот.</span></div>
+    <div class="th-formula">
+      <span class="badge badge-T">I = До</span>
+      <span class="badge badge-S">IV = Фа</span>
+      <span class="badge badge-D">V = Соль</span>
+    </div>`
+   },
+   en:{title:'Cadences',
+    short:'Authentic, half, deceptive.',
+    body:`<h2>Cadences</h2>
+    <p style="margin-bottom:10px;font-size:13px;color:var(--muted)">A cadence is a harmonic formula closing a phrase or piece.</p>
+    <div class="th-row"><span class="th-label">Authentic</span>
+      <span class="th-note"><b>T → S → D → T</b> (I–IV–V–I). Full sense of resolution.</span></div>
+    <div class="th-row"><span class="th-label">Half</span>
+      <span class="th-note"><b>T → S → D</b> (I–IV–V). Ends on dominant — a question unanswered.</span></div>
+    <div class="th-row"><span class="th-label">Deceptive</span>
+      <span class="th-note"><b>T → S → D → VI</b> (I–IV–V–VI). VI replaces expected tonic. Surprise!</span></div>
+    <div class="th-formula">
+      <span class="badge badge-T">I = C</span>
+      <span class="badge badge-S">IV = F</span>
+      <span class="badge badge-D">V = G</span>
+    </div>`
+   }
+  },
+  {id:'sequences', grade:['5-6','7-8'],
+   color:'#ede9fe', colorDark:'#4c1d95', icon:'🔄',
+   ru:{title:'Секвенции',
+    short:'Повторение мотива на разных ступенях.',
+    body:`<h2>Секвенции</h2>
+    <p style="margin-bottom:10px;font-size:13px;color:var(--muted)">Секвенция — многократное повторение мелодического или гармонического мотива на разных ступенях тональности.</p>
+    <div class="th-row"><span class="th-label">Нисходящая</span>
+      <span class="th-note">I – VII – VI – V – IV – III – II – I. Каждый раз на ступень ниже.</span></div>
+    <div class="th-row"><span class="th-label">Восходящая</span>
+      <span class="th-note">I – II – III – IV – V. Каждый раз на ступень выше.</span></div>
+    <p style="margin-top:10px;font-size:12px;color:var(--muted)">Популярный пример: нисходящая секвенция по терциям I–VI–IV–II.</p>`
+   },
+   en:{title:'Sequences',
+    short:'Repeating a pattern on different degrees.',
+    body:`<h2>Sequences</h2>
+    <p style="margin-bottom:10px;font-size:13px;color:var(--muted)">A sequence is repeated transposition of a melodic or harmonic pattern through scale degrees.</p>
+    <div class="th-row"><span class="th-label">Descending</span>
+      <span class="th-note">I – VII – VI – V – IV – III – II – I. Each step lower.</span></div>
+    <div class="th-row"><span class="th-label">Ascending</span>
+      <span class="th-note">I – II – III – IV – V. Each step higher.</span></div>
+    <p style="margin-top:10px;font-size:12px;color:var(--muted)">Classic example: descending thirds sequence I–VI–IV–II.</p>`
+   }
+  },
+  {id:'altered', grade:['7-8'],
+   color:'#fef2f2', colorDark:'#7f1d1d', icon:'⚡',
+   ru:{title:'Альтерированные аккорды',
+    short:'II↑, бII (неаполитанский) — 7–8 класс.',
+    body:`<h2>Альтерированные аккорды</h2>
+    <p style="margin-bottom:10px;font-size:13px;color:var(--muted)">Аккорды с хроматически изменёнными звуками. Создают особую яркость и напряжение.</p>
+    <div class="th-row"><span class="th-label">II↑ (повышенная II)</span>
+      <span class="th-note">Уменьшённое трезвучие II ступени с повышенной квинтой. Субдоминантовая функция.</span></div>
+    <div class="th-row"><span class="th-label">бII (неаполитанский)</span>
+      <span class="th-note">Мажорное трезвучие на пониженной II ступени. Особенно выразителен в секстаккорде: <b>бII<sup>6</sup></b>.</span></div>
+    <div class="th-formula">
+      <span class="badge badge-S">S-функция</span>
+      <span class="badge badge-gray">Разрешается в V или I64</span>
+    </div>`
+   },
+   en:{title:'Altered Chords',
+    short:'Raised II, Neapolitan (bII) — grades 7–8.',
+    body:`<h2>Altered Chords</h2>
+    <p style="margin-bottom:10px;font-size:13px;color:var(--muted)">Chords with chromatically altered tones — extra brightness and tension.</p>
+    <div class="th-row"><span class="th-label">Raised II (II↑)</span>
+      <span class="th-note">Diminished triad on II with raised fifth. Subdominant function.</span></div>
+    <div class="th-row"><span class="th-label">bII (Neapolitan)</span>
+      <span class="th-note">Major triad on lowered II degree. Especially expressive as first inversion: <b>bII<sup>6</sup></b>.</span></div>
+    <div class="th-formula">
+      <span class="badge badge-S">Subdominant function</span>
+      <span class="badge badge-gray">Resolves to V or I64</span>
+    </div>`
+   }
+  },
+];
+
+/* ============================================================
+   HELPERS
+   ============================================================ */
+function rand(arr){return arr[Math.floor(Math.random()*arr.length)];}
+function shuffle(a){const b=[...a];for(let i=b.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[b[i],b[j]]=[b[j],b[i]];}return b;}
+function isDark(){return document.documentElement.getAttribute('data-theme')==='dark';}
+function getGrade(){return GRADES[grade];}
+function getAllowedKeys(){
+  const g=getGrade();
+  return[...KEYS_MAJOR,...KEYS_MINOR].filter(k=>k.signs<=g.maxSigns);
+}
+function getChordLabel(sym){
+  // Convert V7→V⁷, V65→V⁶₅ etc.
+  return sym.replace(/7/,'⁷').replace(/65/,'⁶₅').replace(/43/,'⁴₃').replace(/2(?![\d])/,'²')
+            .replace(/64/,'⁶₄').replace(/6(?![\d])/,'⁶');
+}
+
+/* ============================================================
+   THEORY TAB
+   ============================================================ */
+let _openTheoryId='';
+function renderTheory(){
+  const list=document.getElementById('theoryList');
+  const detail=document.getElementById('theoryDetail');
+  const items=THEORY.filter(t=>t.grade.includes(grade));
+  list.innerHTML=items.map(t=>{
+    const d=t[lang];
+    const dk=isDark();
+    const bg=dk?t.colorDark:t.color;
+    const fc=dk?'#f1f5f9':'#1e293b';
+    return`<div class="th-card" onclick="openTheory('${t.id}')">
+      <span class="th-card-badge" style="background:${bg};color:${fc}">${t.icon} ${d.title}</span>
+      <p>${d.short}</p>
+    </div>`;
+  }).join('');
+  if(_openTheoryId){
+    openTheory(_openTheoryId);
+  } else {
+    detail.classList.remove('open');
+    list.style.display='';
+  }
+}
+function openTheory(id){
+  const t=THEORY.find(x=>x.id===id);
+  if(!t)return;
+  _openTheoryId=id;
+  document.getElementById('theoryList').style.display='none';
+  const d=document.getElementById('theoryDetail');
+  d.innerHTML=`<button class="back-btn" onclick="closeTheory()">← ${lang==='ru'?'Назад':'Back'}</button>
+    <div>${t[lang].body}</div>`;
+  d.classList.add('open');
+}
+function closeTheory(){
+  _openTheoryId='';
+  document.getElementById('theoryList').style.display='';
+  document.getElementById('theoryDetail').classList.remove('open');
+  applyLang();
+  renderTheory();
+}
+
+/* ============================================================
+   IDENTIFY TAB
+   ============================================================ */
+function genIdentifyEx(){
+  const g=getGrade();
+  const keys=getAllowedKeys();
+  const key=rand(keys);
+  const mode=key.ru.includes('минор')?(g.harmMinor&&Math.random()>.5?'harmMin':'natMin'):'major';
+  const degTable=mode==='major'?DEG_MAJOR:mode==='harmMin'?DEG_HARMMIN:DEG_NATMIN;
+  
+  // Pick degree
+  const deg=rand(g.degrees);
+  const info=degTable[deg];
+  
+  // Pick inversion or seventh
+  let inv=0, seventh=null, sym=info.sym;
+  const roll=Math.random();
+  if(g.sevenths.length>0 && deg===5 && roll<0.3){
+    seventh=rand(g.sevenths.filter(s=>s.startsWith('V')));
+    sym=seventh;
+    const invMap={'V7':0,'V65':1,'V43':2,'V2':3};
+    inv=invMap[seventh]||0;
+  } else if(g.sevenths.length>0 && deg===2 && roll<0.3 && g.sevenths.some(s=>s.startsWith('II'))){
+    seventh=rand(g.sevenths.filter(s=>s.startsWith('II')));
+    sym=seventh;
+    const invMap={'II7':0,'II65':1,'II43':2,'II2':3};
+    inv=invMap[seventh]||0;
+  } else if(g.inversions.length>0 && roll<0.5){
+    const possInv=g.inversions.includes('64')?[0,1,2]:[0,1];
+    inv=rand(possInv);
+    if(inv===1)sym=info.sym+'6';
+    else if(inv===2)sym=info.sym+'64';
+  }
+  
+  const midis=buildChordMidi(key.t,mode,deg,inv,seventh);
+  
+  // Generate 3 wrong answers
+  const allSyms=[];
+  g.degrees.forEach(d=>{
+    const di=degTable[d];
+    if(!di)return;
+    allSyms.push(di.sym);
+    if(g.inversions.includes('6'))allSyms.push(di.sym+'6');
+    if(g.inversions.includes('64'))allSyms.push(di.sym+'64');
+  });
+  g.sevenths.forEach(s=>allSyms.push(s));
+  const wrongs=shuffle(allSyms.filter(s=>s!==sym)).slice(0,3);
+  const choices=shuffle([sym,...wrongs]);
+  
+  return{key,mode,deg,inv,seventh,sym,midis,choices,func:info.func};
+}
+function startIdentify(){
+  idEx=genIdentifyEx();
+  const dark=isDark();
+  document.getElementById('idKeyName').textContent=idEx.key[lang];
+  document.getElementById('idStaff').innerHTML=drawStaff(idEx.midis,dark);
+  const noteNames=idEx.midis.map(m=>noteDisplayName(m,idEx.key,lang));
+  document.getElementById('idNoteNames').textContent=noteNames.join(' – ');
+  document.getElementById('idAnswer').textContent='';
+  document.getElementById('idAnswer').className='ex-answer';
+  document.getElementById('idNext').classList.remove('visible');
+  const grid=document.getElementById('idAnswers');
+  grid.innerHTML=idEx.choices.map(c=>`<button class="ans-btn" onclick="checkIdentify('${c}')">`+
+    `<span style="font-size:18px">${getChordLabel(c)}</span>`+
+    `<span class="ans-sub" id="ansFunc-${c}"></span></button>`).join('');
+  // Play chord
+  playChord(idEx.midis,true);
+  // Progress
+  const total=idScore.c+idScore.w;
+  document.getElementById('progressFill').style.width=total>0?Math.min(100,idScore.c/total*100)+'%':'0%';
+}
+function checkIdentify(choice){
+  const btns=document.getElementById('idAnswers').querySelectorAll('.ans-btn');
+  btns.forEach(b=>b.disabled=true);
+  const correct=choice===idEx.sym;
+  btns.forEach(b=>{
+    const lbl=b.querySelector('span:first-child').textContent;
+    if(lbl===getChordLabel(idEx.sym))b.classList.add('correct');
+    else if(lbl===getChordLabel(choice)&&!correct)b.classList.add('wrong');
+  });
+  if(correct){
+    idScore.c++;
+    document.getElementById('idCorrect').textContent=idScore.c;
+    document.getElementById('idAnswer').textContent='✓ '+getChordLabel(idEx.sym);
+    document.getElementById('idAnswer').className='ex-answer correct';
+    // Show function
+    const funcEl=document.getElementById('ansFunc-'+idEx.sym);
+    if(funcEl)funcEl.textContent=lang==='ru'?FUNC_RU[idEx.func]:FUNC_EN[idEx.func];
+    playChord(idEx.midis,false);
+    setTimeout(startIdentify,1400);
+  } else {
+    idScore.w++;
+    document.getElementById('idWrong').textContent=idScore.w;
+    document.getElementById('idAnswer').textContent='✗ '+getChordLabel(idEx.sym);
+    document.getElementById('idAnswer').className='ex-answer wrong';
+    document.getElementById('idNext').classList.add('visible');
+  }
+}
+function nextIdentify(){startIdentify();}
+function showIdHint(){
+  if(!idEx)return;
+  const el=document.getElementById('idHintText');
+  el.style.display='block';
+  const funcLabel=lang==='ru'?FUNC_RU[idEx.func]:FUNC_EN[idEx.func];
+  el.textContent=(lang==='ru'?'Функция: ':'Function: ')+funcLabel;
+  document.getElementById('idHintBtn').style.display='none';
+}
+
+/* ============================================================
+   BUILD TAB
+   ============================================================ */
+function startBuild(){
+  bdSelected=[];
+  const g=getGrade();
+  const keys=getAllowedKeys();
+  const key=rand(keys);
+  const mode=key.ru.includes('минор')?(g.harmMinor&&Math.random()>.5?'harmMin':'natMin'):'major';
+  const degTable=mode==='major'?DEG_MAJOR:mode==='harmMin'?DEG_HARMMIN:DEG_NATMIN;
+  const deg=rand(g.degrees);
+  const info=degTable[deg];
+  let inv=0,seventh=null,sym=info.sym;
+  const roll=Math.random();
+  if(g.sevenths.length>0&&deg===5&&roll<0.3){
+    seventh=rand(g.sevenths.filter(s=>s.startsWith('V')));
+    sym=seventh;
+    const invMap={'V7':0,'V65':1,'V43':2,'V2':3};
+    inv=invMap[seventh]||0;
+  } else if(g.inversions.length>0&&roll<0.4){
+    inv=rand([0,1]);
+    if(inv===1)sym=info.sym+'6';
+  }
+  const midis=buildChordMidi(key.t,mode,deg,inv,seventh);
+  bdEx={key,mode,deg,inv,seventh,sym,midis,func:info.func};
+  
+  const chordLbl=getChordLabel(sym);
+  document.getElementById('bdChordName').textContent=chordLbl;
+  document.getElementById('bdKeyName').textContent=lang==='ru'?'в '+key.ru:'in '+key.en;
+  document.getElementById('bdSelected').textContent='–';
+  document.getElementById('bdInfo').textContent=lang==='ru'?'Нажимай на клавиши пианино':'Click the piano keys';
+  document.getElementById('bdFeedback').innerHTML='';
+  document.getElementById('bdNext').classList.remove('visible');
+  document.getElementById('bdCheck').disabled=false;
+  renderPiano('bdPiano','bdPianoClick',[]);
+}
+function bdPianoClick(midi){
+  if(!bdEx||document.getElementById('bdCheck').disabled)return;
+  const idx=bdSelected.indexOf(midi);
+  if(idx>=0)bdSelected.splice(idx,1);
+  else bdSelected.push(midi);
+  bdSelected.sort((a,b)=>a-b);
+  // Update piano highlights
+  renderPiano('bdPiano','bdPianoClick',bdSelected);
+  const names=bdSelected.map(m=>noteDisplayName(m,bdEx?bdEx.key:null,lang));
+  document.getElementById('bdSelected').textContent=names.length?names.join(' – '):'–';
+  playNote(midiToFreq(midi),0,0.5,0.15);
+}
+function checkBuild(){
+  if(!bdEx)return;
+  const expected=bdEx.midis.map(m=>((m%12)+12)%12).sort((a,b)=>a-b);
+  const got=bdSelected.map(m=>((m%12)+12)%12).sort((a,b)=>a-b);
+  const correct=expected.length===got.length&&expected.every((v,i)=>v===got[i]);
+  document.getElementById('bdCheck').disabled=true;
+  if(correct){
+    bdScore.c++;
+    document.getElementById('bdCorrect').textContent=bdScore.c;
+    document.getElementById('bdFeedback').innerHTML=`<div class="feedback ok">✓ ${lang==='ru'?'Верно!':'Correct!'} ${lang==='ru'?FUNC_RU[bdEx.func]:FUNC_EN[bdEx.func]}</div>`;
+    renderPiano('bdPiano','bdPianoClick',bdEx.midis);
+    playChord(bdEx.midis,true);
+    setTimeout(startBuild,1400);
+  } else {
+    bdScore.w++;
+    document.getElementById('bdWrong').textContent=bdScore.w;
+    const expNames=bdEx.midis.map(m=>noteDisplayName(m,bdEx.key,lang));
+    document.getElementById('bdFeedback').innerHTML=`<div class="feedback err">✗ ${lang==='ru'?'Ошибка. Правильно:':'Wrong. Correct:'} ${expNames.join(' – ')}</div>`;
+    renderPiano('bdPiano','bdPianoClick',bdEx.midis);
+    document.getElementById('bdNext').classList.add('visible');
+  }
+}
+function showBuildHint(){
+  if(!bdEx)return;
+  const names=bdEx.midis.map(m=>noteDisplayName(m,bdEx.key,lang));
+  document.getElementById('bdInfo').textContent=(lang==='ru'?'Подсказка: ':'Hint: ')+names.join(' – ');
+}
+function nextBuild(){startBuild();}
+
+/* ============================================================
+   SEQUENCE TAB
+   ============================================================ */
+const degStrs2=['','I','II','III','IV','V','VI','VII'];
+let sqSlotFilled=[], sqMode='build';
+
+function setSqMode(m){
+  sqMode=m;
+  document.getElementById('sqModeB').style.background=m==='build'?'var(--blue)':'var(--card)';
+  document.getElementById('sqModeB').style.color=m==='build'?'#fff':'var(--muted)';
+  document.getElementById('sqModeB').style.borderColor=m==='build'?'var(--blue)':'var(--border)';
+  document.getElementById('sqModeI').style.background=m==='identify'?'var(--blue)':'var(--card)';
+  document.getElementById('sqModeI').style.color=m==='identify'?'#fff':'var(--muted)';
+  document.getElementById('sqModeI').style.borderColor=m==='identify'?'var(--blue)':'var(--border)';
+  startSequence();
+}
+
+function startSequence(){
+  sqSlotFilled=[];
+  const g=getGrade();
+  const keys=getAllowedKeys().filter(k=>k.signs<=3);
+  const key=rand(keys);
+  const mode=key.ru.includes('минор')?'natMin':'major';
+  const cadType=rand(g.cadences);
+  const cad=CADENCES[cadType];
+  sqEx={key,mode,cadType,cad,seq:cad.seq};
+
+  document.getElementById('sqKeyName').textContent=key[lang];
+  document.getElementById('sqFeedback').innerHTML='';
+  document.getElementById('sqNext').classList.remove('visible');
+  document.getElementById('sqHintBtn').style.display='block';
+  document.getElementById('sqHintText').style.display='none';
+
+  if(sqMode==='build'){
+    document.getElementById('sqBuildArea').style.display='';
+    document.getElementById('sqIdentifyArea').style.display='none';
+    document.getElementById('sqTypeName').textContent=lang==='ru'?'Составь '+cad.ru.toLowerCase():'Build: '+cad.en;
+    const chain=document.getElementById('sqChain');
+    chain.innerHTML=sqEx.seq.map((_,i)=>
+      `<div class="seq-slot" id="sqSlot${i}" onclick="sqClearSlot(${i})">?</div>`).join('');
+    const opts=shuffle([...new Set(sqEx.seq.map(d=>degStrs2[d]))]);
+    // Add a couple of distractors
+    const all=['I','II','III','IV','V','VI'];
+    const extra=shuffle(all.filter(o=>!opts.includes(o))).slice(0,2);
+    const allOpts=shuffle([...opts,...extra]);
+    document.getElementById('sqOpts').innerHTML=allOpts.map(o=>
+      `<div class="seq-opt" id="sqOpt${o}" onclick="sqPickOpt('${o}')">${o}</div>`).join('');
+  } else {
+    document.getElementById('sqBuildArea').style.display='none';
+    document.getElementById('sqIdentifyArea').style.display='';
+    document.getElementById('sqTypeName').textContent=lang==='ru'?'Какой это каданс?':'What cadence is this?';
+    // Show the full sequence
+    const dc=document.getElementById('sqDisplayChain');
+    dc.innerHTML=sqEx.seq.map(d=>
+      `<div class="seq-slot filled" style="cursor:default">${degStrs2[d]}</div>`).join('');
+    // Answer buttons – all available cadence types
+    const avail=g.cadences;
+    const allCads=Object.keys(CADENCES);
+    const wrongs=shuffle(allCads.filter(k=>k!==cadType&&avail.includes(k))).slice(0,3);
+    const choices=shuffle([cadType,...wrongs]);
+    document.getElementById('sqCadAnswers').innerHTML=choices.map(k=>
+      `<button class="ans-btn" onclick="checkCadType('${k}')">${lang==='ru'?CADENCES[k].ru:CADENCES[k].en}</button>`
+    ).join('');
+  }
+}
+
+function sqPickOpt(sym){
+  const nextSlot=sqSlotFilled.length;
+  if(nextSlot>=sqEx.seq.length)return;
+  sqSlotFilled.push(sym);
+  const slot=document.getElementById('sqSlot'+nextSlot);
+  if(slot){slot.textContent=sym;slot.classList.add('filled');}
+  checkSeqComplete();
+}
+function sqClearSlot(i){
+  if(sqMode!=='build')return;
+  if(i<sqSlotFilled.length){
+    sqSlotFilled.splice(i,1);
+    for(let j=0;j<sqEx.seq.length;j++){
+      const el=document.getElementById('sqSlot'+j);
+      if(j<sqSlotFilled.length){el.textContent=sqSlotFilled[j];el.classList.add('filled');}
+      else{el.textContent='?';el.classList.remove('filled','correct','wrong');}
+    }
+  }
+}
+function checkSeqComplete(){
+  if(sqSlotFilled.length<sqEx.seq.length)return;
+  const expected=sqEx.seq.map(d=>degStrs2[d]);
+  const correct=expected.every((v,i)=>v===sqSlotFilled[i]);
+  document.querySelectorAll('#sqChain .seq-slot').forEach((s,i)=>{
+    s.classList.remove('filled');
+    s.classList.add(sqSlotFilled[i]===expected[i]?'correct':'wrong');
+  });
+  if(correct){
+    sqScore.c++;
+    document.getElementById('sqCorrect').textContent=sqScore.c;
+    document.getElementById('sqFeedback').innerHTML=`<div class="feedback ok">✓ ${lang==='ru'?'Верно! '+sqEx.cad.ru:'Correct! '+sqEx.cad.en}</div>`;
+    setTimeout(startSequence,1400);
+  } else {
+    sqScore.w++;
+    document.getElementById('sqWrong').textContent=sqScore.w;
+    document.getElementById('sqFeedback').innerHTML=`<div class="feedback err">✗ ${lang==='ru'?'Попробуй ещё раз':'Try again'}</div>`;
+    setTimeout(()=>{
+      sqSlotFilled=[];
+      document.getElementById('sqFeedback').innerHTML='';
+      document.querySelectorAll('#sqChain .seq-slot').forEach((s,i)=>{
+        s.className='seq-slot';s.textContent='?';
+      });
+    },1200);
+  }
+}
+function checkCadType(choice){
+  document.querySelectorAll('#sqCadAnswers .ans-btn').forEach(b=>b.disabled=true);
+  const correct=choice===sqEx.cadType;
+  document.querySelectorAll('#sqCadAnswers .ans-btn').forEach(b=>{
+    const txt=b.textContent;
+    const corTxt=lang==='ru'?CADENCES[sqEx.cadType].ru:CADENCES[sqEx.cadType].en;
+    const choTxt=lang==='ru'?CADENCES[choice].ru:CADENCES[choice].en;
+    if(txt===corTxt)b.classList.add('correct');
+    else if(txt===choTxt&&!correct)b.classList.add('wrong');
+  });
+  if(correct){
+    sqScore.c++;
+    document.getElementById('sqCorrect').textContent=sqScore.c;
+    document.getElementById('sqFeedback').innerHTML=`<div class="feedback ok">✓ ${lang==='ru'?'Верно!':'Correct!'}</div>`;
+    setTimeout(startSequence,1400);
+  } else {
+    sqScore.w++;
+    document.getElementById('sqWrong').textContent=sqScore.w;
+    document.getElementById('sqFeedback').innerHTML=`<div class="feedback err">✗ ${lang==='ru'?'Попробуй ещё раз':'Try again'}</div>`;
+    setTimeout(()=>{
+      document.getElementById('sqFeedback').innerHTML='';
+      document.querySelectorAll('#sqCadAnswers .ans-btn').forEach(b=>{
+        b.disabled=false;b.className='ans-btn';
+      });
+    },1200);
+  }
+}
+function showSqHint(){
+  const el=document.getElementById('sqHintText');
+  el.style.display='block';
+  document.getElementById('sqHintBtn').style.display='none';
+  if(sqMode==='build'){
+    const expected=sqEx.seq.map(d=>degStrs2[d]);
+    el.textContent=(lang==='ru'?'Правильный порядок: ':'Correct order: ')+expected.join(' – ');
+  } else {
+    el.textContent=(lang==='ru'?'Это: ':'This is: ')+(lang==='ru'?sqEx.cad.ru:sqEx.cad.en);
+  }
+}
+function sqUndo(){
+  if(!sqSlotFilled.length)return;
+  sqSlotFilled.pop();
+  for(let j=0;j<sqEx.seq.length;j++){
+    const el=document.getElementById('sqSlot'+j);
+    if(!el)return;
+    if(j<sqSlotFilled.length){el.textContent=sqSlotFilled[j];el.className='seq-slot filled';}
+    else{el.textContent='?';el.className='seq-slot';}
+  }
+}
+function sqClear(){
+  sqSlotFilled=[];
+  document.querySelectorAll('#sqChain .seq-slot').forEach(s=>{s.textContent='?';s.className='seq-slot';});
+  document.getElementById('sqFeedback').innerHTML='';
+}
+function nextSequence(){sqSlotFilled=[];startSequence();}
+
+/* ============================================================
+   UI / TABS
+   ============================================================ */
+function switchGrade(g){
+  grade=g;
+  document.querySelectorAll('.gtab').forEach(b=>b.classList.toggle('active',b.dataset.g===g));
+  refreshTab();
+}
+function switchTab(t){
+  if(tab===t)return;
+  tab=t;
+  document.querySelectorAll('.mtab').forEach(b=>b.classList.toggle('active',b.dataset.t===t));
+  ['theory','identify','build','sequence'].forEach(id=>{
+    document.getElementById('tab-'+id).style.display=id===t?'':'none';
+  });
+  refreshTab();
+}
+function refreshTab(){
+  if(tab==='theory')renderTheory();
+  else if(tab==='identify')startIdentify();
+  else if(tab==='build')startBuild();
+  else if(tab==='sequence')startSequence();
+}
+const UI={
+  ru:{sub:'Ступени · Аккорды · Кадансы',grade:'класс',
+    tabTheory:'📖 Теория',tabIdentify:'🎯 Определи',tabBuild:'🔨 Построй',tabSeq:'🔗 Последовательность',
+    correct:'Верно',errors:'Ошибки',
+    idLabel:'Определи аккорд',bdLabel:'Построй аккорд',sqLabel:'Каданс',
+    bdInfo:'Нажимай на клавиши пианино',check:'✓ Проверить',
+    hint:'💡 Подсказка',next:'Следующий →',
+    sqBuild:'Составь',sqIdentify:'Определи каданс',
+    undo:'↩ Отменить',clear:'✕ Очистить',dark:'Тёмная',light:'Светлая'},
+  en:{sub:'Degrees · Chords · Cadences',grade:'grade',
+    tabTheory:'📖 Theory',tabIdentify:'🎯 Identify',tabBuild:'🔨 Build',tabSeq:'🔗 Sequences',
+    correct:'Correct',errors:'Errors',
+    idLabel:'Identify the chord',bdLabel:'Build the chord',sqLabel:'Cadence',
+    bdInfo:'Click the piano keys',check:'✓ Check',
+    hint:'💡 Hint',next:'Next →',
+    sqBuild:'Build',sqIdentify:'Identify cadence',
+    undo:'↩ Undo',clear:'✕ Clear',dark:'Dark',light:'Light'},
+};
+function applyLang(){
+  const t=UI[lang];
+  const set=(id,txt)=>{const e=document.getElementById(id);if(e)e.textContent=txt;};
+  set('hdrTitle',lang==='ru'?'Цифровка':'Figured Bass');
+  set('hdrSub',t.sub);
+  document.querySelectorAll('.gtab').forEach(b=>b.textContent=b.dataset.g+' '+t.grade);
+  set('mtab-theory',t.tabTheory);set('mtab-identify',t.tabIdentify);
+  set('mtab-build',t.tabBuild);set('mtab-sequence',t.tabSeq);
+  ['idCLabel','bdCLabel','sqCLabel'].forEach(id=>set(id,t.correct));
+  ['idWLabel','bdWLabel','sqWLabel'].forEach(id=>set(id,t.errors));
+  set('idExLabel',t.idLabel);set('bdExLabel',t.bdLabel);set('sqExLabel',t.sqLabel);
+  ['idHintBtn','bdHint','sqHintBtn'].forEach(id=>{const e=document.getElementById(id);if(e&&e.style.display!=='none')e.textContent=t.hint;});
+  ['idNext','bdNext','sqNext'].forEach(id=>set(id,t.next));
+  const bi=document.getElementById('bdInfo');if(bi&&bi.textContent&&!bi.textContent.includes(':'))bi.textContent=t.bdInfo;
+  set('bdCheck',t.check);
+  set('sqModeB',t.sqBuild);set('sqModeI',t.sqIdentify);
+  set('sqUndoBtn',t.undo);set('sqClearBtn',t.clear);
+  const dk=document.documentElement.getAttribute('data-theme')==='dark';
+  set('themeText',dk?t.light:t.dark);
+}
+function toggleLang(){
+  lang=lang==='ru'?'en':'ru';
+  localStorage.setItem('musicapp_lang',lang);
+  document.getElementById('langText').textContent=lang==='ru'?'RU':'EN';
+  applyLang();
+  refreshTab();
+}
+function toggleTheme(){
+  const dark=document.documentElement.getAttribute('data-theme')==='dark';
+  document.documentElement.setAttribute('data-theme',dark?'light':'dark');
+  localStorage.setItem('musicapp_theme',dark?'light':'dark');
+  document.getElementById('themeText').textContent=dark?(lang==='ru'?'Тёмная':'Dark'):(lang==='ru'?'Светлая':'Light');
+  applyLang();
+  document.getElementById('themeIco').innerHTML=dark
+    ?'<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>'
+    :'<circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>';
+  if(tab==='identify'&&idEx){
+    document.getElementById('idStaff').innerHTML=drawStaff(idEx.midis,!dark);
+  }
+}
+
+/* INIT */
+document.querySelectorAll('.gtab').forEach(b=>b.addEventListener('click',()=>switchGrade(b.dataset.g)));
+document.querySelectorAll('.mtab').forEach(b=>b.addEventListener('click',()=>switchTab(b.dataset.t)));
+document.getElementById('langBtn').addEventListener('click',toggleLang);
+document.getElementById('themeBtn').addEventListener('click',toggleTheme);
+renderTheory();
+</script></body>
+</html>
