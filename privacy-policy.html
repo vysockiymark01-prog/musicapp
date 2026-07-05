@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="ru" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Политика конфиденциальности — Музыкальное приложение</title>
+<script>(function(){var t=localStorage.getItem('musicapp_theme');if(t==='dark')document.documentElement.setAttribute('data-theme','dark');else document.documentElement.setAttribute('data-theme','light');})()</script>
+<style>
+:root{--bg:#f8fafc;--card:#fff;--text:#0f172a;--muted:#94a3b8;--border:#e2e8f0;
+  --sl100:#f1f5f9;--sl200:#e2e8f0;--blue:#2563eb;--shadow:0 1px 4px rgba(0,0,0,.07);}
+[data-theme="dark"]{--bg:#0f172a;--card:#1e293b;--text:#f1f5f9;--muted:#64748b;
+  --border:#334155;--sl100:#334155;--sl200:#475569;}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+  background:var(--bg);color:var(--text);transition:background .3s,color .3s;min-height:100vh;}
+.wrap{max-width:760px;margin:0 auto;padding:20px 14px;}
+.hdr{display:flex;justify-content:space-between;align-items:center;
+  padding:14px 20px;background:var(--card);border:1px solid var(--border);
+  border-radius:20px;margin-bottom:24px;box-shadow:var(--shadow);}
+.hdr-left{display:flex;align-items:center;gap:12px;}
+.logo{font-size:28px;line-height:1;}
+.hdr-title{font-weight:900;font-size:18px;}
+.hdr-sub{font-size:11px;font-weight:700;color:var(--muted);}
+.hdr-btns{display:flex;gap:6px;}
+.hbtn{padding:7px 13px;background:var(--sl100);border:none;border-radius:10px;
+  font-size:10px;font-weight:800;text-transform:uppercase;cursor:pointer;
+  color:var(--text);display:flex;align-items:center;gap:5px;}
+.hbtn:hover{background:var(--sl200);}
+.back{display:inline-flex;align-items:center;gap:6px;color:var(--muted);
+  text-decoration:none;font-size:13px;font-weight:600;margin-bottom:16px;}
+.back:hover{color:var(--text);}
+.card{background:var(--card);border:1px solid var(--border);border-radius:20px;
+  padding:28px 32px;box-shadow:var(--shadow);margin-bottom:16px;}
+h1{font-size:22px;font-weight:900;margin-bottom:6px;}
+.updated{font-size:12px;color:var(--muted);margin-bottom:24px;}
+h2{font-size:14px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;
+  color:var(--muted);margin:24px 0 8px;}
+h2:first-of-type{margin-top:0;}
+p{font-size:14px;line-height:1.7;color:var(--text);margin-bottom:8px;}
+a{color:var(--blue);}
+.lang-toggle{display:flex;gap:6px;margin-bottom:20px;}
+.lang-btn{padding:6px 14px;border:1.5px solid var(--border);border-radius:10px;
+  font-size:12px;font-weight:700;cursor:pointer;background:var(--sl100);color:var(--muted);}
+.lang-btn.active{background:var(--blue);color:#fff;border-color:var(--blue);}
+.ru-content,.en-content{display:none;}
+.ru-content.show,.en-content.show{display:block;}
+@media(max-width:600px){
+  .hdr{flex-wrap:wrap;gap:8px;padding:10px 12px;}
+  .hdr-title{font-size:15px;}
+  .hbtn{padding:7px 10px;font-size:9px;}
+  .card{padding:18px 16px;}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="hdr">
+    <div class="hdr-left">
+      <div class="logo">🎼</div>
+      <div>
+        <div class="hdr-title">МУЗЫКАЛЬНОЕ ПРИЛОЖЕНИЕ</div>
+        <div class="hdr-sub">MUSIC APP</div>
+      </div>
+    </div>
+    <div class="hdr-btns">
+      <button class="hbtn" onclick="toggleTheme()">
+        <span id="themeIcon">🌙</span> <span id="themeText">ТЁМНАЯ</span>
+      </button>
+    </div>
+  </div>
+
+  <a href="index.html" class="back">← Главная / Home</a>
+
+  <div class="lang-toggle">
+    <button class="lang-btn active" onclick="setLang('ru')">🇷🇺 Русский</button>
+    <button class="lang-btn" onclick="setLang('en')">🇬🇧 English</button>
+  </div>
+
+  <!-- RUSSIAN -->
+  <div class="ru-content show" id="ruContent">
+    <div class="card">
+      <h1>Политика конфиденциальности</h1>
+      <div class="updated">Дата вступления в силу: 1 июля 2025 г.</div>
+
+      <h2>1. Общие сведения</h2>
+      <p>Настоящая политика конфиденциальности описывает, какие данные собирает приложение «Музыкальное приложение» (далее — Приложение) и как они используются.</p>
+      <p>Приложение предназначено для обучения музыкальной грамоте и доступно в браузере по адресу <a href="https://vysockiymark01-prog.github.io/musicapp/" target="_blank">vysockiymark01-prog.github.io/musicapp</a>.</p>
+
+      <h2>2. Какие данные мы собираем</h2>
+      <p>Приложение <strong>не собирает</strong> личные данные пользователей: имена, адреса электронной почты, номера телефонов или платёжную информацию.</p>
+      <p>Настройки (тема оформления, язык интерфейса) хранятся локально в браузере пользователя (localStorage) и не передаются на сторонние серверы.</p>
+
+      <h2>3. Аналитика (Яндекс.Метрика)</h2>
+      <p>Приложение использует сервис веб-аналитики <strong>Яндекс.Метрика</strong> для сбора анонимной статистики посещений: количество пользователей, просматриваемые страницы, устройства и браузеры. Эти данные помогают улучшать Приложение.</p>
+      <p>Яндекс.Метрика может использовать cookies и технологии отслеживания в соответствии с <a href="https://yandex.ru/legal/confidential/" target="_blank">политикой конфиденциальности Яндекса</a>.</p>
+      <p>Если вы хотите отключить сбор аналитических данных, вы можете использовать браузерные расширения для блокировки трекеров (например, uBlock Origin).</p>
+
+      <h2>4. Cookies</h2>
+      <p>Приложение само по себе не устанавливает cookies. Cookies могут устанавливаться Яндекс.Метрикой в аналитических целях.</p>
+
+      <h2>5. Дети</h2>
+      <p>Приложение предназначено в том числе для детей и учеников музыкальных школ. Мы не собираем никакие персональные данные ни от каких пользователей, включая детей.</p>
+
+      <h2>6. Изменения политики</h2>
+      <p>Мы можем периодически обновлять настоящую политику. При изменениях дата вступления в силу будет обновлена в начале документа.</p>
+
+      <h2>7. Контакты</h2>
+      <p>По вопросам, связанным с конфиденциальностью, пишите на: <a href="mailto:vysockiymark01@gmail.com">vysockiymark01@gmail.com</a></p>
+    </div>
+  </div>
+
+  <!-- ENGLISH -->
+  <div class="en-content" id="enContent">
+    <div class="card">
+      <h1>Privacy Policy</h1>
+      <div class="updated">Effective date: July 1, 2025</div>
+
+      <h2>1. Overview</h2>
+      <p>This Privacy Policy describes what data the "Music App" application (hereinafter — the App) collects and how it is used.</p>
+      <p>The App is an interactive music theory trainer available in the browser at <a href="https://vysockiymark01-prog.github.io/musicapp/" target="_blank">vysockiymark01-prog.github.io/musicapp</a>.</p>
+
+      <h2>2. Data We Collect</h2>
+      <p>The App does <strong>not collect</strong> any personal information such as names, email addresses, phone numbers, or payment details.</p>
+      <p>User preferences (theme, language) are stored locally in the browser's localStorage and are never transmitted to any server.</p>
+
+      <h2>3. Analytics (Yandex Metrica)</h2>
+      <p>The App uses <strong>Yandex Metrica</strong> web analytics to collect anonymous usage statistics: number of visitors, pages viewed, device types, and browsers. This data helps improve the App.</p>
+      <p>Yandex Metrica may use cookies and tracking technologies in accordance with <a href="https://yandex.com/legal/confidential/" target="_blank">Yandex's Privacy Policy</a>.</p>
+      <p>To opt out of analytics tracking, you may use browser extensions such as uBlock Origin.</p>
+
+      <h2>4. Cookies</h2>
+      <p>The App itself does not set any cookies. Cookies may be set by Yandex Metrica for analytics purposes.</p>
+
+      <h2>5. Children</h2>
+      <p>The App is designed for music school students, including children. We do not knowingly collect any personal data from any users, including children.</p>
+
+      <h2>6. Changes to This Policy</h2>
+      <p>We may update this Privacy Policy from time to time. When changes are made, the effective date at the top of this document will be updated.</p>
+
+      <h2>7. Contact</h2>
+      <p>For privacy-related questions, contact us at: <a href="mailto:vysockiymark01@gmail.com">vysockiymark01@gmail.com</a></p>
+    </div>
+  </div>
+
+</div>
+
+<script>
+function toggleTheme() {
+  const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+  document.documentElement.setAttribute('data-theme', isDark ? 'light' : 'dark');
+  localStorage.setItem('musicapp_theme', isDark ? 'light' : 'dark');
+  document.getElementById('themeIcon').textContent = isDark ? '🌙' : '☀️';
+  document.getElementById('themeText').textContent = isDark ? 'ТЁМНАЯ' : 'СВЕТЛАЯ';
+}
+function setLang(l) {
+  document.getElementById('ruContent').classList.toggle('show', l === 'ru');
+  document.getElementById('enContent').classList.toggle('show', l === 'en');
+  document.querySelectorAll('.lang-btn').forEach((b, i) => b.classList.toggle('active', (i === 0) === (l === 'ru')));
+}
+// Init theme icon
+(function(){
+  const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+  document.getElementById('themeIcon').textContent = isDark ? '☀️' : '🌙';
+  document.getElementById('themeText').textContent = isDark ? 'СВЕТЛАЯ' : 'ТЁМНАЯ';
+})();
+</script>
+</body>
+</html>
