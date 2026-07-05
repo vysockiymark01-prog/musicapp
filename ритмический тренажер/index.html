@@ -1,0 +1,1086 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<!-- Yandex.Metrika counter -->
+<script type="text/javascript">
+    (function(m,e,t,r,i,k,a){
+        m[i]=m[i]||function(){(m[i].a=m[i].a||[]).push(arguments)};
+        m[i].l=1*new Date();
+        for (var j = 0; j < document.scripts.length; j++) {if (document.scripts[j].src === r) { return; }}
+        k=e.createElement(t),a=e.getElementsByTagName(t)[0],k.async=1,k.src=r,a.parentNode.insertBefore(k,a)
+    })(window, document,'script','https://mc.yandex.ru/metrika/tag.js?id=110314124', 'ym');
+    ym(110314124, 'init', {ssr:true, webvisor:true, clickmap:true, ecommerce:"dataLayer", referrer: document.referrer, url: location.href, accurateTrackBounce:true, trackLinks:true});
+</script>
+<noscript><div><img src="https://mc.yandex.ru/watch/110314124" style="position:absolute; left:-9999px;" alt="" /></div></noscript>
+<!-- /Yandex.Metrika counter -->
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Группировка длительностей</title>
+<script>(function(){var t=localStorage.getItem('musicapp_theme');if(t==='dark')document.documentElement.setAttribute('data-theme','dark');else document.documentElement.setAttribute('data-theme','light');})()</script>
+<style>
+  :root {
+    --color-bg-primary:#f8fafc; --color-bg-secondary:#ffffff; --color-bg-card:#ffffff;
+    --color-bg-dark-element:#0f172a;
+    --color-text-primary:#0f172a; --color-text-secondary:#475569; --color-text-muted:#94a3b8;
+    --color-border:#e2e8f0; --color-border-light:#f1f5f9;
+    --color-blue-600:#2563eb; --color-blue-700:#1d4ed8;
+    --color-slate-50:#f8fafc; --color-slate-100:#f1f5f9; --color-slate-200:#e2e8f0;
+    --color-slate-300:#cbd5e1; --color-slate-400:#94a3b8; --color-slate-500:#64748b;
+    --color-slate-600:#475569; --color-slate-700:#334155; --color-slate-800:#1e293b; --color-slate-900:#0f172a;
+    --color-red-500:#ef4444; --color-emerald-500:#10b981; --color-amber-500:#f59e0b;
+    --shadow-sm:0 1px 3px rgba(0,0,0,.04); --shadow-md:0 10px 15px rgba(0,0,0,.05); --shadow-lg:0 20px 25px rgba(0,0,0,.15);
+  }
+  [data-theme="dark"] {
+    --color-bg-primary:#0f172a; --color-bg-secondary:#1e293b; --color-bg-card:#1e293b;
+    --color-bg-dark-element:#000000;
+    --color-text-primary:#f1f5f9; --color-text-secondary:#94a3b8; --color-text-muted:#64748b;
+    --color-border:#334155; --color-border-light:#1e293b;
+    --color-blue-600:#3b82f6; --color-blue-700:#2563eb;
+    --color-slate-50:#1e293b; --color-slate-100:#334155; --color-slate-200:#334155;
+    --color-slate-300:#475569; --color-slate-400:#64748b; --color-slate-500:#94a3b8;
+    --color-slate-600:#cbd5e1; --color-slate-700:#e2e8f0; --color-slate-800:#475569; --color-slate-900:#f1f5f9;
+    --shadow-sm:0 1px 3px rgba(0,0,0,.3); --shadow-md:0 10px 15px rgba(0,0,0,.3); --shadow-lg:0 20px 25px rgba(0,0,0,.4);
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{background:var(--color-bg-primary);color:var(--color-text-primary);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;min-height:100vh;transition:background .3s,color .3s;user-select:none;}
+  .container{max-width:800px;margin:0 auto;padding:12px;}
+
+  /* HEADER */
+  .header{display:flex;justify-content:space-between;align-items:center;padding:12px 16px;background:var(--color-bg-card);border:1px solid var(--color-border);border-radius:16px;margin-bottom:16px;box-shadow:var(--shadow-sm);}
+  .header-title{display:flex;align-items:center;gap:8px;font-weight:900;font-size:14px;text-transform:uppercase;letter-spacing:-.5px;}
+  .header-actions{display:flex;gap:8px;}
+  .icon-btn{display:flex;align-items:center;gap:6px;padding:6px 12px;background:var(--color-slate-100);border:none;border-radius:12px;font-weight:700;font-size:10px;text-transform:uppercase;cursor:pointer;color:var(--color-text-primary);transition:background .2s;}
+  .icon-btn:hover{background:var(--color-slate-200);}
+
+  /* TABS */
+  .tabs{display:flex;background:var(--color-bg-card);padding:4px;border-radius:12px;border:1px solid var(--color-border);margin-bottom:16px;box-shadow:var(--shadow-sm);}
+  .tab{flex:1;padding:12px;border:none;background:none;border-radius:8px;font-size:10px;font-weight:900;text-transform:uppercase;color:var(--color-text-muted);cursor:pointer;transition:all .2s;}
+  .tab.active{background:var(--color-blue-600);color:white;box-shadow:0 4px 6px rgba(37,99,235,.2);}
+
+  /* SELECTORS */
+  .selector-row{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-bottom:16px;}
+  .sel-btn{padding:6px 20px;border:1px solid var(--color-border-light);border-radius:8px;background:var(--color-bg-card);color:var(--color-text-muted);font-size:10px;font-weight:900;text-transform:uppercase;cursor:pointer;transition:all .2s;}
+  .sel-btn.active{background:var(--color-slate-900);color:var(--color-bg-primary);box-shadow:0 2px 4px rgba(0,0,0,.1);}
+  [data-theme="dark"] .sel-btn.active{background:var(--color-blue-600);color:white;}
+
+  /* RULE CARD */
+  .rule-card{background:var(--color-bg-card);border:1px solid var(--color-border);border-radius:16px;padding:14px 18px;margin-bottom:16px;box-shadow:var(--shadow-sm);display:flex;gap:12px;align-items:flex-start;}
+  .rule-icon{font-size:20px;flex-shrink:0;margin-top:1px;}
+  .rule-title{font-size:9px;font-weight:900;text-transform:uppercase;color:var(--color-blue-600);letter-spacing:.5px;margin-bottom:4px;}
+  .rule-text{font-size:13px;color:var(--color-text-secondary);line-height:1.5;}
+  .rule-text b{color:var(--color-text-primary);}
+
+  /* MAIN EXERCISE BOX */
+  .ex-box{background:var(--color-bg-card);border-radius:32px;border:1px solid var(--color-border);padding:24px;box-shadow:var(--shadow-sm);margin-bottom:16px;}
+
+  /* DARK DISPLAY */
+  .note-display{background:var(--color-bg-dark-element);border-radius:24px;padding:32px 24px;min-height:140px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;margin-bottom:20px;position:relative;overflow:hidden;}
+
+  /* NOTE ROW */
+  .note-row{display:flex;align-items:flex-end;gap:0;position:relative;}
+  .note-cell{display:flex;flex-direction:column;align-items:center;position:relative;cursor:default;}
+  .note-svg-wrap{position:relative;width:48px;height:90px;flex-shrink:0;}
+
+  /* DIVIDER (clickable beam toggle) */
+  .divider{width:24px;height:90px;display:flex;align-items:center;justify-content:center;cursor:pointer;position:relative;flex-shrink:0;z-index:10;}
+  .divider-line{width:3px;height:50px;background:rgba(255,255,255,.15);border-radius:2px;transition:all .2s;}
+  .divider:hover .divider-line{background:rgba(255,255,255,.4);}
+  .divider.beamed .divider-line{background:transparent;}
+
+  /* BEAT RULER */
+  .beat-ruler{display:flex;width:100%;justify-content:center;gap:0;margin-top:-4px;}
+  .beat-cell{display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:900;color:rgba(255,255,255,.35);text-transform:uppercase;letter-spacing:.5px;transition:color .2s;}
+  .beat-cell.active-beat{color:var(--color-blue-600);}
+
+  /* FEEDBACK OVERLAY */
+  .note-cell .check-ok{position:absolute;bottom:-6px;left:50%;transform:translateX(-50%);width:8px;height:8px;border-radius:50%;background:var(--color-emerald-500);display:none;}
+  .note-cell .check-err{position:absolute;bottom:-6px;left:50%;transform:translateX(-50%);width:8px;height:8px;border-radius:50%;background:var(--color-red-500);display:none;}
+
+  /* BEAM VISUAL - drawn as SVG overlay */
+  .beam-canvas{position:absolute;top:0;left:0;width:100%;height:90px;pointer-events:none;}
+
+  /* ACTIONS */
+  .actions{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;}
+  .action-btn{padding:16px;border:none;border-radius:12px;font-size:10px;font-weight:900;text-transform:uppercase;display:flex;align-items:center;justify-content:center;gap:8px;cursor:pointer;transition:all .2s;box-shadow:0 4px 6px rgba(0,0,0,.1);}
+  .action-btn:active{transform:scale(.95);}
+  .action-btn.primary{background:var(--color-blue-600);color:white;}
+  .action-btn.primary:hover{background:var(--color-blue-700);}
+  .action-btn.secondary{background:var(--color-bg-card);color:var(--color-text-secondary);border:1px solid var(--color-border);}
+  .action-btn.secondary:hover{background:var(--color-slate-50);}
+  .action-btn.success{background:var(--color-emerald-500);color:white;}
+  .action-btn.danger{background:var(--color-red-500);color:white;}
+  .action-btn.dark{background:#1e293b;color:white;}
+  [data-theme="dark"] .action-btn.dark{background:#334155;}
+  .action-btn:disabled{opacity:.4;cursor:not-allowed;transform:none;}
+
+  /* ERROR EXPLANATION */
+  .error-box{background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.3);border-radius:16px;padding:14px 18px;margin-bottom:16px;display:none;}
+  .error-box.show{display:block;}
+  .error-title{font-size:9px;font-weight:900;text-transform:uppercase;color:var(--color-red-500);letter-spacing:.5px;margin-bottom:4px;}
+  .error-text{font-size:13px;color:var(--color-text-secondary);line-height:1.5;}
+  .success-box{background:rgba(16,185,129,.08);border:1px solid rgba(16,185,129,.3);border-radius:16px;padding:14px 18px;margin-bottom:16px;display:none;}
+  .success-box.show{display:block;}
+  .success-title{font-size:9px;font-weight:900;text-transform:uppercase;color:var(--color-emerald-500);letter-spacing:.5px;margin-bottom:4px;}
+  .success-text{font-size:13px;color:var(--color-text-secondary);}
+
+  /* SCORE */
+  .score-row{display:flex;gap:12px;margin-bottom:16px;}
+  .score-pill{flex:1;background:var(--color-bg-card);border:1px solid var(--color-border);border-radius:12px;padding:12px;text-align:center;box-shadow:var(--shadow-sm);}
+  .score-val{font-size:24px;font-weight:900;line-height:1;}
+  .score-val.green{color:var(--color-emerald-500);}
+  .score-val.red{color:var(--color-red-500);}
+  .score-label{font-size:9px;font-weight:900;text-transform:uppercase;color:var(--color-text-muted);margin-top:2px;}
+
+  /* RULES TAB */
+  .rules-grid{display:flex;flex-direction:column;gap:12px;}
+  .rule-big-card{background:var(--color-bg-card);border:1px solid var(--color-border);border-radius:16px;padding:18px;box-shadow:var(--shadow-sm);}
+  .rule-big-title{font-size:13px;font-weight:900;text-transform:uppercase;color:var(--color-text-primary);margin-bottom:8px;display:flex;align-items:center;gap:8px;}
+  .rule-sig{display:inline-block;background:var(--color-blue-600);color:white;border-radius:6px;padding:2px 8px;font-size:11px;font-weight:900;}
+  .rule-big-text{font-size:13px;color:var(--color-text-secondary);line-height:1.6;}
+  .rule-big-text code{background:var(--color-slate-100);color:var(--color-blue-600);padding:1px 5px;border-radius:4px;font-size:12px;font-weight:700;}
+  [data-theme="dark"] .rule-big-text code{background:var(--color-slate-700);}
+  .rule-example{background:var(--color-bg-dark-element);border-radius:12px;padding:16px;margin-top:12px;display:flex;flex-direction:column;align-items:center;justify-content:center;}
+
+  /* FIND ERROR MODE */
+  .find-tag{display:inline-block;background:rgba(245,158,11,.15);color:var(--color-amber-500);border-radius:6px;padding:2px 8px;font-size:10px;font-weight:900;text-transform:uppercase;margin-bottom:12px;}
+
+  .hidden{display:none;}
+
+  /* Progress bar */
+  .ex-progress{display:flex;gap:4px;margin-bottom:16px;}
+  .ex-dot{flex:1;height:4px;border-radius:2px;background:var(--color-border);transition:background .3s;}
+  .ex-dot.done{background:var(--color-emerald-500);}
+  .ex-dot.wrong{background:var(--color-red-500);}
+  .ex-dot.current{background:var(--color-blue-600);}
+
+  /* NOTE DISPLAY scroll wrapper */
+  .note-outer{width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch;padding-bottom:6px;}
+  .note-outer::-webkit-scrollbar{height:4px;}
+  .note-outer::-webkit-scrollbar-thumb{background:rgba(255,255,255,.2);border-radius:2px;}
+
+  @media(max-width:640px){
+    .header{flex-wrap:wrap;gap:8px;padding:10px 12px;}
+    .header-actions{gap:4px;}
+    .icon-btn{padding:7px 9px;font-size:9px;}
+    .container{padding:8px;}
+    .sel-row{flex-wrap:wrap;gap:4px;}
+    .sel-btn{padding:6px 12px;font-size:9px;}
+    .ex-box{padding:16px 12px;border-radius:20px;}
+    .note-display{padding:20px 12px;overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;justify-content:flex-start;align-items:flex-start;}
+    .actions{grid-template-columns:1fr 1fr;gap:8px;}
+    .actions .action-btn:last-child:nth-child(3){grid-column:1/-1;}
+    .action-btn{padding:12px;font-size:9px;}
+    .score-row{flex-wrap:wrap;}
+    .score-pill{min-width:calc(50% - 6px);}
+  }
+  @media(max-width:400px){
+    .header-title{font-size:12px;}
+    .score-val{font-size:20px;}
+    .rule-card{padding:12px;}
+    .rule-text{font-size:12px;}
+  }
+</style>
+</head>
+<body>
+<div class="container">
+<a href="../index.html" id="backHomeLink" style="display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:800;text-decoration:none;opacity:.65;padding:5px 11px;border:1px solid rgba(128,128,128,.25);border-radius:10px;margin-bottom:8px;color:inherit;">← Главная</a>
+
+  <div class="header">
+    <div class="header-title">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+        <path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/>
+      </svg>
+      <span id="appTitle">Группировка длительностей</span>
+    </div>
+    <div class="header-actions">
+      <button class="icon-btn" onclick="toggleTheme()">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" id="themeIcon">
+          <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+        </svg>
+        <span id="themeText">Тёмная</span>
+      </button>
+      <button class="icon-btn" onclick="toggleLang()">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="m5 8 6 6"/><path d="m4 14 6-6 2-3"/><path d="M2 5h12"/><path d="M7 2h1"/>
+          <path d="m22 22-5-10-5 10"/><path d="M14 18h6"/>
+        </svg>
+        <span id="langText">RU</span>
+      </button>
+    </div>
+  </div>
+
+  <div class="tabs">
+    <button class="tab active" id="tab0" onclick="switchTab('group')">✏️ Сгруппируй</button>
+    <button class="tab" id="tab1" onclick="switchTab('find')">🔍 Найди ошибку</button>
+    <button class="tab" id="tab2" onclick="switchTab('rules')">📖 Правила</button>
+  </div>
+
+  <!-- TIME SIG + DIFFICULTY -->
+  <div class="selector-row" id="timeSigRow">
+    <button class="sel-btn active" data-ts="2/4" onclick="setTimeSig('2/4')">2/4</button>
+    <button class="sel-btn" data-ts="3/4" onclick="setTimeSig('3/4')">3/4</button>
+    <button class="sel-btn" data-ts="4/4" onclick="setTimeSig('4/4')">4/4</button>
+    <button class="sel-btn" data-ts="6/8" onclick="setTimeSig('6/8')">6/8</button>
+  </div>
+  <div class="selector-row" id="diffRow">
+    <button class="sel-btn active" data-diff="1" onclick="setDiff(1)">Лёгкий</button>
+    <button class="sel-btn" data-diff="2" onclick="setDiff(2)">Средний</button>
+    <button class="sel-btn" data-diff="3" onclick="setDiff(3)">Сложный</button>
+  </div>
+
+  <!-- SCORE -->
+  <div class="score-row">
+    <div class="score-pill"><div class="score-val green" id="scoreOk">0</div><div class="score-label">Верно</div></div>
+    <div class="score-pill"><div class="score-val red" id="scoreErr">0</div><div class="score-label">Ошибок</div></div>
+    <div class="score-pill"><div class="score-val" id="scoreTot">0</div><div class="score-label">Всего</div></div>
+  </div>
+
+  <!-- MAIN CONTENT -->
+  <div id="mainContent"></div>
+
+  <!-- RULES TAB CONTENT -->
+  <div id="rulesContent" class="hidden rules-grid"></div>
+
+</div>
+
+<script>
+// ── LANG ──────────────────────────────────────────────────────
+let lang = localStorage.getItem('musicapp_lang')||'ru';
+const L = {
+  ru: {
+    title: 'Группировка длительностей',
+    dark: 'Тёмная', light: 'Светлая',
+    tabs: ['✏️ Сгруппируй', '🔍 Найди ошибку', '📖 Правила'],
+    diff: ['Лёгкий', 'Средний', 'Сложный'],
+    correct: 'Верно', errors: 'Ошибок', total: 'Всего',
+    reset: 'Сброс', check: 'Проверить', next: 'Далее →', hint: '💡 Подсказка',
+    rule: 'Правило',
+    findTag: '🔍 Найди ошибочную лигу — нажми на неё',
+    errTitle: '❌ Ошибка', okTitle: '✅ Верно!',
+    instruction: (ts) => `<b>Как читать:</b> цифры под нотами — это доли такта (удары). Ноты, которые звучат в пределах <b>одной доли</b>, нужно объединить лигой (лучом сверху). Нажми на <b>вертикальную черту</b> между нотами, чтобы поставить или убрать лигу.`,
+    hintMsg: 'Правильная группировка показана — запомни и нажми «Далее».',
+    noEx: 'Нет упражнений для выбранных параметров',
+    noQuiz: 'Нужно хотя бы 4 термина',
+    noMatch: 'Нужно хотя бы 2 термина',
+  },
+  en: {
+    title: 'Rhythm Beaming',
+    dark: 'Dark', light: 'Light',
+    tabs: ['✏️ Group', '🔍 Find Error', '📖 Rules'],
+    diff: ['Easy', 'Medium', 'Hard'],
+    correct: 'Correct', errors: 'Errors', total: 'Total',
+    reset: 'Reset', check: 'Check', next: 'Next →', hint: '💡 Hint',
+    rule: 'Rule',
+    findTag: '🔍 Find the wrong beam — tap it',
+    errTitle: '❌ Error', okTitle: '✅ Correct!',
+    instruction: (ts) => `<b>How to read:</b> the numbers below the notes are the <b>beats</b> of the bar. Notes that belong to the <b>same beat</b> must be joined by a beam. Tap the <b>vertical line</b> between notes to add or remove a beam.`,
+    hintMsg: 'Correct grouping is shown — memorise it and press Next.',
+    noEx: 'No exercises for selected filters',
+    noQuiz: 'Need at least 4 terms',
+    noMatch: 'Need at least 2 terms',
+  }
+};
+function T(key, ...args) {
+  const val = L[lang][key];
+  return typeof val === 'function' ? val(...args) : val;
+}
+function toggleLang() {
+  lang = lang === 'ru' ? 'en' : 'ru';
+  localStorage.setItem('musicapp_lang', lang);
+  document.getElementById('langText').textContent = lang === 'ru' ? 'RU' : 'EN';
+  applyStaticLabels();
+  renderExercise();
+}
+function applyStaticLabels() {
+  document.getElementById('appTitle').textContent = T('title');
+  document.getElementById('themeText').textContent = isDark ? T('light') : T('dark');
+  ['group','find','rules'].forEach((t,i) => document.getElementById('tab'+i).textContent = T('tabs')[i]);
+  document.querySelectorAll('.sel-btn[data-diff]').forEach((b,i) => b.textContent = T('diff')[i]);
+  document.querySelectorAll('.score-label').forEach((el, i) => {
+    el.textContent = [T('correct'), T('errors'), T('total')][i];
+  });
+  const bhl=document.getElementById('backHomeLink');if(bhl)bhl.textContent=lang==='ru'?'← Главная':'← Home';
+}
+
+// ── THEME ─────────────────────────────────────────────────────
+let isDark = localStorage.getItem('musicapp_theme')==='dark';
+function toggleTheme() {
+  isDark = !isDark;
+  localStorage.setItem('musicapp_theme', isDark ? 'dark' : 'light');
+  document.documentElement.dataset.theme = isDark ? 'dark' : '';
+  document.getElementById('themeText').textContent = isDark ? T('light') : T('dark');
+  document.getElementById('themeIcon').innerHTML = isDark
+    ? '<circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>'
+    : '<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>';
+  if (currentTab !== 'rules') renderExercise();
+}
+
+// ── STATE ─────────────────────────────────────────────────────
+let hintShown = false;
+let currentTab = 'group';
+let timeSig = '2/4';
+let difficulty = 1;
+let scoreOk = 0, scoreErr = 0, scoreTot = 0;
+let currentEx = null;
+let beamState = []; // array of booleans: beamState[i] = true means notes[i] and notes[i+1] are beamed
+let checked = false;
+let exHistory = []; // 'ok' | 'err' per session
+
+// ── DURATIONS ─────────────────────────────────────────────────
+const DUR_VAL = { w: 4, h: 2, q: 1, e: 0.5, s: 0.25 };
+const DUR_BEAM = ['e', 's']; // only these can be beamed
+const DUR_NAME = { w: 'целая', h: 'половинная', q: 'четверть', e: 'восьмая', s: 'шестнадцатая' };
+const DUR_LABEL = { w: '1', h: '1/2', q: '1/4', e: '1/8', s: '1/16' };
+
+// Beat length in quarter-note units
+function beatLen(ts) {
+  if (ts === '6/8') return 1.5;
+  return 1; // all x/4 time sigs
+}
+
+function beatsPerBar(ts) {
+  if (ts === '6/8') return 2;
+  return parseInt(ts.split('/')[0]);
+}
+
+// ── EXERCISES DATA ─────────────────────────────────────────────
+// Format: { notes: ['q','e','e',...], ts: '4/4', diff: 1, rule: '...' }
+// correctGroups computed automatically from note values + time sig
+const EXERCISES_DATA = [
+  // 2/4 ─────
+  { notes:['e','e','e','e'], ts:'2/4', diff:1 },
+  { notes:['q','e','e'], ts:'2/4', diff:1 },
+  { notes:['e','e','q'], ts:'2/4', diff:1 },
+  { notes:['e','e','e','e','e','e','e','e'], ts:'2/4', diff:2,
+    hint:'В 2/4 четыре восьмых — два удара, каждый из двух восьмых.' },
+  // wait, e×8 = 4 beats, too many for 2/4. Let me fix:
+  // 2/4 = 2 quarter beats. e×4 = 2 beats ✓, e×8 = 4 beats ✗
+  // Remove that exercise and replace:
+  { notes:['s','s','s','s','e','e'], ts:'2/4', diff:2 },
+  { notes:['e','s','s','e','e'], ts:'2/4', diff:3 },
+
+  // 3/4 ─────
+  { notes:['e','e','e','e','e','e'], ts:'3/4', diff:1 },
+  { notes:['q','e','e','e','e'], ts:'3/4', diff:1 },
+  { notes:['e','e','q','e','e'], ts:'3/4', diff:1 },
+  { notes:['e','e','e','e','q'], ts:'3/4', diff:2 },
+  { notes:['e','s','s','e','e','e','e'], ts:'3/4', diff:2 },
+  { notes:['s','s','e','e','e','s','s','e'], ts:'3/4', diff:3 },
+
+  // 4/4 ─────
+  { notes:['e','e','e','e','e','e','e','e'], ts:'4/4', diff:1 },
+  { notes:['q','e','e','q','e','e'], ts:'4/4', diff:1 },
+  { notes:['e','e','q','e','e','q'], ts:'4/4', diff:1 },
+  { notes:['e','e','e','e','q','e','e'], ts:'4/4', diff:2,
+    hint:'В 4/4 нельзя перебрасывать лигу через 3-ю долю (середину такта).' },
+  { notes:['e','e','h','e','e'], ts:'4/4', diff:2 },
+  { notes:['s','s','s','s','e','e','e','e','e','e'], ts:'4/4', diff:3 },
+  { notes:['e','s','s','e','e','e','e','e'], ts:'4/4', diff:3 },
+
+  // 6/8 ─────
+  { notes:['e','e','e','e','e','e'], ts:'6/8', diff:1 },
+  { notes:['q','e','q','e'], ts:'6/8', diff:1 },  // q = 1 beat, e = 0.5; but in 6/8 beat=1.5... actually q=1, so q+e=1.5 ✓
+  { notes:['e','e','e','e','e','e','e','e','e','e','e','e'], ts:'6/8', diff:2 }, // 12 eighths = 3 bars... too many
+  // Let me recalculate: 6/8 bar = 6 eighth beats = 6 × 0.5 = 3 quarter note units
+  // [e,e,e,e,e,e] = 3 ✓, beats at positions 0, 1.5 (three eighths each)
+  { notes:['e','e','e','e','e','e'], ts:'6/8', diff:1 },
+  { notes:['e','e','e','s','s','e','e'], ts:'6/8', diff:2 },
+  { notes:['s','s','e','e','e','e','e','e'], ts:'6/8', diff:3 },
+];
+
+// Remove the bad exercise (index 4 replacement)
+// Let me filter valid exercises only
+function validateExercise(ex) {
+  const total = ex.notes.reduce((s, n) => s + DUR_VAL[n], 0);
+  const expected = beatsPerBar(ex.ts) * beatLen(ex.ts);
+  return Math.abs(total - expected) < 0.001;
+}
+
+const VALID_EXERCISES = EXERCISES_DATA.filter(validateExercise);
+
+// ── COMPUTE CORRECT GROUPING ───────────────────────────────────
+// Returns array of booleans: correctBeam[i] = should notes[i] and [i+1] be beamed?
+function computeCorrectBeams(notes, ts) {
+  const bl = beatLen(ts);
+  const result = [];
+  let pos = 0;
+  for (let i = 0; i < notes.length - 1; i++) {
+    const durA = notes[i], durB = notes[i + 1];
+    const valA = DUR_VAL[durA];
+    const beatOfA = pos / bl;
+    const beatOfB = (pos + valA) / bl;
+    // Both must be beamable, and they must be in the same beat
+    const sameBeam = DUR_BEAM.includes(durA) && DUR_BEAM.includes(durB) &&
+                     Math.floor(beatOfA + 0.001) === Math.floor(beatOfB + 0.001);
+    result.push(sameBeam);
+    pos += valA;
+  }
+  return result;
+}
+
+// ── RULES DATA ─────────────────────────────────────────────────
+const RULES = [
+  {
+    ts: '2/4', beats: 2,
+    title: 'Размер 2/4 — две четверти',
+    text: 'В такте <b>2 доли</b>, каждая = четверть. Восьмые группируются <b>по 2</b> внутри каждой доли. Нельзя лиговать восьмые из разных долей.',
+    example: [['e','e'],['e','e']],
+    wrongExample: [['e','e','e','e']],
+  },
+  {
+    ts: '3/4', beats: 3,
+    title: 'Размер 3/4 — три четверти',
+    text: 'В такте <b>3 доли</b>. Правило то же: восьмые группируются <b>по 2</b> в пределах своей доли. Особенность: лигу через <b>3 доли нельзя разбивать</b>.',
+    example: [['e','e'],['e','e'],['e','e']],
+  },
+  {
+    ts: '4/4', beats: 4,
+    title: 'Размер 4/4 — четыре четверти',
+    text: 'В такте <b>4 доли</b>. Главное правило: <b>нельзя перебрасывать лигу через середину такта</b> (между 2-й и 3-й долями). Группировать можно по одной доле или попарно (1+2, 3+4), но не 2+3.',
+    example: [['e','e'],['e','e'],['e','e'],['e','e']],
+    specialRule: 'Запрещено: объединять через середину такта (доли 2→3)',
+  },
+  {
+    ts: '6/8', beats: 2,
+    title: 'Размер 6/8 — составной',
+    text: 'В такте <b>2 доли</b>, каждая = <b>пунктирная четверть</b> (3 восьмых). Восьмые группируются <b>по 3</b>. Шестнадцатые можно лиговать по 2 или по 4 внутри доли.',
+    example: [['e','e','e'],['e','e','e']],
+  },
+];
+
+// ── TABS ──────────────────────────────────────────────────────
+function switchTab(tab) {
+  currentTab = tab;
+  document.querySelectorAll('.tab').forEach((b,i)=>b.classList.toggle('active',['group','find','rules'][i]===tab));
+  document.getElementById('timeSigRow').style.display = tab === 'rules' ? 'none' : '';
+  document.getElementById('diffRow').style.display = tab === 'rules' ? 'none' : '';
+  document.getElementById('scoreRow') && (document.getElementById('scoreRow').style.display = tab === 'rules' ? 'none' : '');
+  document.getElementById('mainContent').classList.toggle('hidden', tab === 'rules');
+  document.getElementById('rulesContent').classList.toggle('hidden', tab !== 'rules');
+  if (tab === 'rules') renderRules();
+  else renderExercise();
+}
+
+function setTimeSig(ts) {
+  timeSig = ts;
+  document.querySelectorAll('.sel-btn[data-ts]').forEach(b=>b.classList.toggle('active',b.dataset.ts===ts));
+  renderExercise();
+}
+function setDiff(d) {
+  difficulty = d;
+  document.querySelectorAll('.sel-btn[data-diff]').forEach(b=>b.classList.toggle('active',+b.dataset.diff===d));
+  renderExercise();
+}
+
+// ── NOTE SVG ──────────────────────────────────────────────────
+// Draws a single note as SVG (48×90px)
+// beamedLeft, beamedRight: whether this note is connected to prev/next
+function noteSVG(dur, color, beamedLeft, beamedRight, state) {
+  // state: '' | 'correct' | 'wrong' | 'missing'
+  let fill, stroke;
+  if (state === 'correct') { fill = '#10b981'; stroke = '#10b981'; }
+  else if (state === 'wrong') { fill = '#ef4444'; stroke = '#ef4444'; }
+  else if (state === 'missing') { fill = '#f59e0b'; stroke = '#f59e0b'; }
+  else { fill = color; stroke = color; }
+
+  const cx = 24, cy = 68, rx = 9, ry = 6.5;
+  const stemX = cx + 8, stemTop = 25, stemBot = cy;
+
+  let s = `<svg viewBox="0 0 48 90" xmlns="http://www.w3.org/2000/svg">`;
+  // Note head
+  if (dur === 'h' || dur === 'w') {
+    s += `<ellipse cx="${cx}" cy="${cy}" rx="${rx}" ry="${ry}" fill="none" stroke="${fill}" stroke-width="2" transform="rotate(-18,${cx},${cy})"/>`;
+  } else {
+    s += `<ellipse cx="${cx}" cy="${cy}" rx="${rx}" ry="${ry}" fill="${fill}" stroke="${fill}" stroke-width="1" transform="rotate(-18,${cx},${cy})"/>`;
+  }
+  // Stem (not for whole)
+  if (dur !== 'w') {
+    s += `<line x1="${stemX}" y1="${cy-2}" x2="${stemX}" y2="${stemTop}" stroke="${fill}" stroke-width="2"/>`;
+  }
+  // Flag (only if not beamed on right side, and eighth or sixteenth)
+  if (dur === 'e' && !beamedRight && !beamedLeft) {
+    s += `<path d="M${stemX} ${stemTop} Q${stemX+14} ${stemTop+10} ${stemX+10} ${stemTop+22}" fill="none" stroke="${fill}" stroke-width="2"/>`;
+  }
+  if (dur === 's' && !beamedRight && !beamedLeft) {
+    s += `<path d="M${stemX} ${stemTop} Q${stemX+14} ${stemTop+8} ${stemX+10} ${stemTop+18}" fill="none" stroke="${fill}" stroke-width="2"/>`;
+    s += `<path d="M${stemX} ${stemTop+10} Q${stemX+14} ${stemTop+18} ${stemX+10} ${stemTop+28}" fill="none" stroke="${fill}" stroke-width="2"/>`;
+  }
+  if (dur === 's' && (beamedRight || beamedLeft)) {
+    // Second beam line handled by beam drawing
+  }
+  s += `</svg>`;
+  return s;
+}
+
+// ── GET NOTE COLOR ─────────────────────────────────────────────
+// Notes are always on a dark background, so always use a light color
+function noteColor() { return '#e2e8f0'; }
+
+// ── RENDER EXERCISE ────────────────────────────────────────────
+function getExercises() {
+  return VALID_EXERCISES.filter(e => e.ts === timeSig && e.diff === difficulty);
+}
+
+let exIdx = 0;
+function renderExercise() {
+  const pool = getExercises();
+  if (!pool.length) {
+    document.getElementById('mainContent').innerHTML = `
+      <div style="text-align:center;padding:60px 0;color:var(--color-text-muted);font-size:13px;font-weight:700;text-transform:uppercase;">
+        Нет упражнений для выбранных параметров
+      </div>`;
+    return;
+  }
+  exIdx = exIdx % pool.length;
+  currentEx = pool[exIdx];
+  const correctBeams = computeCorrectBeams(currentEx.notes, currentEx.ts);
+
+  if (currentTab === 'find') {
+    // Pre-fill beams with one intentional error for Find Error mode
+    beamState = introduceError(correctBeams, currentEx.notes, currentEx.ts);
+  } else {
+    beamState = correctBeams.map(() => false); // start: nothing beamed
+  }
+
+  checked = false;
+  hintShown = false;
+
+  renderExerciseUI(currentEx, beamState, null);
+  setTimeout(drawBeams, 0);
+}
+
+function nextExercise() {
+  const pool = getExercises();
+  exIdx = (exIdx + 1) % pool.length;
+  renderExercise();
+}
+
+function renderExerciseUI(ex, bState, checkResult) {
+  const isFind = currentTab === 'find';
+  const notes = ex.notes;
+  const correctBeams = computeCorrectBeams(notes, ex.ts);
+
+  // Use beamState as-is (error was already introduced in renderExercise)
+  let displayBeams = [...bState];
+
+  const nc = noteColor();
+  const bl = beatLen(ex.ts);
+  const bpb = beatsPerBar(ex.ts);
+
+  // Build the beat positions for ruler
+  // Compute which inter-note positions are beat boundaries
+  let pos = 0;
+  const beatBoundaries = new Set();
+  for (let i = 0; i < notes.length - 1; i++) {
+    pos += DUR_VAL[notes[i]];
+    if (Math.abs(pos % bl) < 0.001 || Math.abs(pos % bl - bl) < 0.001) {
+      beatBoundaries.add(i);
+    }
+  }
+
+  // Build HTML
+  let html = '';
+
+  // Instruction card (replaces rule card)
+  html += `<div class="rule-card">
+    <div class="rule-icon">💡</div>
+    <div>
+      <div class="rule-title">${T('rule')} · ${ex.ts}</div>
+      <div class="rule-text">${T('instruction', ex.ts)}</div>
+      <div class="rule-text" style="margin-top:6px;color:var(--color-text-muted);font-size:12px;">${getShortRule(ex.ts)}</div>
+    </div>
+  </div>`;
+
+  if (isFind) {
+    html += `<div style="margin-bottom:12px"><span class="find-tag">${T('findTag')}</span></div>`;
+  }
+
+  // Error / success boxes
+  html += `<div class="error-box" id="errorBox"><div class="error-title">${T('errTitle')}</div><div class="error-text" id="errorText"></div></div>`;
+  html += `<div class="success-box" id="successBox"><div class="success-title">${T('okTitle')}</div><div class="success-text" id="successText"></div></div>`;
+
+  // Main exercise box
+  html += `<div class="ex-box">`;
+  const beamsToShow = hintShown ? computeCorrectBeams(notes, ex.ts) : displayBeams;
+  html += `<div class="note-display" id="noteDisplay">`;
+  html += buildNoteRow(notes, beamsToShow, correctBeams, checkResult, nc, beatBoundaries, isFind);
+  html += `</div>`;
+
+  // Actions (same for both Group and Find Error tabs)
+  html += `<div class="actions">
+    <button class="action-btn dark" onclick="resetBeams()">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+      ${T('reset')}
+    </button>
+    <button class="action-btn primary" id="checkBtn" onclick="checkAnswer()" ${checked?'disabled':''}>
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+      ${T('check')}
+    </button>
+    <button class="action-btn secondary" onclick="nextExercise()">
+      ${T('next')}
+    </button>
+  </div>`;
+  if (!checked && !hintShown) {
+    html += `<div style="text-align:center;margin-top:10px;">
+      <button class="action-btn secondary" style="margin:auto" onclick="showHintBeams()">
+        ${T('hint')}
+      </button>
+    </div>`;
+  }
+  if (hintShown && !checked) {
+    html += `<div style="text-align:center;margin-top:10px;font-size:12px;color:var(--color-text-muted);">${T('hintMsg')}</div>`;
+  }
+
+  html += `</div>`; // ex-box
+
+  document.getElementById('mainContent').innerHTML = html;
+}
+
+function getShortRule(ts) {
+  const map = {
+    '2/4': 'Восьмые группируются <b>по 2</b> — по одной доле.',
+    '3/4': 'Восьмые группируются <b>по 2</b> в пределах каждой из 3 долей.',
+    '4/4': 'Восьмые группируются <b>по 2</b> на долю. <b>Нельзя лиговать через середину такта</b> (между 2-й и 3-й долями).',
+    '6/8': 'Восьмые группируются <b>по 3</b> — по одной доле (1 доля = 3 восьмых).',
+  };
+  return map[ts] || '';
+}
+
+// ── BUILD NOTE ROW HTML ────────────────────────────────────────
+function buildNoteRow(notes, beams, correctBeams, checkResult, nc, beatBoundaries, isFind, ts) {
+  ts = ts || timeSig; // use explicit ts or fall back to global
+  let html = `<div style="position:relative;display:flex;align-items:flex-end;" id="noteRowWrap">`;
+
+  for (let i = 0; i < notes.length; i++) {
+    const beamedLeft  = i > 0 && beams[i-1];
+    const beamedRight = i < notes.length - 1 && beams[i];
+
+    let state = '';
+    if (checkResult) {
+      state = checkResult[i] || '';
+    }
+
+    html += `<div class="note-cell" data-idx="${i}">`;
+    html += `<div class="note-svg-wrap" style="width:${noteCellWidth(notes[i])}px">`;
+    html += noteSVG(notes[i], nc, beamedLeft, beamedRight, state);
+    html += `</div>`;
+    html += `</div>`;
+
+    if (i < notes.length - 1) {
+      const isBeatBound = beatBoundaries.has(i);
+      const isBeamed = beams[i];
+      const divClass = isBeamed ? 'divider beamed' : 'divider';
+      const canBeam = DUR_BEAM.includes(notes[i]) && DUR_BEAM.includes(notes[i+1]);
+      const tooltip = isBeamed ? 'Убрать лигу' : 'Поставить лигу';
+
+      html += `<div class="${divClass}" data-divider="${i}" title="${tooltip}" onclick="${canBeam ? 'toggleBeam('+i+')' : ''}">
+        <div class="divider-line"></div>
+      </div>`;
+    }
+  }
+
+  html += `</div>`;
+
+  // Beam overlay: draw beams as horizontal bars above stems
+  html += buildBeamOverlay(notes, beams, nc);
+
+  // Beat ruler
+  html += buildBeatRuler(notes, ts, nc);
+
+  return html;
+}
+
+function noteCellWidth(dur) {
+  if (dur === 'w') return 56;
+  if (dur === 'h') return 52;
+  return 48;
+}
+
+// ── BEAM OVERLAY ───────────────────────────────────────────────
+function buildBeamOverlay(notes, beams, nc) {
+  // Find consecutive beam groups
+  let groups = [];
+  let groupStart = -1;
+
+  for (let i = 0; i < beams.length; i++) {
+    if (beams[i]) {
+      if (groupStart === -1) groupStart = i;
+    } else {
+      if (groupStart !== -1) {
+        groups.push([groupStart, i]); // notes groupStart..i are in one group
+        groupStart = -1;
+      }
+    }
+  }
+  if (groupStart !== -1) groups.push([groupStart, beams.length]);
+
+  if (!groups.length) return '';
+
+  // We need to draw beams, but since we don't know exact pixel positions yet,
+  // we'll use a CSS trick: a gradient line overlaid on the note row
+  // Actually we'll use absolute positioned divs using flex offsets
+
+  // Better: draw using a canvas-like SVG after DOM loads
+  // For now, use CSS flexbox — beam shown as a CSS border-top on a flex container spanning the notes
+
+  // Alternative approach: use JS to draw after render
+  // We'll use an innerHTML injection via setTimeout
+  return `<div id="beamOverlayPlaceholder" data-groups='${JSON.stringify(groups)}'></div>`;
+}
+
+// Called after DOM update to draw beam lines
+function drawBeams() {
+  const placeholder = document.getElementById('beamOverlayPlaceholder');
+  if (!placeholder) return;
+  const groups = JSON.parse(placeholder.dataset.groups || '[]');
+  const wrap = document.getElementById('noteRowWrap');
+  if (!wrap || !groups.length) return;
+
+  const wrapRect = wrap.getBoundingClientRect();
+  const nc = noteColor();
+
+  groups.forEach(([start, end]) => {
+    // Find x positions of note cells
+    const cells = wrap.querySelectorAll('.note-cell');
+    if (!cells[start] || !cells[end]) return;
+
+    const r1 = cells[start].getBoundingClientRect();
+    const r2 = cells[end].getBoundingClientRect();
+
+    const x1 = r1.left - wrapRect.left + r1.width * 0.75;
+    const x2 = r2.left - wrapRect.left + r2.width * 0.75;
+    const y = 27; // stem top position
+
+    const beam = document.createElement('div');
+    beam.style.cssText = `
+      position:absolute;
+      left:${x1}px; top:${y}px;
+      width:${x2-x1}px; height:6px;
+      background:${nc};
+      border-radius:2px;
+      pointer-events:none;
+    `;
+    wrap.style.position = 'relative';
+    wrap.appendChild(beam);
+
+    // Second beam for sixteenth notes
+    const noteAtStart = currentEx.notes[start];
+    const noteAtEnd = currentEx.notes[end];
+    if (noteAtStart === 's' || noteAtEnd === 's') {
+      const beam2 = beam.cloneNode();
+      beam2.style.top = (y + 8) + 'px';
+      wrap.appendChild(beam2);
+    }
+  });
+}
+
+// ── BEAT RULER ─────────────────────────────────────────────────
+function buildBeatRuler(notes, ts, nc) {
+  const bl = beatLen(ts);
+  const is68 = ts === '6/8';
+
+  let html = `<div style="display:flex;align-items:center;margin-top:8px;">`;
+  let pos = 0;
+  let beatNum = 1;
+
+  for (let i = 0; i < notes.length; i++) {
+    const w = noteCellWidth(notes[i]);
+    let label = '';
+
+    if (is68) {
+      // In 6/8 label every eighth-note position: 1,2,3,4,5,6
+      label = (Math.round(pos / 0.5) + 1).toString();
+    } else {
+      // For x/4 time sigs, label at beat starts only
+      if (Math.abs(pos % bl) < 0.001) label = (beatNum++).toString();
+    }
+
+    html += `<div style="width:${w}px;text-align:center;font-size:11px;font-weight:900;` +
+      `color:${label ? 'rgba(255,255,255,.7)' : 'transparent'};letter-spacing:.5px;">${label || '·'}</div>`;
+
+    if (i < notes.length - 1) html += `<div style="width:24px;"></div>`;
+    pos += DUR_VAL[notes[i]];
+  }
+
+  html += `</div>`;
+  return html;
+}
+
+// ── TOGGLE BEAM ───────────────────────────────────────────────
+function toggleBeam(idx) {
+  if (checked) return;
+
+  const durA = currentEx.notes[idx];
+  const durB = currentEx.notes[idx + 1];
+  if (!DUR_BEAM.includes(durA) || !DUR_BEAM.includes(durB)) return;
+
+  beamState[idx] = !beamState[idx];
+  renderExerciseUI(currentEx, beamState, null);
+  setTimeout(drawBeams, 0);
+}
+
+// ── HINT ──────────────────────────────────────────────────────
+function showHintBeams() {
+  hintShown = true;
+  // Update beamState to correct values so clicking Check after hint passes
+  beamState = computeCorrectBeams(currentEx.notes, currentEx.ts);
+  renderExerciseUI(currentEx, beamState, null);
+  setTimeout(drawBeams, 0);
+}
+
+// ── RESET ─────────────────────────────────────────────────────
+function resetBeams() {
+  const correctBeams = computeCorrectBeams(currentEx.notes, currentEx.ts);
+  if (currentTab === 'find') {
+    beamState = introduceError(correctBeams, currentEx.notes, currentEx.ts);
+  } else {
+    beamState = correctBeams.map(() => false);
+  }
+  checked = false;
+  hintShown = false;
+  renderExerciseUI(currentEx, beamState, null);
+  setTimeout(drawBeams, 0);
+  document.getElementById('errorBox').classList.remove('show');
+  document.getElementById('successBox').classList.remove('show');
+}
+
+// ── CHECK ANSWER ──────────────────────────────────────────────
+function checkAnswer() {
+  if (checked) return;
+  checked = true;
+
+  const correctBeams = computeCorrectBeams(currentEx.notes, currentEx.ts);
+  scoreTot++;
+
+  // Compare beamState vs correctBeams
+  const errors = [];
+  const missing = [];
+
+  for (let i = 0; i < correctBeams.length; i++) {
+    if (correctBeams[i] && !beamState[i]) missing.push(i);
+    if (!correctBeams[i] && beamState[i]) errors.push(i);
+  }
+
+  const isCorrect = errors.length === 0 && missing.length === 0;
+
+  if (isCorrect) {
+    if (!hintShown) scoreOk++;
+    document.getElementById('successBox').classList.add('show');
+    document.getElementById('successText').innerHTML = buildSuccessText(currentEx.ts);
+    setTimeout(() => nextExercise(), 900);
+  } else {
+    scoreErr++;
+    document.getElementById('errorBox').classList.add('show');
+    document.getElementById('errorText').innerHTML = buildErrorText(errors, missing, currentEx.notes, currentEx.ts);
+  }
+
+  updateScore();
+
+  // Re-render with color feedback
+  const checkResult = buildCheckResult(correctBeams, errors, missing);
+  renderExerciseUI(currentEx, beamState, checkResult);
+  setTimeout(drawBeams, 0);
+}
+
+function buildCheckResult(correctBeams, errors, missing) {
+  // Returns per-note state array
+  const notes = currentEx.notes;
+  const result = {};
+
+  // For each error (wrong beam): mark both notes as wrong
+  errors.forEach(i => {
+    result[i] = 'wrong';
+    result[i+1] = 'wrong';
+  });
+  missing.forEach(i => {
+    if (!result[i]) result[i] = 'missing';
+    if (!result[i+1]) result[i+1] = 'missing';
+  });
+
+  return result;
+}
+
+function buildErrorText(errors, missing, notes, ts) {
+  let parts = [];
+  const rule = getViolationRule(errors, missing, notes, ts);
+  if (errors.length) {
+    const names = errors.map(i => `${DUR_NAME[notes[i]]} + ${DUR_NAME[notes[i+1]]}`);
+    parts.push(`<b>Лишняя лига:</b> ${names.join(', ')}`);
+  }
+  if (missing.length) {
+    const names = missing.map(i => `${DUR_NAME[notes[i]]} + ${DUR_NAME[notes[i+1]]}`);
+    parts.push(`<b>Пропущена лига:</b> ${names.join(', ')}`);
+  }
+  if (rule) parts.push(`<br><i>${rule}</i>`);
+  return parts.join('<br>');
+}
+
+function getViolationRule(errors, missing, notes, ts) {
+  if (!errors.length && !missing.length) return '';
+
+  const bl = beatLen(ts);
+  // Check if any error is a cross-beat beam
+  for (const i of errors) {
+    let pos = 0;
+    for (let j = 0; j < i; j++) pos += DUR_VAL[notes[j]];
+    const beatA = Math.floor(pos / bl + 0.001);
+    const beatB = Math.floor((pos + DUR_VAL[notes[i]]) / bl + 0.001);
+    if (beatA !== beatB) {
+      if (ts === '4/4' && beatA === 1 && beatB === 2) {
+        return 'В 4/4 нельзя перебрасывать лигу через середину такта — между 2-й и 3-й долями.';
+      }
+      return `Нельзя лиговать через границу доли. ${DUR_NAME[notes[i]]} принадлежит ${beatA+1}-й доле, следующая — ${beatB+1}-й.`;
+    }
+  }
+  if (missing.length) {
+    return `В размере ${ts} восьмые внутри одной доли должны быть объединены лигой.`;
+  }
+  return '';
+}
+
+function buildSuccessText(ts) {
+  const map = {
+    '2/4': 'Отлично! Каждая пара восьмых сгруппирована по своей доле.',
+    '3/4': 'Верно! Три доли — три группы.',
+    '4/4': 'Правильно! Доли не перемешаны, середина такта соблюдена.',
+    '6/8': 'Верно! Три восьмых на каждую составную долю.',
+  };
+  return map[ts] || 'Верно!';
+}
+
+// ── FIND ERROR MODE ────────────────────────────────────────────
+function introduceError(correctBeams, notes, ts) {
+  const result = [...correctBeams];
+  const bl = beatLen(ts);
+
+  // Find candidates: positions where we can flip
+  // Option A: remove a correct beam (missing beam)
+  // Option B: add a wrong beam across a beat boundary
+
+  // Find all beam boundaries (where we COULD wrongly add a beam)
+  let pos = 0;
+  const beatBoundaries = [];
+  for (let i = 0; i < notes.length - 1; i++) {
+    pos += DUR_VAL[notes[i]];
+    if (Math.abs(pos % bl) < 0.001) {
+      if (DUR_BEAM.includes(notes[i]) && DUR_BEAM.includes(notes[i+1])) {
+        beatBoundaries.push(i);
+      }
+    }
+  }
+
+  const correctOnes = correctBeams.map((b,i)=>b?i:-1).filter(i=>i>=0);
+
+  // Prefer adding a wrong beam across beat boundary (more instructive)
+  if (beatBoundaries.length > 0) {
+    const errIdx = beatBoundaries[Math.floor(Math.random() * beatBoundaries.length)];
+    result[errIdx] = true; // add wrong beam at boundary
+    window._findErrorCorrect = errIdx;
+    window._findErrorType = 'extra';
+    return result;
+  }
+
+  // Fallback: remove a correct beam
+  if (correctOnes.length > 0) {
+    const errIdx = correctOnes[Math.floor(Math.random() * correctOnes.length)];
+    result[errIdx] = false;
+    window._findErrorCorrect = errIdx;
+    window._findErrorType = 'missing';
+    return result;
+  }
+
+  return result;
+}
+
+function findErrorClick(divIdx) {
+  if (checked) return;
+  checked = true;
+  scoreTot++;
+
+  const isCorrectClick = (divIdx === window._findErrorCorrect);
+
+  if (isCorrectClick) {
+    scoreOk++;
+    document.getElementById('successBox').classList.add('show');
+    document.getElementById('successText').textContent = 'Правильно! Именно эта лига нарушает правило.';
+  } else {
+    scoreErr++;
+    document.getElementById('errorBox').classList.add('show');
+    document.getElementById('errorText').textContent = 'Нет, ошибка в другом месте. Ищи лигу, которая перебрасывает через границу доли.';
+  }
+
+  updateScore();
+
+  // After a moment, show next
+  setTimeout(() => {
+    if (isCorrectClick) nextExercise();
+  }, 1500);
+}
+
+// ── SCORE UI ──────────────────────────────────────────────────
+function updateScore() {
+  document.getElementById('scoreOk').textContent = scoreOk;
+  document.getElementById('scoreErr').textContent = scoreErr;
+  document.getElementById('scoreTot').textContent = scoreTot;
+}
+
+// ── RULES TAB ─────────────────────────────────────────────────
+function renderRules() {
+  const html = RULES.map(r => {
+    // Draw example beaming groups
+    const exNotes = r.example.flat();
+    const beams = computeCorrectBeams(exNotes, r.ts);
+    const nc = '#e2e8f0'; // always light — dark background
+    const beatBoundaries = new Set();
+    let pos = 0;
+    exNotes.forEach((d, i) => {
+      if (i < exNotes.length-1) {
+        pos += DUR_VAL[d];
+        if (Math.abs(pos % beatLen(r.ts)) < 0.001) beatBoundaries.add(i);
+      }
+    });
+
+    return `<div class="rule-big-card">
+      <div class="rule-big-title">
+        <span class="rule-sig">${r.ts}</span>
+        ${r.title}
+      </div>
+      <div class="rule-big-text">${r.text}</div>
+      ${r.specialRule ? `<div style="margin-top:10px;padding:10px 14px;background:rgba(239,68,68,.08);border-radius:10px;font-size:12px;color:#ef4444;font-weight:700;">⚠️ ${r.specialRule}</div>` : ''}
+      <div class="rule-example">
+        ${buildNoteRow(exNotes, beams, beams, null, nc, beatBoundaries, false, r.ts)}
+      </div>
+    </div>`;
+  }).join('');
+
+  document.getElementById('rulesContent').innerHTML = html;
+  setTimeout(()=>{
+    // Draw beams in rule examples
+    document.querySelectorAll('#rulesContent #beamOverlayPlaceholder').forEach(placeholder => {
+      const groups = JSON.parse(placeholder.dataset.groups || '[]');
+      const wrap = placeholder.previousSibling;
+      if (!wrap) return;
+      const nc2 = '#e2e8f0';
+      const cells = wrap.querySelectorAll('.note-cell');
+      const wrapRect = wrap.getBoundingClientRect();
+      groups.forEach(([start,end]) => {
+        if (!cells[start] || !cells[end]) return;
+        const r1 = cells[start].getBoundingClientRect();
+        const r2 = cells[end].getBoundingClientRect();
+        const x1 = r1.left - wrapRect.left + r1.width * 0.75;
+        const x2 = r2.left - wrapRect.left + r2.width * 0.75;
+        const beam = document.createElement('div');
+        beam.style.cssText = `position:absolute;left:${x1}px;top:27px;width:${x2-x1}px;height:6px;background:${nc2};border-radius:2px;pointer-events:none;`;
+        wrap.style.position = 'relative';
+        wrap.appendChild(beam);
+      });
+    });
+  }, 50);
+}
+
+// ── INIT ──────────────────────────────────────────────────────
+applyStaticLabels();
+renderExercise();
+setTimeout(drawBeams, 0);
+</script></body>
+</html>
