@@ -1,9 +1,0 @@
-[{
-      "relation": ["delegate_permission/common.handle_all_urls"],
-      "target": {
-        "namespace": "android_app",
-        "package_name": "com.muzgramota.app",
-        "sha256_cert_fingerprints": ["4A:2A:FA:9C:B7:B6:02:1C:A4:7C:37:E1:50:10:67:97:A4:C4:79:D0:1A:E2:B5:A4:DA:03:60:4E:F8:DC:BB:7E"]
-      }
-    }]
-
