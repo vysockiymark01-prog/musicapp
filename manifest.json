@@ -5,7 +5,7 @@
   "start_url": "/musicapp/",
   "scope": "/musicapp/",
   "display": "standalone",
-  "orientation": "any",
+  "orientation": "portrait",
   "background_color": "#1c3a8e",
   "theme_color": "#1c3a8e",
   "lang": "ru",
