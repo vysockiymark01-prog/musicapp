@@ -16,7 +16,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Группировка длительностей</title>
-<script>(function(){var t=localStorage.getItem('musicapp_theme');if(t==='dark')document.documentElement.setAttribute('data-theme','dark');else document.documentElement.setAttribute('data-theme','light');})()</script>
+<meta name="theme-color" content="#f8fafc">
+<script>(function(){var t=localStorage.getItem('musicapp_theme');var dark=t==='dark';document.documentElement.setAttribute('data-theme',dark?'dark':'light');var m=document.querySelector('meta[name="theme-color"]');if(m)m.content=dark?'#0f172a':'#f8fafc';})()</script>
 <style>
   :root {
     --color-bg-primary:#f8fafc; --color-bg-secondary:#ffffff; --color-bg-card:#ffffff;

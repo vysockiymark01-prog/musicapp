@@ -4,10 +4,14 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
 <title>Тюнер</title>
+<meta name="theme-color" content="#f8fafc">
 <script>
 (function(){
   var t=localStorage.getItem('musicapp_theme');
-  document.documentElement.setAttribute('data-theme',t==='dark'?'dark':'light');
+  var dark=t==='dark';
+  document.documentElement.setAttribute('data-theme',dark?'dark':'light');
+  var m=document.querySelector('meta[name="theme-color"]');
+  if(m)m.content=dark?'#0f172a':'#f8fafc';
 })();
 </script>
 <style>
