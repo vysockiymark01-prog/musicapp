@@ -307,7 +307,7 @@ function applyStaticLabels() {
 let isDark = localStorage.getItem('musicapp_theme')==='dark';
 function toggleTheme() {
   isDark = !isDark;
-  localStorage.setItem('musicapp_theme', isDark ? 'dark' : 'light');
+  localStorage.setItem('musicapp_theme', isDark ? 'dark' : 'light');var _m=document.querySelector('meta[name=\"theme-color\"]');if(_m)_m.content=localStorage.getItem('musicapp_theme')==='dark'?'#0f172a':'#f8fafc';
   document.documentElement.dataset.theme = isDark ? 'dark' : '';
   document.getElementById('themeText').textContent = isDark ? T('light') : T('dark');
   document.getElementById('themeIcon').innerHTML = isDark

@@ -1292,7 +1292,7 @@ function renderQuizFinish(){
 document.getElementById('themeBtn').addEventListener('click',()=>{
   const dk=document.documentElement.getAttribute('data-theme')==='dark';
   document.documentElement.setAttribute('data-theme',dk?'light':'dark');
-  localStorage.setItem('musicapp_theme',dk?'light':'dark');
+  localStorage.setItem('musicapp_theme',dk?'light':'dark');var _m=document.querySelector('meta[name=\"theme-color\"]');if(_m)_m.content=localStorage.getItem('musicapp_theme')==='dark'?'#0f172a':'#f8fafc';
   document.getElementById('themeText').textContent=dk?'Тёмная':'Светлая';
   document.getElementById('themeIco').innerHTML=dk
     ?'<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>'
