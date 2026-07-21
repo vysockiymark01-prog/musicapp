@@ -1,4 +1,4 @@
-const CACHE = 'muzgramota-v2';
+const CACHE = 'muzgramota-v3';
 
 // Только критические файлы с ASCII-путями — кэшируются при установке
 const PRECACHE = [
