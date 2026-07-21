@@ -1,0 +1,799 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
+<title>Тюнер</title>
+<script>
+(function(){
+  var t=localStorage.getItem('musicapp_theme');
+  document.documentElement.setAttribute('data-theme',t==='dark'?'dark':'light');
+})();
+</script>
+<style>
+:root{
+  --bg:#f8fafc;--card:#fff;--text:#0f172a;--muted:#94a3b8;
+  --border:#e2e8f0;--sl100:#f1f5f9;--sl200:#e2e8f0;
+  --green:#10b981;--amber:#f59e0b;--red:#ef4444;
+  --shadow:0 1px 4px rgba(0,0,0,.07);
+}
+[data-theme="dark"]{
+  --bg:#0f172a;--card:#1e293b;--text:#f1f5f9;--muted:#64748b;
+  --border:#334155;--sl100:#334155;--sl200:#475569;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+  background:var(--bg);color:var(--text);min-height:100vh;
+  transition:background .3s,color .3s;}
+.wrap{max-width:500px;margin:0 auto;padding:16px 14px 32px;}
+
+/* Header */
+.hdr{display:flex;justify-content:space-between;align-items:center;
+  padding:11px 16px;background:var(--card);border:1px solid var(--border);
+  border-radius:18px;margin-bottom:18px;box-shadow:var(--shadow);}
+.hdr-back{display:flex;align-items:center;gap:8px;text-decoration:none;
+  color:var(--text);font-weight:900;font-size:16px;}
+.hdr-back svg{opacity:.55;}
+.hdr-btns{display:flex;gap:6px;}
+.hbtn{padding:7px 11px;background:var(--sl100);border:none;border-radius:10px;
+  font-size:10px;font-weight:800;text-transform:uppercase;cursor:pointer;
+  color:var(--text);display:flex;align-items:center;gap:4px;}
+.hbtn:hover{background:var(--sl200);}
+
+/* Instrument tabs */
+.seg{display:flex;background:var(--sl100);border-radius:14px;padding:4px;
+  gap:3px;margin-bottom:14px;}
+.seg-btn{flex:1;padding:9px 4px;border:none;background:transparent;border-radius:10px;
+  font-size:12px;font-weight:700;cursor:pointer;color:var(--muted);
+  transition:all .15s;white-space:nowrap;}
+.seg-btn.active{background:var(--card);color:var(--text);
+  box-shadow:0 1px 3px rgba(0,0,0,.1);}
+
+/* Mode tabs */
+.mode-seg{display:flex;background:var(--sl100);border-radius:12px;padding:3px;
+  gap:3px;margin-bottom:18px;}
+.mode-btn{flex:1;padding:9px;border:none;background:transparent;border-radius:9px;
+  font-size:13px;font-weight:700;cursor:pointer;color:var(--muted);transition:all .15s;}
+.mode-btn.active{background:var(--card);color:var(--text);
+  box-shadow:0 1px 3px rgba(0,0,0,.1);}
+
+/* Meter card */
+.meter-card{background:var(--card);border:1.5px solid var(--border);border-radius:22px;
+  padding:20px 18px 22px;box-shadow:var(--shadow);margin-bottom:14px;}
+
+/* SVG meter */
+#meterSvg{width:100%;max-width:300px;display:block;margin:0 auto;}
+
+/* Note display */
+.note-display{text-align:center;margin:10px 0 6px;}
+.note-row{display:flex;align-items:flex-end;justify-content:center;gap:3px;line-height:1;}
+.note-name{font-size:clamp(40px,13vw,56px);font-weight:900;transition:color .2s;}
+.note-oct{font-size:clamp(20px,6vw,28px);font-weight:700;color:var(--muted);
+  margin-bottom:4px;}
+.note-freq{font-size:13px;color:var(--muted);margin-top:6px;}
+.note-cents{font-size:14px;font-weight:700;margin-top:3px;}
+.status-text{font-size:12px;font-weight:900;text-transform:uppercase;
+  letter-spacing:.6px;margin-top:7px;}
+.c-green{color:var(--green);}
+.c-amber{color:var(--amber);}
+.c-red{color:var(--red);}
+.c-muted{color:var(--muted);}
+
+/* String hints */
+.string-hints{display:flex;flex-wrap:wrap;gap:6px;margin-top:14px;
+  justify-content:center;min-height:30px;}
+.str-hint{padding:5px 11px;border-radius:10px;font-size:11px;font-weight:700;
+  border:1.5px solid var(--border);background:var(--sl100);color:var(--muted);
+  transition:all .2s;}
+.str-hint.closest{background:rgba(16,185,129,.14);border-color:var(--green);
+  color:var(--green);}
+
+/* Main button */
+.main-btn{width:100%;padding:15px;border:none;border-radius:16px;
+  font-size:16px;font-weight:800;cursor:pointer;transition:all .15s;
+  display:flex;align-items:center;justify-content:center;gap:8px;}
+.btn-listen{background:var(--green);color:#fff;}
+.btn-stop{background:var(--red);color:#fff;}
+.main-btn:hover{opacity:.9;}
+.main-btn:active{transform:scale(.98);}
+
+/* Mic error */
+.mic-error{text-align:center;padding:16px 8px 4px;}
+.mic-error-title{font-size:15px;font-weight:800;color:var(--red);margin-bottom:6px;}
+.mic-error-hint{font-size:12px;color:var(--muted);line-height:1.5;}
+
+/* Manual mode */
+.strings-grid{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;
+  margin-bottom:14px;}
+.str-btn{padding:10px 12px;border:2px solid var(--border);border-radius:14px;
+  background:var(--sl100);font-size:13px;font-weight:800;cursor:pointer;
+  color:var(--text);display:flex;flex-direction:column;align-items:center;
+  gap:3px;min-width:68px;transition:all .15s;}
+.str-btn:hover{border-color:var(--amber);background:rgba(245,158,11,.08);}
+.str-btn.selected{border-color:var(--amber);background:rgba(245,158,11,.14);
+  color:var(--amber);}
+.str-note{font-size:16px;font-weight:900;}
+.str-num{font-size:9px;color:var(--muted);font-weight:700;text-transform:uppercase;
+  letter-spacing:.3px;}
+.str-info{text-align:center;margin-bottom:14px;padding:13px;
+  background:var(--sl100);border-radius:14px;min-height:58px;
+  display:flex;flex-direction:column;justify-content:center;}
+.str-info-name{font-size:22px;font-weight:900;}
+.str-info-freq{font-size:13px;color:var(--muted);margin-top:3px;}
+
+.play-btn{width:100%;padding:15px;border:none;border-radius:16px;
+  font-size:16px;font-weight:800;cursor:pointer;transition:all .15s;
+  display:flex;align-items:center;justify-content:center;gap:8px;}
+.btn-play{background:var(--amber);color:#fff;}
+.btn-playing{background:var(--red);color:#fff;}
+.play-btn:hover{opacity:.9;}
+.play-btn:active{transform:scale(.98);}
+.play-btn:disabled{opacity:.4;cursor:default;transform:none;}
+
+@media(max-width:400px){
+  .str-btn{min-width:58px;padding:8px 8px;}
+  .str-note{font-size:14px;}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<!-- Header -->
+<div class="hdr">
+  <a class="hdr-back" href="../index.html">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+      <path d="M15 18l-6-6 6-6"/>
+    </svg>
+    <span id="hdrTitle">Тюнер</span>
+  </a>
+  <div class="hdr-btns">
+    <button class="hbtn" id="themeBtn">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" id="themeIco">
+        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+      </svg>
+      <span id="themeText">Тёмная</span>
+    </button>
+    <button class="hbtn" id="langBtn"><span id="langText">RU</span></button>
+  </div>
+</div>
+
+<!-- Instrument selector -->
+<div class="seg" id="instrSeg">
+  <button class="seg-btn active" data-instr="guitar"    id="iBtn0">Гитара</button>
+  <button class="seg-btn"        data-instr="balalaika" id="iBtn1">Балалайка</button>
+  <button class="seg-btn"        data-instr="domra"     id="iBtn2">Домра</button>
+  <button class="seg-btn"        data-instr="chromatic" id="iBtn3">Хром.</button>
+</div>
+
+<!-- Mode selector -->
+<div class="mode-seg">
+  <button class="mode-btn active" id="modeAuto">Авто</button>
+  <button class="mode-btn"        id="modeManual">Ручной</button>
+</div>
+
+<!-- ══════════════════════ AUTO MODE ══════════════════════ -->
+<div id="autoPanel">
+  <div class="meter-card">
+
+    <!-- Arc meter -->
+    <svg id="meterSvg" viewBox="0 0 300 175" xmlns="http://www.w3.org/2000/svg">
+      <!-- Track (grey background) -->
+      <path d="M 30,155 A 120,120 0 0 1 270,155"
+            fill="none" stroke="var(--border)" stroke-width="18" stroke-linecap="round"/>
+      <!-- Red zones: ±20 to ±50 cents -->
+      <path d="M 30,155 A 120,120 0 0 1 79.5,57.9"
+            fill="none" stroke="#ef4444" stroke-width="18" stroke-linecap="round" opacity=".65"/>
+      <path d="M 220.5,57.9 A 120,120 0 0 1 270,155"
+            fill="none" stroke="#ef4444" stroke-width="18" stroke-linecap="round" opacity=".65"/>
+      <!-- Amber zones: ±5 to ±20 cents -->
+      <path d="M 79.5,57.9 A 120,120 0 0 1 131.2,36.5"
+            fill="none" stroke="#f59e0b" stroke-width="18" stroke-linecap="round" opacity=".65"/>
+      <path d="M 168.8,36.5 A 120,120 0 0 1 220.5,57.9"
+            fill="none" stroke="#f59e0b" stroke-width="18" stroke-linecap="round" opacity=".65"/>
+      <!-- Green zone: ±5 cents -->
+      <path d="M 131.2,36.5 A 120,120 0 0 1 168.8,36.5"
+            fill="none" stroke="#10b981" stroke-width="18" stroke-linecap="round" opacity=".75"/>
+      <!-- Center mark -->
+      <line x1="150" y1="38" x2="150" y2="24"
+            stroke="var(--text)" stroke-width="2" opacity=".3"/>
+      <!-- ♭ / ♯ labels -->
+      <text x="22"  y="172" fill="var(--muted)" font-size="13" font-weight="700"
+            text-anchor="middle" font-family="-apple-system,sans-serif">♭</text>
+      <text x="278" y="172" fill="var(--muted)" font-size="13" font-weight="700"
+            text-anchor="middle" font-family="-apple-system,sans-serif">♯</text>
+      <!-- 0 label -->
+      <text x="150" y="18" fill="var(--muted)" font-size="10" font-weight="700"
+            text-anchor="middle" font-family="-apple-system,sans-serif">0</text>
+      <!-- Needle -->
+      <line id="needleLine" x1="150" y1="155" x2="150" y2="47"
+            stroke="var(--muted)" stroke-width="3" stroke-linecap="round" opacity=".25"/>
+      <circle id="needlePivot" cx="150" cy="155" r="6"
+              fill="var(--muted)" opacity=".25"/>
+    </svg>
+
+    <!-- Note name + octave -->
+    <div class="note-display">
+      <div class="note-row">
+        <span class="note-name c-muted" id="noteName">—</span>
+        <span class="note-oct" id="noteOct"></span>
+      </div>
+      <div class="note-freq" id="noteFreq"></div>
+      <div class="note-cents" id="noteCents"></div>
+      <div class="status-text c-muted" id="statusText">Тишина</div>
+    </div>
+
+    <!-- Closest-string hints (hidden for chromatic) -->
+    <div class="string-hints" id="stringHints"></div>
+  </div>
+
+  <!-- Start / Stop -->
+  <button class="main-btn btn-listen" id="startBtn">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
+         stroke="currentColor" stroke-width="2.2">
+      <path d="M12 2a3 3 0 0 1 3 3v7a3 3 0 0 1-6 0V5a3 3 0 0 1 3-3z"/>
+      <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
+      <line x1="12" y1="19" x2="12" y2="23"/>
+      <line x1="8"  y1="23" x2="16" y2="23"/>
+    </svg>
+    <span id="startBtnText">Слушать</span>
+  </button>
+
+  <div id="micErrorDiv" style="display:none;">
+    <div class="mic-error">
+      <div class="mic-error-title" id="micErrTitle">Нет доступа к микрофону</div>
+      <div class="mic-error-hint"  id="micErrHint">Разрешите доступ в настройках браузера</div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════ MANUAL MODE ══════════════════════ -->
+<div id="manualPanel" style="display:none;">
+  <div class="meter-card">
+    <div class="strings-grid" id="stringsGrid"></div>
+    <div class="str-info" id="strInfo">
+      <div class="str-info-name" id="strInfoName">Выберите струну</div>
+      <div class="str-info-freq" id="strInfoFreq"></div>
+    </div>
+    <button class="play-btn btn-play" id="playBtn" disabled>
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" id="playIco">
+        <polygon points="5,3 19,12 5,21"/>
+      </svg>
+      <span id="playBtnText">Сыграть</span>
+    </button>
+  </div>
+</div>
+
+</div><!-- /wrap -->
+<script>
+'use strict';
+
+/* ───────── TRANSLATIONS ───────── */
+const L = {
+  ru: {
+    title:'Тюнер', dark:'Тёмная', light:'Светлая',
+    modeAuto:'Авто', modeManual:'Ручной',
+    listen:'Слушать', stopListen:'Стоп',
+    play:'Сыграть',  stopPlay:'Стоп',
+    inTune:'В строе', flat:'Низко', sharp:'Высоко', silence:'Тишина', hz:'Гц', c:'ц',
+    micErrTitle:'Нет доступа к микрофону',
+    micErrHint:'Разрешите доступ к микрофону в настройках браузера',
+    selectStr:'Выберите струну',
+    strLabel:'стр.',
+    iNames:['Гитара','Балалайка','Домра','Хром.'],
+    notes:['До','До♯','Ре','Ре♯','Ми','Фа','Фа♯','Соль','Соль♯','Ля','Ля♯','Си'],
+  },
+  en: {
+    title:'Tuner', dark:'Dark', light:'Light',
+    modeAuto:'Auto', modeManual:'Manual',
+    listen:'Listen', stopListen:'Stop',
+    play:'Play', stopPlay:'Stop',
+    inTune:'In Tune', flat:'Flat', sharp:'Sharp', silence:'Silence', hz:'Hz', c:'¢',
+    micErrTitle:'Microphone access denied',
+    micErrHint:'Allow microphone access in your browser settings',
+    selectStr:'Select a string',
+    strLabel:'str.',
+    iNames:['Guitar','Balalaika','Domra','Chrom.'],
+    notes:['C','C♯','D','D♯','E','F','F♯','G','G♯','A','A♯','B'],
+  }
+};
+
+/* ───────── INSTRUMENTS ───────── */
+// Each string: {midi, strNum, ru, en}
+// Frequency calculated from midi via 440 * 2^((midi-69)/12)
+const INSTR = {
+  guitar:    { strings:[
+    {midi:64,strNum:1,ru:'Ми₄',  en:'E4'},
+    {midi:59,strNum:2,ru:'Си₃',  en:'B3'},
+    {midi:55,strNum:3,ru:'Соль₃',en:'G3'},
+    {midi:50,strNum:4,ru:'Ре₃',  en:'D3'},
+    {midi:45,strNum:5,ru:'Ля₂',  en:'A2'},
+    {midi:40,strNum:6,ru:'Ми₂',  en:'E2'},
+  ]},
+  balalaika: { strings:[
+    {midi:69,strNum:1,ru:'Ля₄',  en:'A4'},
+    {midi:64,strNum:2,ru:'Ми₄',  en:'E4'},
+    {midi:64,strNum:3,ru:'Ми₄',  en:'E4'},
+  ]},
+  domra:     { strings:[
+    {midi:69,strNum:1,ru:'Ля₄',  en:'A4'},
+    {midi:62,strNum:2,ru:'Ре₄',  en:'D4'},
+    {midi:55,strNum:3,ru:'Соль₃',en:'G3'},
+  ]},
+  chromatic: { strings:[] },
+};
+// Add freq to every string
+Object.values(INSTR).forEach(inst =>
+  inst.strings.forEach(s => s.freq = 440 * Math.pow(2,(s.midi-69)/12))
+);
+
+// Chromatic reference notes for manual mode (A3 to C5)
+const CHROM_NOTES = [
+  {midi:57,ru:'Ля₃',   en:'A3'},
+  {midi:58,ru:'Си♭₃',  en:'B♭3'},
+  {midi:59,ru:'Си₃',   en:'B3'},
+  {midi:60,ru:'До₄',   en:'C4'},
+  {midi:61,ru:'До♯₄',  en:'C♯4'},
+  {midi:62,ru:'Ре₄',   en:'D4'},
+  {midi:63,ru:'Ре♯₄',  en:'D♯4'},
+  {midi:64,ru:'Ми₄',   en:'E4'},
+  {midi:65,ru:'Фа₄',   en:'F4'},
+  {midi:66,ru:'Фа♯₄',  en:'F♯4'},
+  {midi:67,ru:'Соль₄', en:'G4'},
+  {midi:68,ru:'Соль♯₄',en:'G♯4'},
+  {midi:69,ru:'Ля₄',   en:'A4'},
+  {midi:70,ru:'Си♭₄',  en:'B♭4'},
+  {midi:71,ru:'Си₄',   en:'B4'},
+  {midi:72,ru:'До₅',   en:'C5'},
+].map(n => ({...n, freq:440*Math.pow(2,(n.midi-69)/12)}));
+
+/* ───────── STATE ───────── */
+let lang = localStorage.getItem('musicapp_lang') || 'ru';
+let currentInstr = 'guitar';
+let currentMode  = 'auto';
+let selectedStr  = null;
+
+// Audio – auto mode
+let audioCtx   = null;
+let analyser   = null;
+let micStream  = null;
+let rafId      = null;
+let listening  = false;
+
+// Pitch smoothing (ring buffer)
+const SMOOTH = 7;
+const pitchBuf = [];
+
+// Audio – manual mode
+let oscNode  = null;
+let gainNode = null;
+let playing  = false;
+
+/* ───────── MATH HELPERS ───────── */
+const midiToFreq = m => 440 * Math.pow(2, (m - 69) / 12);
+const freqToMidi = f => 69 + 12 * Math.log2(f / 440);
+const cents = (f, ref) => 1200 * Math.log2(f / ref);
+
+function freqToNote(freq) {
+  if (freq <= 0) return null;
+  const midi = freqToMidi(freq);
+  const mRound = Math.round(midi);
+  const idx  = ((mRound % 12) + 12) % 12;
+  const oct  = Math.floor(mRound / 12) - 1;
+  const ref  = midiToFreq(mRound);
+  return { idx, oct, cents: cents(freq, ref), freq, ref };
+}
+
+function medianOf(arr) {
+  if (!arr.length) return -1;
+  const s = [...arr].sort((a,b)=>a-b);
+  const m = s.length >> 1;
+  return s.length & 1 ? s[m] : (s[m-1]+s[m])/2;
+}
+
+/* ───────── PITCH DETECTION (autocorrelation) ───────── */
+function detectPitch(buf, sr) {
+  const N = buf.length;
+  // RMS check
+  let rms = 0;
+  for (let i = 0; i < N; i++) rms += buf[i]*buf[i];
+  rms = Math.sqrt(rms / N);
+  if (rms < 0.008) return -1;
+
+  // Search range: 60 – 1500 Hz
+  const minL = Math.floor(sr / 1500);
+  const maxL = Math.min(Math.ceil(sr / 60), Math.floor(N * 0.85));
+
+  // Autocorrelation (un-normalized, normalized by count)
+  const c = new Float32Array(maxL + 1);
+  for (let lag = minL; lag <= maxL; lag++) {
+    let s = 0, n = N - lag;
+    for (let i = 0; i < n; i++) s += buf[i] * buf[i+lag];
+    c[lag] = s / n;
+  }
+
+  // Skip initial descent to find first real valley
+  let d = minL;
+  while (d < maxL-1 && c[d] > c[d+1]) d++;
+
+  // Find peak after first valley
+  let best = -Infinity, bestL = -1;
+  for (let i = d; i <= maxL; i++) {
+    if (c[i] > best) { best = c[i]; bestL = i; }
+  }
+
+  // Reject weak or unclear peaks
+  if (bestL < 0 || best < rms * rms * 0.25) return -1;
+
+  // Parabolic interpolation for sub-sample precision
+  let T = bestL;
+  if (T > minL && T < maxL) {
+    const y1=c[T-1], y2=c[T], y3=c[T+1];
+    const a = (y1+y3-2*y2)/2;
+    const b = (y3-y1)/2;
+    if (a < 0) T -= b/(2*a);
+  }
+
+  return sr / T;
+}
+
+/* ───────── NEEDLE ───────── */
+function updateNeedle(centsVal, visible) {
+  const nl = document.getElementById('needleLine');
+  const np = document.getElementById('needlePivot');
+  if (!visible) {
+    nl.setAttribute('x2','150'); nl.setAttribute('y2','47');
+    nl.setAttribute('opacity','.2'); np.setAttribute('opacity','.2');
+    nl.setAttribute('stroke','var(--muted)'); np.setAttribute('fill','var(--muted)');
+    return;
+  }
+  const cl = Math.max(-50, Math.min(50, centsVal));
+  const ang = (90 - cl * 1.8) * Math.PI / 180;
+  const r = 108, cx = 150, cy = 155;
+  const x2 = cx + r * Math.cos(ang);
+  const y2 = cy - r * Math.sin(ang);
+  nl.setAttribute('x2', x2.toFixed(1));
+  nl.setAttribute('y2', y2.toFixed(1));
+  nl.setAttribute('opacity','.92'); np.setAttribute('opacity','.9');
+}
+function setNeedleColor(col) {
+  document.getElementById('needleLine').setAttribute('stroke', col);
+  document.getElementById('needlePivot').setAttribute('fill', col);
+}
+
+/* ───────── AUTO DISPLAY ───────── */
+function updateAutoDisplay(info) {
+  const Lc = L[lang];
+  const nameEl   = document.getElementById('noteName');
+  const octEl    = document.getElementById('noteOct');
+  const freqEl   = document.getElementById('noteFreq');
+  const centsEl  = document.getElementById('noteCents');
+  const statusEl = document.getElementById('statusText');
+
+  if (!info) {
+    nameEl.textContent = '—';
+    nameEl.className   = 'note-name c-muted';
+    octEl.textContent  = '';
+    freqEl.textContent = '';
+    centsEl.textContent= '';
+    statusEl.textContent = Lc.silence;
+    statusEl.className   = 'status-text c-muted';
+    updateNeedle(0, false);
+    setNeedleColor('var(--muted)');
+    clearHints();
+    return;
+  }
+
+  const {idx, oct, cents: c, freq} = info;
+  const name = Lc.notes[idx];
+  nameEl.textContent = name;
+  octEl.textContent  = oct;
+  freqEl.textContent = freq.toFixed(1) + ' ' + Lc.hz;
+  centsEl.textContent= (c >= 0 ? '+' : '') + c.toFixed(0) + ' ' + Lc.c;
+
+  const ab = Math.abs(c);
+  let col, cls, key;
+  if      (ab <= 5)  { col='var(--green)'; cls='c-green'; key='inTune'; }
+  else if (ab <= 20) { col='var(--amber)'; cls='c-amber'; key= c<0?'flat':'sharp'; }
+  else               { col='var(--red)';   cls='c-red';   key= c<0?'flat':'sharp'; }
+
+  nameEl.className = 'note-name ' + cls;
+  statusEl.textContent = Lc[key];
+  statusEl.className   = 'status-text ' + cls;
+  updateNeedle(c, true);
+  setNeedleColor(col);
+  updateHints(info);
+}
+
+function clearHints() {
+  document.querySelectorAll('.str-hint').forEach(h => h.classList.remove('closest'));
+}
+
+function updateHints(info) {
+  if (currentInstr === 'chromatic') return;
+  const strings = INSTR[currentInstr].strings;
+  if (!strings.length || !info) return;
+  let minD = Infinity, best = -1;
+  strings.forEach((s,i) => {
+    const d = Math.abs(cents(info.freq, s.freq));
+    if (d < minD) { minD = d; best = i; }
+  });
+  document.querySelectorAll('.str-hint').forEach((h,i) =>
+    h.classList.toggle('closest', i === best && minD < 60)
+  );
+}
+
+/* ───────── MIC / AUDIO ENGINE ───────── */
+async function startListening() {
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({
+      audio:{echoCancellation:false,noiseSuppression:false,autoGainControl:false},
+      video:false
+    });
+    micStream = stream;
+    audioCtx  = new (window.AudioContext || window.webkitAudioContext)();
+    if (audioCtx.state === 'suspended') await audioCtx.resume();
+
+    const src = audioCtx.createMediaStreamSource(stream);
+    analyser  = audioCtx.createAnalyser();
+    analyser.fftSize = 4096;
+    analyser.smoothingTimeConstant = 0;
+    src.connect(analyser);
+
+    listening = true;
+    setStartBtn(true);
+    document.getElementById('micErrorDiv').style.display = 'none';
+
+    const fbuf = new Float32Array(analyser.fftSize);
+    let silenceCount = 0;
+
+    function loop() {
+      analyser.getFloatTimeDomainData(fbuf);
+      const f = detectPitch(fbuf, audioCtx.sampleRate);
+
+      if (f > 0 && f < 2000) {
+        pitchBuf.push(f);
+        if (pitchBuf.length > SMOOTH) pitchBuf.shift();
+        silenceCount = 0;
+        updateAutoDisplay(freqToNote(medianOf(pitchBuf)));
+      } else {
+        silenceCount++;
+        if (silenceCount > 12) {          // ~200 ms of silence
+          pitchBuf.length = 0;
+          updateAutoDisplay(null);
+        }
+      }
+      rafId = requestAnimationFrame(loop);
+    }
+    loop();
+
+  } catch(e) {
+    document.getElementById('micErrorDiv').style.display = 'block';
+    console.warn('Mic:', e);
+  }
+}
+
+function stopListening() {
+  listening = false;
+  if (rafId) { cancelAnimationFrame(rafId); rafId = null; }
+  if (micStream) { micStream.getTracks().forEach(t => t.stop()); micStream = null; }
+  if (audioCtx)  { audioCtx.close(); audioCtx = null; }
+  analyser = null;
+  pitchBuf.length = 0;
+  setStartBtn(false);
+  updateAutoDisplay(null);
+}
+
+function setStartBtn(on) {
+  const btn = document.getElementById('startBtn');
+  const txt = document.getElementById('startBtnText');
+  const Lc  = L[lang];
+  btn.className  = on ? 'main-btn btn-stop' : 'main-btn btn-listen';
+  txt.textContent = on ? Lc.stopListen : Lc.listen;
+}
+
+/* ───────── MANUAL TONE PLAYBACK ───────── */
+function ensureCtx() {
+  if (!audioCtx || audioCtx.state === 'closed')
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  if (audioCtx.state === 'suspended') audioCtx.resume();
+}
+
+function playTone(str) {
+  stopTone();
+  ensureCtx();
+  const t = audioCtx.currentTime;
+  gainNode = audioCtx.createGain();
+  gainNode.gain.setValueAtTime(0, t);
+  gainNode.gain.linearRampToValueAtTime(0.5, t + 0.01);
+  gainNode.gain.setValueAtTime(0.5, t + 0.4);
+  gainNode.gain.exponentialRampToValueAtTime(0.001, t + 5);
+  gainNode.connect(audioCtx.destination);
+
+  oscNode = audioCtx.createOscillator();
+  oscNode.type = 'sine';
+  oscNode.frequency.value = str.freq;
+  oscNode.connect(gainNode);
+  oscNode.start(t);
+  oscNode.stop(t + 5.1);
+  playing = true;
+  setPlayBtn(true);
+  oscNode.onended = () => { playing = false; setPlayBtn(false); };
+}
+
+function stopTone() {
+  if (oscNode) {
+    try {
+      const t = audioCtx.currentTime;
+      gainNode.gain.cancelScheduledValues(t);
+      gainNode.gain.setValueAtTime(gainNode.gain.value, t);
+      gainNode.gain.linearRampToValueAtTime(0, t + 0.05);
+      oscNode.stop(t + 0.06);
+    } catch(_) {}
+    oscNode = null; gainNode = null;
+  }
+  playing = false;
+  setPlayBtn(false);
+}
+
+function setPlayBtn(on) {
+  const btn = document.getElementById('playBtn');
+  const txt = document.getElementById('playBtnText');
+  const ico = document.getElementById('playIco');
+  const Lc  = L[lang];
+  btn.className  = on ? 'play-btn btn-playing' : 'play-btn btn-play';
+  txt.textContent = on ? Lc.stopPlay : Lc.play;
+  ico.innerHTML   = on
+    ? '<rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/>'
+    : '<polygon points="5,3 19,12 5,21"/>';
+}
+
+/* ───────── UI BUILDERS ───────── */
+function buildHints() {
+  const c = document.getElementById('stringHints');
+  c.innerHTML = '';
+  if (currentInstr === 'chromatic') return;
+  const strings = INSTR[currentInstr].strings;
+  const Lc = L[lang];
+  strings.forEach(s => {
+    const d = document.createElement('div');
+    d.className = 'str-hint';
+    const raw = lang === 'ru' ? s.ru : s.en;
+    const label = raw.replace(/[₀₁₂₃₄₅₆₇₈₉]/g,'').replace(/\d+$/,'');
+    d.textContent = s.strNum + ' ' + Lc.strLabel + ' · ' + label;
+    c.appendChild(d);
+  });
+}
+
+function buildGrid() {
+  const grid = document.getElementById('stringsGrid');
+  grid.innerHTML = '';
+  selectedStr = null;
+  setStrInfo(null);
+  document.getElementById('playBtn').disabled = true;
+
+  const src = currentInstr === 'chromatic' ? CHROM_NOTES : INSTR[currentInstr].strings;
+  const Lc  = L[lang];
+  src.forEach(s => {
+    const btn = document.createElement('button');
+    btn.className = 'str-btn';
+    const rawLabel = lang === 'ru' ? s.ru : s.en;
+    const noteLabel = rawLabel.replace(/[₀₁₂₃₄₅₆₇₈₉]/g,'').replace(/\d+$/,'');
+    btn.innerHTML = `<span class="str-note">${noteLabel}</span>${s.strNum!==undefined?`<span class="str-num">${s.strNum} ${Lc.strLabel}</span>`:''}`;
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.str-btn').forEach(b => b.classList.remove('selected'));
+      btn.classList.add('selected');
+      selectedStr = s;
+      setStrInfo(s);
+      document.getElementById('playBtn').disabled = false;
+    });
+    grid.appendChild(btn);
+  });
+}
+
+function setStrInfo(s) {
+  const Lc = L[lang];
+  const nameEl = document.getElementById('strInfoName');
+  const freqEl = document.getElementById('strInfoFreq');
+  if (!s) {
+    nameEl.textContent = Lc.selectStr;
+    freqEl.textContent = '';
+    return;
+  }
+  const name = lang === 'ru' ? s.ru : s.en;
+  nameEl.textContent = name;
+  freqEl.textContent = s.freq.toFixed(2) + ' ' + L[lang].hz;
+}
+
+/* ───────── INSTRUMENT / MODE SWITCH ───────── */
+function pickInstr(key) {
+  currentInstr = key;
+  document.querySelectorAll('.seg-btn').forEach(b =>
+    b.classList.toggle('active', b.dataset.instr === key)
+  );
+  buildHints();
+  buildGrid();
+  stopTone();
+}
+
+function pickMode(mode) {
+  currentMode = mode;
+  document.getElementById('modeAuto').classList.toggle('active', mode==='auto');
+  document.getElementById('modeManual').classList.toggle('active', mode==='manual');
+  document.getElementById('autoPanel').style.display   = mode==='auto' ? 'block':'none';
+  document.getElementById('manualPanel').style.display = mode==='manual' ? 'block':'none';
+  // Chromatic has no reference strings — hide tab in manual mode
+  document.getElementById('iBtn3').style.display = mode==='manual' ? 'none' : '';
+  if (mode === 'manual') {
+    stopListening();
+    if (currentInstr === 'chromatic') pickInstr('guitar');
+  }
+  if (mode === 'auto') stopTone();
+}
+
+/* ───────── LANG / THEME ───────── */
+function applyLang() {
+  const Lc = L[lang];
+  const dk = document.documentElement.getAttribute('data-theme') === 'dark';
+  document.getElementById('hdrTitle').textContent   = Lc.title;
+  document.getElementById('themeText').textContent  = dk ? Lc.light : Lc.dark;
+  document.getElementById('langText').textContent   = lang==='ru'?'RU':'EN';
+  document.getElementById('modeAuto').textContent   = Lc.modeAuto;
+  document.getElementById('modeManual').textContent = Lc.modeManual;
+  document.getElementById('micErrTitle').textContent= Lc.micErrTitle;
+  document.getElementById('micErrHint').textContent = Lc.micErrHint;
+  ['guitar','balalaika','domra','chromatic'].forEach((k,i) =>
+    document.getElementById('iBtn'+i).textContent = Lc.iNames[i]
+  );
+  setStartBtn(listening);
+  setPlayBtn(playing);
+  buildHints();
+  buildGrid();
+  if (selectedStr) setStrInfo(selectedStr);
+  // Re-translate status text when silent (no pitch detected)
+  const statusEl = document.getElementById('statusText');
+  if (statusEl && statusEl.classList.contains('c-muted')) {
+    statusEl.textContent = Lc.silence;
+  }
+}
+
+/* ───────── EVENTS ───────── */
+document.getElementById('themeBtn').addEventListener('click', () => {
+  const dk = document.documentElement.getAttribute('data-theme')==='dark';
+  document.documentElement.setAttribute('data-theme', dk?'light':'dark');
+  localStorage.setItem('musicapp_theme', dk?'light':'dark');
+  const Lc = L[lang];
+  document.getElementById('themeText').textContent = dk?Lc.dark:Lc.light;
+  const ico = document.getElementById('themeIco');
+  ico.innerHTML = dk
+    ? '<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>'
+    : '<circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>';
+});
+
+document.getElementById('langBtn').addEventListener('click', () => {
+  lang = lang==='ru'?'en':'ru';
+  localStorage.setItem('musicapp_lang', lang);
+  applyLang();
+});
+
+document.getElementById('startBtn').addEventListener('click', () => {
+  if (listening) stopListening(); else startListening();
+});
+
+document.getElementById('playBtn').addEventListener('click', () => {
+  if (playing) stopTone();
+  else if (selectedStr) playTone(selectedStr);
+});
+
+document.getElementById('instrSeg').querySelectorAll('.seg-btn').forEach(btn =>
+  btn.addEventListener('click', () => pickInstr(btn.dataset.instr))
+);
+
+document.getElementById('modeAuto').addEventListener('click',   () => pickMode('auto'));
+document.getElementById('modeManual').addEventListener('click', () => pickMode('manual'));
+
+/* ───────── INIT ───────── */
+applyLang();
+</script>
+</body>
+</html>
