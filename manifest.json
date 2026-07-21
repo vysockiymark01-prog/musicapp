@@ -1,0 +1,26 @@
+{
+  "name": "Музграмота",
+  "short_name": "Музграмота",
+  "description": "Интерактивный тренажёр по музыкальной грамоте для учеников музыкальной школы",
+  "start_url": "/musicapp/",
+  "scope": "/musicapp/",
+  "display": "standalone",
+"background_color": "#f8fafc",
+  "theme_color": "#f8fafc",
+  "lang": "ru",
+  "categories": ["education", "music"],
+  "icons": [
+    {
+      "src": "/musicapp/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/musicapp/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}

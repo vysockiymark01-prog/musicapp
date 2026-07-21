@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="ru" data-theme="light">
+<head>
+<!-- Yandex.Metrika counter -->
+<script type="text/javascript">
+    (function(m,e,t,r,i,k,a){
+        m[i]=m[i]||function(){(m[i].a=m[i].a||[]).push(arguments)};
+        m[i].l=1*new Date();
+        for (var j = 0; j < document.scripts.length; j++) {if (document.scripts[j].src === r) { return; }}
+        k=e.createElement(t),a=e.getElementsByTagName(t)[0],k.async=1,k.src=r,a.parentNode.insertBefore(k,a)
+    })(window, document,'script','https://mc.yandex.ru/metrika/tag.js?id=110314124', 'ym');
+    ym(110314124, 'init', {ssr:true, webvisor:true, clickmap:true, ecommerce:"dataLayer", referrer: document.referrer, url: location.href, accurateTrackBounce:true, trackLinks:true});
+</script>
+<noscript><div><img src="https://mc.yandex.ru/watch/110314124" style="position:absolute; left:-9999px;" alt="" /></div></noscript>
+<!-- /Yandex.Metrika counter -->
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Музыкальное приложение</title>
+<script>(function(){var t=localStorage.getItem('musicapp_theme');var dark=t==='dark';document.documentElement.setAttribute('data-theme',dark?'dark':'light');document.querySelector('meta[name="theme-color"]')&&(document.querySelector('meta[name="theme-color"]').content=dark?'#0f172a':'#f8fafc');})()</script>
+<style>
+:root{--bg:#f8fafc;--card:#fff;--text:#0f172a;--muted:#94a3b8;--border:#e2e8f0;
+  --sl100:#f1f5f9;--sl200:#e2e8f0;--blue:#2563eb;--shadow:0 1px 4px rgba(0,0,0,.07);}
+[data-theme="dark"]{--bg:#0f172a;--card:#1e293b;--text:#f1f5f9;--muted:#64748b;
+  --border:#334155;--sl100:#334155;--sl200:#475569;}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+  background:var(--bg);color:var(--text);transition:background .3s,color .3s;
+  min-height:100vh;}
+.wrap{max-width:900px;margin:0 auto;padding:20px 14px;}
+.hdr{display:flex;justify-content:space-between;align-items:center;
+  padding:14px 20px;background:var(--card);border:1px solid var(--border);
+  border-radius:20px;margin-bottom:24px;box-shadow:var(--shadow);}
+.hdr-left{display:flex;align-items:center;gap:12px;}
+.logo{font-size:28px;line-height:1;}
+.hdr-title{font-weight:900;font-size:18px;}
+.hdr-sub{font-size:11px;font-weight:700;color:var(--muted);}
+.hdr-btns{display:flex;gap:6px;}
+.hbtn{padding:7px 13px;background:var(--sl100);border:none;border-radius:10px;
+  font-size:10px;font-weight:800;text-transform:uppercase;cursor:pointer;
+  color:var(--text);display:flex;align-items:center;gap:5px;}
+.hbtn:hover{background:var(--sl200);}
+.section{margin-bottom:24px;}
+.section-title{font-size:10px;font-weight:900;text-transform:uppercase;
+  letter-spacing:.8px;color:var(--muted);margin-bottom:10px;padding-left:2px;}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px;}
+@media(max-width:600px){
+  .hdr{flex-wrap:wrap;gap:8px;padding:10px 12px;}
+  .hdr-left{gap:8px;}
+  .hdr-title{font-size:15px;}
+  .hbtn{padding:7px 10px;font-size:9px;}
+}
+@media(max-width:480px){
+  .grid{grid-template-columns:1fr 1fr;}
+  .wrap{padding:12px 10px;}
+  .mcard{padding:12px;}
+  .mcard-ico{font-size:22px;}
+  .mcard-name{font-size:12px;}
+}
+.mcard{background:var(--card);border:1.5px solid var(--border);border-radius:18px;
+  padding:16px;text-decoration:none;color:var(--text);
+  transition:transform .15s,box-shadow .15s,border-color .15s;
+  display:flex;flex-direction:column;gap:8px;}
+.mcard:hover{transform:translateY(-3px);box-shadow:0 6px 16px rgba(0,0,0,.1);
+  border-color:var(--accent);}
+.mcard-ico{font-size:28px;line-height:1;}
+.mcard-name{font-size:13px;font-weight:800;line-height:1.2;}
+.mcard-desc{font-size:11px;color:var(--muted);line-height:1.4;flex:1;}
+.mcard-tag{display:inline-block;padding:2px 8px;border-radius:8px;
+  font-size:9px;font-weight:900;text-transform:uppercase;letter-spacing:.4px;
+  margin-top:auto;width:fit-content;}
+.cat-solfege .mcard-tag{background:rgba(37,99,235,.12);color:#2563eb;}
+.cat-theory .mcard-tag{background:rgba(5,150,105,.12);color:#059669;}
+.cat-history .mcard-tag{background:rgba(124,58,237,.12);color:#7c3aed;}
+.cat-solfege{--accent:#2563eb;}
+.cat-theory{--accent:#059669;}
+.cat-history{--accent:#7c3aed;}
+.cat-tools{--accent:#ea580c;}
+.cat-tools .mcard-tag{background:rgba(234,88,12,.12);color:#ea580c;}
+[data-theme="dark"] .cat-solfege .mcard-tag{background:rgba(37,99,235,.25);}
+[data-theme="dark"] .cat-theory .mcard-tag{background:rgba(5,150,105,.25);}
+[data-theme="dark"] .cat-history .mcard-tag{background:rgba(124,58,237,.25);}
+[data-theme="dark"] .cat-tools .mcard-tag{background:rgba(234,88,12,.25);}
+.cat-contact{--accent:#0077ff;}
+.cat-contact .mcard-tag{background:rgba(0,119,255,.12);color:#0077ff;}
+[data-theme="dark"] .cat-contact .mcard-tag{background:rgba(0,119,255,.25);}
+</style>
+<link rel="manifest" href="/musicapp/manifest.json">
+<meta name="theme-color" content="#f8fafc">
+</head>
+<body>
+<div class="wrap">
+<div class="hdr">
+  <div class="hdr-left">
+    <div class="logo">🎵</div>
+    <div>
+      <div class="hdr-title" id="hdrTitle">Музыкальное приложение</div>
+      <div class="hdr-sub" id="hdrSub">Музыкальная школа · 11 модулей</div>
+    </div>
+  </div>
+  <div class="hdr-btns">
+    <button class="hbtn" id="themeBtn">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" id="themeIco">
+        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+      </svg>
+      <span id="themeText">Тёмная</span>
+    </button>
+    <button class="hbtn" id="langBtn">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+        <path d="m5 8 6 6"/><path d="m4 14 6-6 2-3"/><path d="M2 5h12"/><path d="M7 2h1"/>
+        <path d="m22 22-5-10-5 10"/><path d="M14 18h6"/>
+      </svg>
+      <span id="langText">RU</span>
+    </button>
+  </div>
+</div>
+
+<div class="section">
+  <div class="section-title" id="sec1Title">🎼 Сольфеджио и теория</div>
+  <div class="grid">
+    <a class="mcard cat-solfege" href="./Нотная грамота/index.html">
+      <div class="mcard-ico">🎼</div>
+      <div class="mcard-name" id="m1">Нотная грамота</div>
+      <div class="mcard-desc" id="m1d">Ноты, ключи, интервалы, построение на нотном стане</div>
+      <span class="mcard-tag" id="m1t">Сольфеджио</span>
+    </a>
+    <a class="mcard cat-solfege" href="./ритмический тренажер/index.html">
+      <div class="mcard-ico">🥁</div>
+      <div class="mcard-name" id="m2">Ритмический тренажёр</div>
+      <div class="mcard-desc" id="m2d">Группировка длительностей, ритмические упражнения</div>
+      <span class="mcard-tag" id="m2t">Сольфеджио</span>
+    </a>
+    <a class="mcard cat-solfege" href="./слуховой анализ/index.html">
+      <div class="mcard-ico">👂</div>
+      <div class="mcard-name" id="m3">Слуховой анализ</div>
+      <div class="mcard-desc" id="m3d">Интервалы, аккорды и лады на слух</div>
+      <span class="mcard-tag" id="m3t">Сольфеджио</span>
+    </a>
+    <a class="mcard cat-solfege" href="./музыкальные диктанты/index.html">
+      <div class="mcard-ico">🎵</div>
+      <div class="mcard-name" id="m4">Муз. диктанты</div>
+      <div class="mcard-desc" id="m4d">Одноголосный, двухголосный, ритмический, ошибки</div>
+      <span class="mcard-tag" id="m4t">Сольфеджио</span>
+    </a>
+    <a class="mcard cat-solfege" href="./цифровка/index.html">
+      <div class="mcard-ico">🔢</div>
+      <div class="mcard-name" id="m5">Цифровка</div>
+      <div class="mcard-desc" id="m5d">Ступени, аккорды, кадансы — тренажёр</div>
+      <span class="mcard-tag" id="m5t">Сольфеджио</span>
+    </a>
+    <a class="mcard cat-solfege" href="./тональности/index.html">
+      <div class="mcard-ico">🔑</div>
+      <div class="mcard-name" id="m6">Тональности</div>
+      <div class="mcard-desc" id="m6d">Квинтовый круг, знаки, гаммы, параллельные тональности</div>
+      <span class="mcard-tag" id="m6t">Сольфеджио</span>
+    </a>
+  </div>
+</div>
+
+<div class="section">
+  <div class="section-title" id="sec2Title">📖 Теория</div>
+  <div class="grid">
+    <a class="mcard cat-theory" href="./словарик терминов/index.html">
+      <div class="mcard-ico">📖</div>
+      <div class="mcard-name" id="m8">Словарик терминов</div>
+      <div class="mcard-desc" id="m8d">300+ музыкальных терминов с определениями и примерами</div>
+      <span class="mcard-tag" id="m8t">Теория</span>
+    </a>
+  </div>
+</div>
+
+<div class="section">
+  <div class="section-title" id="sec3Title">🎭 История и культура</div>
+  <div class="grid">
+    <a class="mcard cat-history" href="./муз-литература/index.html">
+      <div class="mcard-ico">🎭</div>
+      <div class="mcard-name" id="m9">Муз. литература</div>
+      <div class="mcard-desc" id="m9d">Великие композиторы, произведения, хронология, викторина</div>
+      <span class="mcard-tag" id="m9t">История</span>
+    </a>
+    <a class="mcard cat-history" href="./цитаты/index.html">
+      <div class="mcard-ico">💬</div>
+      <div class="mcard-name" id="m10">Цитатник</div>
+      <div class="mcard-desc" id="m10d">Мысли великих композиторов о музыке и творчестве</div>
+      <span class="mcard-tag" id="m10t">История</span>
+    </a>
+    <a class="mcard cat-history" href="./джазовая-гармония/index.html">
+      <div class="mcard-ico">🎷</div>
+      <div class="mcard-name" id="m11">Джазовая гармония</div>
+      <div class="mcard-desc" id="m11d">Блюз, рэгтайм, свинг, бибоп, босса-нова, модальный джаз, фьюжн</div>
+      <span class="mcard-tag" id="m11t">История</span>
+    </a>
+  </div>
+</div>
+
+<div class="section">
+  <div class="section-title" id="sec4Title">🎸 Инструменты</div>
+  <div class="grid">
+    <a class="mcard cat-tools" href="./тюнер/index.html">
+      <div class="mcard-ico">🎙</div>
+      <div class="mcard-name" id="m12">Тюнер</div>
+      <div class="mcard-desc" id="m12d">Настройка гитары, балалайки, домры — авто и ручной режим</div>
+      <span class="mcard-tag" id="m12t">Инструменты</span>
+    </a>
+  </div>
+</div>
+
+<div class="section">
+  <div class="section-title" id="sec5Title">🤝 Сотрудничество</div>
+  <div class="grid">
+    <a class="mcard cat-contact" href="https://vk.ru/id680365854" target="_blank" rel="noopener">
+      <div class="mcard-ico">💬</div>
+      <div class="mcard-name" id="m13">ВКонтакте</div>
+      <div class="mcard-desc" id="m13d">Написать автору во ВКонтакте — предложения, вопросы, отзывы</div>
+      <span class="mcard-tag" id="m13t">Связь</span>
+    </a>
+    <a class="mcard cat-contact" href="mailto:vysockiy.mark98@mail.ru">
+      <div class="mcard-ico">✉️</div>
+      <div class="mcard-name" id="m14">Email</div>
+      <div class="mcard-desc" id="m14d">vysockiy.mark98@mail.ru</div>
+      <span class="mcard-tag" id="m14t">Связь</span>
+    </a>
+  </div>
+</div>
+
+</div>
+
+<script>
+let lang=localStorage.getItem('musicapp_lang')||'ru';
+const T={
+  ru:{
+    title:'Музыкальное приложение',sub:'Музыкальная школа · 11 модулей',
+    dark:'Тёмная',light:'Светлая',
+    sec1:'🎼 Сольфеджио и теория',sec2:'📖 Теория',sec3:'🎭 История и культура',sec4:'🎸 Инструменты',sec5:'🤝 Сотрудничество',
+    m13:'ВКонтакте',m13d:'Написать автору во ВКонтакте — предложения, вопросы, отзывы',m13t:'Связь',
+    m14:'Email',m14d:'vysockiy.mark98@mail.ru',m14t:'Связь',
+    m1:'Нотная грамота',m1d:'Ноты, ключи, интервалы, построение на нотном стане',m1t:'Сольфеджио',
+    m2:'Ритмический тренажёр',m2d:'Группировка длительностей, ритмические упражнения',m2t:'Сольфеджио',
+    m3:'Слуховой анализ',m3d:'Интервалы, аккорды и лады на слух',m3t:'Сольфеджио',
+    m4:'Муз. диктанты',m4d:'Одноголосный, двухголосный, ритмический, ошибки',m4t:'Сольфеджио',
+    m5:'Цифровка',m5d:'Ступени, аккорды, кадансы — тренажёр',m5t:'Сольфеджио',
+    m6:'Тональности',m6d:'Квинтовый круг, знаки, гаммы, параллельные тональности',m6t:'Сольфеджио',
+    m8:'Словарик терминов',m8d:'300+ музыкальных терминов с определениями и примерами',m8t:'Теория',
+    m9:'Муз. литература',m9d:'Великие композиторы, произведения, хронология, викторина',m9t:'История',
+    m10:'Цитатник',m10d:'Мысли великих композиторов о музыке и творчестве',m10t:'История',
+    m11:'Джазовая гармония',m11d:'Блюз, рэгтайм, свинг, бибоп, босса-нова, модальный джаз, фьюжн',m11t:'История',
+    m12:'Тюнер',m12d:'Настройка гитары, балалайки, домры — авто и ручной режим',m12t:'Инструменты',
+  },
+  en:{
+    title:'Music App',sub:'Music School · 11 modules',
+    dark:'Dark',light:'Light',
+    sec1:'🎼 Solfège & Theory',sec2:'📖 Theory',sec3:'🎭 History & Culture',sec4:'🎸 Instruments',sec5:'🤝 Collaboration',
+    m13:'VKontakte',m13d:'Message the author on VKontakte — ideas, questions, feedback',m13t:'Contact',
+    m14:'Email',m14d:'vysockiy.mark98@mail.ru',m14t:'Contact',
+    m1:'Music Notation',m1d:'Notes, clefs, intervals, staff construction',m1t:'Solfège',
+    m2:'Rhythm Trainer',m2d:'Duration grouping, rhythmic exercises',m2t:'Solfège',
+    m3:'Ear Training',m3d:'Intervals, chords, and modes by ear',m3t:'Solfège',
+    m4:'Dictations',m4d:'Melodic, two-voice, rhythmic, error detection',m4t:'Solfège',
+    m5:'Figured Bass',m5d:'Scale degrees, chords, cadences — trainer',m5t:'Solfège',
+    m6:'Key Signatures',m6d:'Circle of fifths, signs, scales, relative keys',m6t:'Solfège',
+    m8:'Glossary',m8d:'300+ musical terms with definitions and examples',m8t:'Theory',
+    m9:'Music History',m9d:'Great composers, works, timeline, quiz',m9t:'History',
+    m10:'Quotes',m10d:'Thoughts of great composers on music and creativity',m10t:'History',
+    m11:'Jazz Harmony',m11d:'Blues, ragtime, swing, bebop, bossa nova, modal jazz, fusion',m11t:'History',
+    m12:'Tuner',m12d:'Guitar, balalaika, domra tuning — auto and manual mode',m12t:'Instruments',
+  }
+};
+function applyLang(){
+  const L=T[lang];
+  const ids=['hdrTitle','hdrSub','sec1Title','sec2Title','sec3Title','sec4Title','sec5Title',
+    'm1','m1d','m1t','m2','m2d','m2t','m3','m3d','m3t','m4','m4d','m4t',
+    'm5','m5d','m5t','m6','m6d','m6t','m8','m8d','m8t',
+    'm9','m9d','m9t','m10','m10d','m10t','m11','m11d','m11t',
+    'm12','m12d','m12t','m13','m13d','m13t','m14','m14d','m14t'];
+  const keys=['title','sub','sec1','sec2','sec3','sec4','sec5',
+    'm1','m1d','m1t','m2','m2d','m2t','m3','m3d','m3t','m4','m4d','m4t',
+    'm5','m5d','m5t','m6','m6d','m6t','m8','m8d','m8t',
+    'm9','m9d','m9t','m10','m10d','m10t','m11','m11d','m11t',
+    'm12','m12d','m12t','m13','m13d','m13t','m14','m14d','m14t'];
+  ids.forEach((id,i)=>{
+    const el=document.getElementById(id);
+    if(el)el.textContent=L[keys[i]]||'';
+  });
+  const dk=document.documentElement.getAttribute('data-theme')==='dark';
+  document.getElementById('themeText').textContent=dk?L.light:L.dark;
+  document.getElementById('langText').textContent=lang==='ru'?'RU':'EN';
+}
+document.getElementById('langBtn').addEventListener('click',()=>{
+  lang=lang==='ru'?'en':'ru';localStorage.setItem('musicapp_lang',lang);applyLang();
+});
+document.getElementById('themeBtn').addEventListener('click',()=>{
+  const dk=document.documentElement.getAttribute('data-theme')==='dark';
+  document.documentElement.setAttribute('data-theme',dk?'light':'dark');
+  localStorage.setItem('musicapp_theme',dk?'light':'dark');
+  document.querySelector('meta[name="theme-color"]').content=dk?'#f8fafc':'#0f172a';
+  const L=T[lang];
+  document.getElementById('themeText').textContent=dk?L.dark:L.light;
+  document.getElementById('themeIco').innerHTML=dk
+    ?'<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>'
+    :'<circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>';
+});
+applyLang();
+</script>
+<script>
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('/musicapp/sw.js');
+}
+</script>
+</body>
+</html>
