@@ -4,14 +4,12 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
 <title>Тюнер</title>
-<meta name="theme-color" content="#f8fafc">
+<meta name="theme-color" content="#1c3a8e">
 <script>
 (function(){
   var t=localStorage.getItem('musicapp_theme');
   var dark=t==='dark';
   document.documentElement.setAttribute('data-theme',dark?'dark':'light');
-  var m=document.querySelector('meta[name="theme-color"]');
-  if(m)m.content=dark?'#0f172a':'#f8fafc';
 })();
 </script>
 <style>
@@ -765,7 +763,7 @@ function applyLang() {
 document.getElementById('themeBtn').addEventListener('click', () => {
   const dk = document.documentElement.getAttribute('data-theme')==='dark';
   document.documentElement.setAttribute('data-theme', dk?'light':'dark');
-  localStorage.setItem('musicapp_theme', dk?'light':'dark');var _m=document.querySelector('meta[name=\"theme-color\"]');if(_m)_m.content=localStorage.getItem('musicapp_theme')==='dark'?'#0f172a':'#f8fafc';
+  localStorage.setItem('musicapp_theme', dk?'light':'dark');
   const Lc = L[lang];
   document.getElementById('themeText').textContent = dk?Lc.dark:Lc.light;
   const ico = document.getElementById('themeIco');

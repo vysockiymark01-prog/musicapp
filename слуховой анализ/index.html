@@ -16,9 +16,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Слуховой анализ</title>
-<meta name="theme-color" content="#f8fafc">
+<meta name="theme-color" content="#1c3a8e">
     
-<script>(function(){var t=localStorage.getItem('musicapp_theme');var dark=t==='dark';document.documentElement.setAttribute('data-theme',dark?'dark':'light');var m=document.querySelector('meta[name="theme-color"]');if(m)m.content=dark?'#0f172a':'#f8fafc';})()</script>
+<script>(function(){var t=localStorage.getItem('musicapp_theme');var dark=t==='dark';document.documentElement.setAttribute('data-theme',dark?'dark':'light');})()</script>
     <style>
         :root {
             --bg:#f8fafc;--card:#fff;--text:#0f172a;--muted:#94a3b8;--border:#e2e8f0;
@@ -1234,7 +1234,7 @@ function applyTheme(){
 
 // ── INIT ─────────────────────────────────────
 document.addEventListener('DOMContentLoaded',function(){
-    document.getElementById('themeBtn').addEventListener('click',function(){isDark=!isDark;localStorage.setItem('musicapp_theme',isDark?'dark':'light');var _m=document.querySelector('meta[name=\"theme-color\"]');if(_m)_m.content=localStorage.getItem('musicapp_theme')==='dark'?'#0f172a':'#f8fafc';applyTheme();});
+    document.getElementById('themeBtn').addEventListener('click',function(){isDark=!isDark;localStorage.setItem('musicapp_theme',isDark?'dark':'light');applyTheme();});
     document.getElementById('langBtn').addEventListener('click',function(){lang=lang==='ru'?'en':'ru';localStorage.setItem('musicapp_lang',lang);applyLang();});
 
     document.querySelectorAll('.tab').forEach(function(tab){

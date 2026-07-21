@@ -16,8 +16,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Цифровка</title>
-<meta name="theme-color" content="#f8fafc">
-<script>(function(){var t=localStorage.getItem('musicapp_theme');var dark=t==='dark';document.documentElement.setAttribute('data-theme',dark?'dark':'light');var m=document.querySelector('meta[name="theme-color"]');if(m)m.content=dark?'#0f172a':'#f8fafc';})()</script>
+<meta name="theme-color" content="#1c3a8e">
+<script>(function(){var t=localStorage.getItem('musicapp_theme');var dark=t==='dark';document.documentElement.setAttribute('data-theme',dark?'dark':'light');})()</script>
 <style>
 :root{
   --bg:#f8fafc;--card:#fff;--text:#0f172a;--muted:#94a3b8;--border:#e2e8f0;
@@ -1392,7 +1392,7 @@ function toggleLang(){
 function toggleTheme(){
   const dark=document.documentElement.getAttribute('data-theme')==='dark';
   document.documentElement.setAttribute('data-theme',dark?'light':'dark');
-  localStorage.setItem('musicapp_theme',dark?'light':'dark');var _m=document.querySelector('meta[name=\"theme-color\"]');if(_m)_m.content=localStorage.getItem('musicapp_theme')==='dark'?'#0f172a':'#f8fafc';
+  localStorage.setItem('musicapp_theme',dark?'light':'dark');
   document.getElementById('themeText').textContent=dark?(lang==='ru'?'Тёмная':'Dark'):(lang==='ru'?'Светлая':'Light');
   applyLang();
   document.getElementById('themeIco').innerHTML=dark

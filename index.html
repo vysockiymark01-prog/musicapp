@@ -16,8 +16,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>Музыкальное приложение</title>
-<meta name="theme-color" content="#f8fafc">
-<script>(function(){var t=localStorage.getItem('musicapp_theme');var dark=t==='dark';document.documentElement.setAttribute('data-theme',dark?'dark':'light');document.querySelector('meta[name="theme-color"]')&&(document.querySelector('meta[name="theme-color"]').content=dark?'#0f172a':'#f8fafc');})()</script>
+<meta name="theme-color" content="#1c3a8e">
+<script>(function(){var t=localStorage.getItem('musicapp_theme');var dark=t==='dark';document.documentElement.setAttribute('data-theme',dark?'dark':'light');})()</script>
 <style>
 :root{--bg:#f8fafc;--card:#fff;--text:#0f172a;--muted:#94a3b8;--border:#e2e8f0;
   --sl100:#f1f5f9;--sl200:#e2e8f0;--blue:#2563eb;--shadow:0 1px 4px rgba(0,0,0,.07);}
@@ -291,7 +291,6 @@ document.getElementById('themeBtn').addEventListener('click',()=>{
   const dk=document.documentElement.getAttribute('data-theme')==='dark';
   document.documentElement.setAttribute('data-theme',dk?'light':'dark');
   localStorage.setItem('musicapp_theme',dk?'light':'dark');
-  document.querySelector('meta[name="theme-color"]').content=dk?'#f8fafc':'#0f172a';
   const L=T[lang];
   document.getElementById('themeText').textContent=dk?L.dark:L.light;
   document.getElementById('themeIco').innerHTML=dk
