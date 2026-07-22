@@ -102,6 +102,11 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
   background:transparent;border:1.5px solid #0077ff;color:#0077ff;
   transition:all .15s;}
 .vk-link-sm:hover{background:#0077ff;color:#fff;}
+.mr-link-sm{display:inline-flex;align-items:center;gap:5px;padding:3px 9px;
+  border-radius:8px;font-size:10px;font-weight:800;text-decoration:none;
+  background:transparent;border:1.5px solid #ff6600;color:#ff6600;
+  transition:all .15s;}
+.mr-link-sm:hover{background:#ff6600;color:#fff;}
 .work-hint{font-size:9px;color:var(--blue);font-weight:800;margin-top:3px;letter-spacing:.3px;}
 /* MODAL */
 .modal-ov{display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:1000;
@@ -1159,9 +1164,11 @@ function renderCards(){
     const worksHtml=c.works.map((w,wi)=>{
       const ymUrl=YM[w.name.en]||'';
       const vkUrl=VK[w.name.en]||'';
-      const ymBtn=ymUrl?`<a href="${ymUrl}" target="_blank" rel="noopener" class="ym-link" onclick="event.stopPropagation()">🎵 ${lang==='ru'?'Яндекс Музыка':'Yandex Music'}</a>`:'';
+      const mrUrl=`https://my.mail.ru/music/search/${encodeURIComponent(w.name.en)}`;
       const vkBtn=vkUrl?`<a href="${vkUrl}" target="_blank" rel="noopener" class="vk-link-sm" onclick="event.stopPropagation()">♪ ВК Музыка</a>`:'';
-      const links=(ymBtn||vkBtn)?`<div class="work-links">${ymBtn}${vkBtn}</div>`:'';
+      const mrBtn=`<a href="${mrUrl}" target="_blank" rel="noopener" class="mr-link-sm" onclick="event.stopPropagation()">🎵 Mail.ru</a>`;
+      const ymBtn=ymUrl?`<a href="${ymUrl}" target="_blank" rel="noopener" class="ym-link" onclick="event.stopPropagation()">🎵 ${lang==='ru'?'Яндекс Музыка':'Yandex Music'}</a>`:'';
+      const links=`<div class="work-links">${vkBtn}${mrBtn}${ymBtn}</div>`;
       return `<div class="work" onclick="showWorkModal('${c.id}',${wi},event)">
         <div class="work-name">${w.name[lang]||w.name.ru}</div>
         <div class="work-meta">${w.year} · ${w.genre[lang]||w.genre.ru}</div>
