@@ -862,12 +862,10 @@ function renderBuild(){
   if(buildChecked)html+=`<div class="result-box show ${isOk?'ok':'err'}">${isOk?t('correct'):t('wrong')}</div>`;
 
   if(buildHint){
-    const parts=ex.chord.intervals.slice(1).map(v=>{
-      const tones=v/2;
-      const ts=tones===Math.floor(tones)?tones+'т':Math.floor(tones)+'½т';
-      return `+${v}пт (${ts})`;
-    }).join(',  ');
-    html+=`<div class="hint-box">💡 ${lang==='ru'?'От первоначальной ноты':'From starting note'}: <b>${parts}</b></div>`;
+    const ENHARMONIC={'C#':'Db','D#':'Eb','F#':'Gb','G#':'Ab','A#':'Bb'};
+    const noteName=n=>ENHARMONIC[n]?`${n}/${ENHARMONIC[n]}`:n;
+    const notesList=ex.correct.map(c=>noteName(c.note)).join(' — ');
+    html+=`<div class="hint-box">💡 ${lang==='ru'?'Ноты аккорда':'Chord notes'}: <b>${notesList}</b></div>`;
   }
 
   html+='<div class="answer-chips">';
