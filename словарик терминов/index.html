@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
+<script>(function(){try{var k='musicapp_visited',id='glossary';var v=JSON.parse(localStorage.getItem(k)||'[]');if(v.indexOf(id)===-1){v.push(id);localStorage.setItem(k,JSON.stringify(v));}}catch(e){}})();</script>
 <!-- Yandex.Metrika counter -->
 <script type="text/javascript">
     (function(m,e,t,r,i,k,a){
@@ -103,6 +104,10 @@
   .card-inner{position:relative;width:100%;min-height:220px;transform-style:preserve-3d;transition:transform .45s cubic-bezier(.4,0,.2,1);}
   .card-scene.flipped .card-inner{transform:rotateY(180deg);}
   .card-face{position:absolute;width:100%;min-height:220px;backface-visibility:hidden;border-radius:var(--radius-lg);padding:28px 24px;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;gap:10px;}
+  .card-fav{position:absolute;top:12px;right:14px;background:none;border:none;cursor:pointer;font-size:22px;line-height:1;color:var(--muted);padding:2px;transition:transform .12s,color .12s;}
+  .card-fav:hover{transform:scale(1.15);}
+  .card-fav.active{color:#f59e0b;}
+  .hbtn.fav-toggle.active{background:#f59e0b;color:#fff;}
   .card-front{background:var(--card);border:1px solid var(--border);box-shadow:var(--shadow-md);}
   .card-back{background:var(--card);border:2px solid var(--accent);box-shadow:var(--shadow-md);transform:rotateY(180deg);}
   .card-term{font-size:34px;font-weight:900;color:var(--text);}
@@ -190,6 +195,7 @@
       <span id="appTitle">Музыкальный словарик</span>
     </div>
     <div class="header-actions">
+      <button class="hbtn fav-toggle" id="favToggleBtn" onclick="toggleFavOnly()">⭐</button>
       <button class="hbtn" id="themeBtn" onclick="toggleTheme()">
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" id="themeIcon">
           <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
@@ -511,6 +517,61 @@ let mode = 'cards';
 let filterTopic = 'all';
 let filterCls = 'all';
 let progress = JSON.parse(localStorage.getItem('mvpro3') || '{}');
+let favOnly = false;
+let favTerms = [];
+function loadFavTerms(){
+  try{
+    const raw = JSON.parse(localStorage.getItem('musicapp_glossary_favorites') || '[]');
+    favTerms = Array.isArray(raw) ? raw : [];
+  }catch(e){ favTerms = []; }
+}
+function saveFavTerms(){
+  localStorage.setItem('musicapp_glossary_favorites', JSON.stringify(favTerms));
+}
+function isFavTerm(term){ return favTerms.indexOf(term) !== -1; }
+function favIndexSet(module,type,id,data){
+  try{
+    const idx = JSON.parse(localStorage.getItem('musicapp_fav_index') || '{}');
+    idx[module+':'+type+':'+id] = Object.assign({module,type,id,ts:Date.now()},data);
+    localStorage.setItem('musicapp_fav_index', JSON.stringify(idx));
+  }catch(e){}
+}
+function favIndexRemove(module,type,id){
+  try{
+    const idx = JSON.parse(localStorage.getItem('musicapp_fav_index') || '{}');
+    delete idx[module+':'+type+':'+id];
+    localStorage.setItem('musicapp_fav_index', JSON.stringify(idx));
+  }catch(e){}
+}
+function toggleFavTerm(term){
+  const i = favTerms.indexOf(term);
+  if(i===-1){
+    favTerms.push(term);
+    const x = TERMS.find(t=>t.term===term);
+    if(x)favIndexSet('glossary','term',term,{labelRu:x.term,labelEn:x.term,subRu:x.topic,subEn:x.topic,icon:'📖',link:'словарик терминов/index.html'});
+  }else{
+    favTerms.splice(i,1);
+    favIndexRemove('glossary','term',term);
+  }
+  saveFavTerms();
+  const isFav = isFavTerm(term);
+  document.querySelectorAll('.card-fav').forEach(btn=>{
+    btn.classList.toggle('active', isFav);
+    btn.textContent = isFav ? '★' : '☆';
+  });
+}
+function toggleFavOnly(){
+  favOnly = !favOnly;
+  updateFavToggleBtn();
+  renderAll();
+}
+function updateFavToggleBtn(){
+  const btn = document.getElementById('favToggleBtn');
+  if(!btn) return;
+  btn.classList.toggle('active', favOnly);
+  btn.textContent = favOnly ? (lang==='ru'?'⭐ ИЗБРАННОЕ':'⭐ FAVORITES') : '⭐';
+}
+loadFavTerms();
 
 function t(key) { return UI[lang][key]; }
 function save() { localStorage.setItem('mvpro3', JSON.stringify(progress)); }
@@ -518,7 +579,8 @@ function save() { localStorage.setItem('mvpro3', JSON.stringify(progress)); }
 function filtered() {
   return TERMS.filter(x =>
     (filterTopic === 'all' || x.topic === filterTopic) &&
-    (filterCls === 'all' || x.cls === filterCls)
+    (filterCls === 'all' || x.cls === filterCls) &&
+    (!favOnly || isFavTerm(x.term))
   );
 }
 function shuffle(a) {
@@ -552,6 +614,7 @@ function applyUI() {
   document.getElementById('fc_78').textContent = clsLabel('7-8');
   const tabs = t('tabs');
   tabs.forEach((txt,i)=>document.getElementById('tab'+i).textContent=txt);
+  updateFavToggleBtn();
   const bhl=document.getElementById('backHomeLink');if(bhl)bhl.textContent=lang==='ru'?'← Главная':'← Home';
 }
 
@@ -631,11 +694,14 @@ function showCard() {
     </div></div>`;return;
   }
   const c=deck[cardIdx];
+  const isFav=isFavTerm(c.term);
+  const favBtnHtml=`<button class="card-fav${isFav?' active':''}" onclick="event.stopPropagation();toggleFavTerm('${c.term.replace(/'/g,"\\'")}')" title="${lang==='ru'?'В избранное':'Add to favorites'}">${isFav?'★':'☆'}</button>`;
   mc.innerHTML=`<div class="cards-wrap">
     <div class="card-counter">${cardIdx+1} ${t('cardOf')} ${deck.length}</div>
     <div class="card-scene" id="cs" onclick="flipCard()">
       <div class="card-inner" id="ci">
         <div class="card-face card-front">
+          ${favBtnHtml}
           <div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:center">
             <span class="badge b-${c.topic}">${topicLabel(c.topic)}</span>
             <span class="badge b-cls">${clsLabel(c.cls)}</span>
@@ -644,6 +710,7 @@ function showCard() {
           <div class="card-hint">${t('flipHint')}</div>
         </div>
         <div class="card-face card-back">
+          ${favBtnHtml}
           <div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:center">
             <span class="badge b-${c.topic}">${topicLabel(c.topic)}</span>
             <span class="badge b-cls">${clsLabel(c.cls)}</span>
@@ -661,10 +728,24 @@ function showCard() {
   </div>`;
 }
 
+function recordRecent(module,type,id,data){
+  try{
+    let arr = JSON.parse(localStorage.getItem('musicapp_recent') || '[]');
+    if(!Array.isArray(arr))arr=[];
+    arr = arr.filter(e=>!(e.module===module && e.type===type && e.id===id));
+    arr.unshift(Object.assign({module,type,id,ts:Date.now()},data));
+    if(arr.length>20)arr=arr.slice(0,20);
+    localStorage.setItem('musicapp_recent', JSON.stringify(arr));
+  }catch(e){}
+}
 function flipCard() {
   const s=document.getElementById('cs'), a=document.getElementById('ca');
   if(!s)return; flipped=!flipped; s.classList.toggle('flipped',flipped);
   if(flipped&&a)a.style.display='flex';
+  if(flipped&&deck[cardIdx]){
+    const c=deck[cardIdx];
+    recordRecent('glossary','term',c.term,{labelRu:c.term,labelEn:c.term,subRu:c.topic,subEn:c.topic,icon:'📖',link:'словарик терминов/index.html'});
+  }
 }
 
 function cardAns(knew) {

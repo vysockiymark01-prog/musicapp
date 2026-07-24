@@ -1,0 +1,704 @@
+<!DOCTYPE html>
+<html lang="ru" data-theme="light">
+<head>
+<script>(function(){try{var k='musicapp_visited',id='orchestra';var v=JSON.parse(localStorage.getItem(k)||'[]');if(v.indexOf(id)===-1){v.push(id);localStorage.setItem(k,JSON.stringify(v));}}catch(e){}})();</script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Инструменты оркестра</title>
+<meta name="theme-color" content="#1c3a8e">
+<script>(function(){var t=localStorage.getItem('musicapp_theme');document.documentElement.setAttribute('data-theme',t==='dark'?'dark':'light');})()</script>
+<style>
+:root{--bg:#f8fafc;--card:#fff;--text:#0f172a;--muted:#94a3b8;--border:#e2e8f0;
+  --sl100:#f1f5f9;--sl200:#e2e8f0;--blue:#2563eb;--shadow:0 1px 4px rgba(0,0,0,.07);}
+[data-theme="dark"]{--bg:#0f172a;--card:#1e293b;--text:#f1f5f9;--muted:#64748b;
+  --border:#334155;--sl100:#334155;--sl200:#475569;}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+  background:var(--bg);color:var(--text);min-height:100vh;}
+.wrap{max-width:900px;margin:0 auto;padding:12px 12px 60px;}
+.hdr{display:flex;align-items:center;gap:10px;padding:10px 14px;
+  background:var(--card);border:1px solid var(--border);border-radius:16px;
+  margin-bottom:14px;box-shadow:var(--shadow);}
+.back{font-size:22px;text-decoration:none;color:var(--text);padding:2px 4px;}
+.hdr-info{flex:1;}
+.hdr-title{font-weight:900;font-size:16px;}
+.hdr-sub{font-size:10px;color:var(--muted);font-weight:600;}
+.hbtn{padding:7px 12px;background:var(--sl100);border:none;border-radius:9px;
+  font-size:10px;font-weight:800;cursor:pointer;color:var(--text);transition:background .15s;}
+.hbtn:hover{background:var(--sl200);}
+/* Tabs */
+.tabs{display:flex;gap:6px;margin-bottom:14px;overflow-x:auto;padding-bottom:2px;}
+.tabs::-webkit-scrollbar{height:3px;}
+.tabs::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px;}
+.tab-btn{white-space:nowrap;padding:8px 16px;border-radius:12px;border:1.5px solid var(--border);
+  background:var(--card);font-size:12px;font-weight:800;cursor:pointer;
+  color:var(--muted);transition:all .15s;flex-shrink:0;}
+.tab-btn.active{background:#1c3a8e;border-color:#1c3a8e;color:#fff;}
+.tab-panel{display:none;}
+.tab-panel.active{display:block;}
+/* Orchestra description */
+.orch-desc{font-size:11px;color:var(--muted);line-height:1.5;margin-bottom:10px;
+  padding:0 2px;}
+/* Listen card */
+.listen-card{background:var(--card);border:1px solid var(--border);border-radius:12px;
+  padding:10px 14px;margin-bottom:14px;display:flex;align-items:center;
+  flex-wrap:wrap;gap:8px;box-shadow:var(--shadow);}
+.listen-label{font-size:11px;font-weight:900;color:var(--text);flex:1;min-width:120px;}
+.listen-btns{display:flex;gap:5px;flex-wrap:wrap;}
+/* Group header */
+.group-hdr{font-size:10px;font-weight:900;text-transform:uppercase;
+  letter-spacing:.7px;color:var(--muted);margin:18px 0 8px;padding-left:2px;}
+/* Instrument grid */
+.instr-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(175px,1fr));gap:8px;}
+/* Instrument card */
+.icard{background:var(--card);border:1px solid var(--border);border-radius:14px;
+  padding:12px;display:flex;flex-direction:column;gap:5px;box-shadow:var(--shadow);}
+.icard-top{display:flex;align-items:flex-start;gap:8px;}
+.icard-emoji{font-size:26px;line-height:1;margin-top:1px;flex-shrink:0;}
+.icard-emoji svg{display:block;}
+.icard-right{flex:1;}
+.icard-name{font-weight:900;font-size:13px;line-height:1.2;}
+.icard-name-en{font-size:9px;color:var(--muted);font-weight:600;margin-top:1px;}
+.icard-range{display:inline-block;font-size:9px;color:var(--blue);font-weight:800;
+  background:var(--sl100);padding:1px 6px;border-radius:5px;margin-top:3px;}
+.icard-desc{font-size:10px;color:var(--muted);line-height:1.45;}
+/* Music buttons */
+.music-btns{display:flex;align-items:center;gap:5px;flex-wrap:wrap;margin-top:2px;}
+.ym-link{display:inline-flex;align-items:center;gap:3px;padding:3px 8px;
+  border-radius:7px;font-size:9px;font-weight:800;text-decoration:none;
+  background:#fc3f1d;color:#fff;transition:opacity .15s;}
+.ym-link:hover{opacity:.82;}
+.vk-link-sm{display:inline-flex;align-items:center;gap:3px;padding:2px 7px;
+  border-radius:7px;font-size:9px;font-weight:800;text-decoration:none;
+  background:transparent;border:1.5px solid #0077ff;color:#0077ff;transition:all .15s;}
+.vk-link-sm:hover{background:#0077ff;color:#fff;}
+.mr-link-sm{display:inline-flex;align-items:center;gap:3px;padding:2px 7px;
+  border-radius:7px;font-size:9px;font-weight:800;text-decoration:none;
+  background:transparent;border:1.5px solid #ff6600;color:#ff6600;transition:all .15s;}
+.mr-link-sm:hover{background:#ff6600;color:#fff;}
+/* Favorites */
+.icard-top{position:relative;}
+.fav-star{margin-left:auto;background:none;border:none;cursor:pointer;font-size:19px;
+  line-height:1;color:var(--muted);padding:2px 2px;flex-shrink:0;align-self:flex-start;
+  transition:transform .12s,color .12s;}
+.fav-star:hover{transform:scale(1.15);}
+.fav-star.active{color:#f59e0b;}
+.hbtn.fav-toggle.active{background:#f59e0b;color:#fff;}
+@media(max-width:480px){
+  .instr-grid{grid-template-columns:1fr 1fr;}
+  .hdr-title{font-size:14px;}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="hdr">
+    <a class="back" href="../index.html">←</a>
+    <div class="hdr-info">
+      <div class="hdr-title" id="ttl">Инструменты оркестра</div>
+      <div class="hdr-sub" id="sub">🎼 Симфонический · Народный · Джазовый</div>
+    </div>
+    <button class="hbtn fav-toggle" onclick="toggleFavOnly()" id="favToggleBtn">⭐</button>
+    <button class="hbtn" onclick="toggleTheme()" id="themeBtn">ТЁМНАЯ</button>
+    <button class="hbtn" onclick="toggleLang()" id="langBtn">RU</button>
+  </div>
+
+  <div class="tabs" id="tabsRow"></div>
+  <div id="panels"></div>
+</div>
+
+<script>
+'use strict';
+var lang = localStorage.getItem('musicapp_lang') || 'ru';
+
+var T = {
+  ru:{
+    title:'Инструменты оркестра',
+    sub:'🎼 Симфонический · Народный · Джазовый',
+    dark:'ТЁМНАЯ', light:'СВЕТЛАЯ',
+    vkBtn:'♪ ВК Музыка', mrBtn:'🎵 Mail.ru', ymBtn:'🎵 Яндекс Музыка',
+    listenLabel:'🎵 Послушать оркестр целиком',
+    favOn:'⭐ ИЗБРАННОЕ', favOff:'⭐', favEmpty:'В избранном пока пусто'
+  },
+  en:{
+    title:'Orchestra Instruments',
+    sub:'🎼 Symphony · Folk · Jazz',
+    dark:'DARK', light:'LIGHT',
+    vkBtn:'♪ VK Music', mrBtn:'🎵 Mail.ru', ymBtn:'🎵 Yandex Music',
+    listenLabel:'🎵 Listen to Full Orchestra',
+    favOn:'⭐ FAVORITES', favOff:'⭐', favEmpty:'No favorites yet'
+  }
+};
+
+/* ─── Favorites ─── */
+var favInstruments = [];
+var favOnly = false;
+function loadFavInstruments(){
+  try{
+    var raw = JSON.parse(localStorage.getItem('musicapp_orch_favorites') || '[]');
+    favInstruments = Array.isArray(raw) ? raw : [];
+  }catch(e){ favInstruments = []; }
+}
+function saveFavInstruments(){
+  localStorage.setItem('musicapp_orch_favorites', JSON.stringify(favInstruments));
+}
+function isFavInstrument(key){ return favInstruments.indexOf(key) !== -1; }
+function favIndexSet(module,type,id,data){
+  try{
+    var idx=JSON.parse(localStorage.getItem('musicapp_fav_index')||'{}');
+    idx[module+':'+type+':'+id]=Object.assign({module:module,type:type,id:id,ts:Date.now()},data);
+    localStorage.setItem('musicapp_fav_index',JSON.stringify(idx));
+  }catch(e){}
+}
+function favIndexRemove(module,type,id){
+  try{
+    var idx=JSON.parse(localStorage.getItem('musicapp_fav_index')||'{}');
+    delete idx[module+':'+type+':'+id];
+    localStorage.setItem('musicapp_fav_index',JSON.stringify(idx));
+  }catch(e){}
+}
+function toggleFavInstrument(key,inst,orch){
+  var i = favInstruments.indexOf(key);
+  if(i === -1){
+    favInstruments.push(key);
+    if(inst&&orch)favIndexSet('orchestra','instrument',key,{labelRu:inst.ru,labelEn:inst.en,subRu:orch.ru,subEn:orch.en,icon:inst.emoji||'🎻',link:'инструменты оркестра/index.html#orch-'+orch.id});
+  }else{
+    favInstruments.splice(i, 1);
+    favIndexRemove('orchestra','instrument',key);
+  }
+  saveFavInstruments();
+  renderAll();
+}
+function toggleFavOnly(){
+  favOnly = !favOnly;
+  updateFavToggleBtn();
+  renderAll();
+}
+function updateFavToggleBtn(){
+  var btn = document.getElementById('favToggleBtn');
+  if(!btn) return;
+  btn.classList.toggle('active', favOnly);
+  btn.textContent = favOnly ? T[lang].favOn : T[lang].favOff;
+}
+loadFavInstruments();
+
+/* ─── SVG images for special instruments ─── */
+var SVG_BAYAN =
+  '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 40" width="36" height="36">' +
+  '<rect x="2" y="5" width="11" height="30" rx="3" fill="#1c3a8e"/>' +
+  '<circle cx="7.5" cy="13" r="2.4" fill="#fff" opacity=".9"/>' +
+  '<circle cx="7.5" cy="20" r="2.4" fill="#fff" opacity=".9"/>' +
+  '<circle cx="7.5" cy="27" r="2.4" fill="#fff" opacity=".9"/>' +
+  '<rect x="13" y="6" width="14" height="28" rx="1" fill="var(--sl100)" stroke="var(--border)" stroke-width="0.8"/>' +
+  '<path d="M13 10h14M13 14h14M13 18h14M13 22h14M13 26h14M13 30h14" stroke="var(--muted)" stroke-width="0.6" fill="none"/>' +
+  '<rect x="27" y="5" width="11" height="30" rx="3" fill="#2563eb"/>' +
+  '<circle cx="32.5" cy="11" r="1.8" fill="#fff" opacity=".9"/>' +
+  '<circle cx="32.5" cy="17" r="1.8" fill="#fff" opacity=".9"/>' +
+  '<circle cx="32.5" cy="23" r="1.8" fill="#fff" opacity=".9"/>' +
+  '<circle cx="32.5" cy="29" r="1.8" fill="#fff" opacity=".9"/>' +
+  '</svg>';
+
+var SVG_AKKORDEON =
+  '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 40" width="36" height="36">' +
+  '<rect x="2" y="5" width="11" height="30" rx="3" fill="#dc2626"/>' +
+  '<circle cx="7.5" cy="13" r="2.4" fill="#fff" opacity=".9"/>' +
+  '<circle cx="7.5" cy="20" r="2.4" fill="#fff" opacity=".9"/>' +
+  '<circle cx="7.5" cy="27" r="2.4" fill="#fff" opacity=".9"/>' +
+  '<rect x="13" y="6" width="14" height="28" rx="1" fill="var(--sl100)" stroke="var(--border)" stroke-width="0.8"/>' +
+  '<path d="M13 10h14M13 14h14M13 18h14M13 22h14M13 26h14M13 30h14" stroke="var(--muted)" stroke-width="0.6" fill="none"/>' +
+  '<rect x="27" y="5" width="11" height="30" rx="3" fill="#f8fafc" stroke="#cbd5e1" stroke-width="0.8"/>' +
+  '<rect x="28.5" y="7" width="2.5" height="10" rx="0.5" fill="#fff" stroke="#94a3b8" stroke-width="0.5"/>' +
+  '<rect x="31.5" y="7" width="2.5" height="10" rx="0.5" fill="#fff" stroke="#94a3b8" stroke-width="0.5"/>' +
+  '<rect x="34.5" y="7" width="2" height="10" rx="0.5" fill="#fff" stroke="#94a3b8" stroke-width="0.5"/>' +
+  '<rect x="30" y="7" width="1.8" height="6.5" rx="0.4" fill="#1e293b"/>' +
+  '<rect x="33" y="7" width="1.8" height="6.5" rx="0.4" fill="#1e293b"/>' +
+  '<rect x="28.5" y="19" width="2.5" height="10" rx="0.5" fill="#fff" stroke="#94a3b8" stroke-width="0.5"/>' +
+  '<rect x="31.5" y="19" width="2.5" height="10" rx="0.5" fill="#fff" stroke="#94a3b8" stroke-width="0.5"/>' +
+  '<rect x="34.5" y="19" width="2" height="10" rx="0.5" fill="#fff" stroke="#94a3b8" stroke-width="0.5"/>' +
+  '<rect x="30" y="19" width="1.8" height="6.5" rx="0.4" fill="#1e293b"/>' +
+  '<rect x="33" y="19" width="1.8" height="6.5" rx="0.4" fill="#1e293b"/>' +
+  '</svg>';
+
+var SVG_DOMRA =
+  '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 40" width="36" height="36">' +
+  '<rect x="1" y="17" width="19" height="5" rx="1" fill="#78350f"/>' +
+  '<path d="M4 17.2v4.6M8 17.2v4.6M12 17.2v4.6M16 17.2v4.6" stroke="#451a03" stroke-width="0.6"/>' +
+  '<circle cx="2.3" cy="16.2" r="1.4" fill="#fef3c7" stroke="#78350f" stroke-width="0.6"/>' +
+  '<circle cx="2.3" cy="19.5" r="1.4" fill="#fef3c7" stroke="#78350f" stroke-width="0.6"/>' +
+  '<circle cx="2.3" cy="22.8" r="1.4" fill="#fef3c7" stroke="#78350f" stroke-width="0.6"/>' +
+  '<ellipse cx="28" cy="19.5" rx="10.5" ry="12" fill="#b45309"/>' +
+  '<ellipse cx="28" cy="19.5" rx="10.5" ry="12" fill="none" stroke="#78350f" stroke-width="0.8"/>' +
+  '<circle cx="28" cy="19.5" r="4.2" fill="#1e293b" opacity=".55"/>' +
+  '<path d="M2 18.3h27M2 19.5h27M2 20.7h27" stroke="#f5f5f4" stroke-width="0.5" opacity=".85"/>' +
+  '</svg>';
+
+var SVG_BALALAIKA =
+  '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 40" width="36" height="36">' +
+  '<rect x="1" y="17.5" width="20" height="5" rx="1" fill="#5b2107"/>' +
+  '<path d="M4 17.7v4.6M8 17.7v4.6M12 17.7v4.6M16 17.7v4.6" stroke="#2e1005" stroke-width="0.6"/>' +
+  '<circle cx="2.3" cy="16.5" r="1.4" fill="#fef3c7" stroke="#5b2107" stroke-width="0.6"/>' +
+  '<circle cx="2.3" cy="19.8" r="1.4" fill="#fef3c7" stroke="#5b2107" stroke-width="0.6"/>' +
+  '<circle cx="2.3" cy="23.1" r="1.4" fill="#fef3c7" stroke="#5b2107" stroke-width="0.6"/>' +
+  '<path d="M38 6 L20 20 L38 34 Z" fill="#9a3412"/>' +
+  '<path d="M38 6 L20 20 L38 34 Z" fill="none" stroke="#5b2107" stroke-width="0.8" stroke-linejoin="round"/>' +
+  '<circle cx="31" cy="20" r="3.6" fill="#1e293b" opacity=".55"/>' +
+  '<path d="M2 18.8h26M2 20h26M2 21.2h26" stroke="#f5f5f4" stroke-width="0.5" opacity=".85"/>' +
+  '</svg>';
+
+var SVG_FOLK_TAB =
+  '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="14" height="14" style="vertical-align:-2px">' +
+  '<rect x="8" y="4" width="1.8" height="12" fill="currentColor"/>' +
+  '<rect x="16" y="4" width="1.8" height="12" fill="currentColor"/>' +
+  '<rect x="8" y="4" width="9.8" height="3" fill="currentColor"/>' +
+  '<ellipse cx="6.2" cy="17.3" rx="3.3" ry="2.4" fill="currentColor" transform="rotate(-18 6.2 17.3)"/>' +
+  '<ellipse cx="14.2" cy="17.3" rx="3.3" ry="2.4" fill="currentColor" transform="rotate(-18 14.2 17.3)"/>' +
+  '</svg>';
+
+var ORCHESTRAS = [
+  {
+    id:'symphony',
+    icon:'🎼',
+    ru:'Симфонический',
+    en:'Symphony',
+    descRu:'Классический европейский оркестр из 80–100+ музыкантов. Четыре группы: струнные, деревянные и медные духовые, ударные.',
+    descEn:'Classical European orchestra of 80–100+ musicians. Four families: strings, woodwinds, brass, and percussion.',
+    vkFull:'симфонический оркестр классика',
+    mrFull:'symphony orchestra classical',
+    ymFull:'симфонический оркестр',
+    groups:[
+      {
+        ru:'Струнные', en:'Strings',
+        items:[
+          {emoji:'🎻',ru:'Скрипка',en:'Violin',range:'G3–E7',
+           descRu:'Ведущий голос оркестра. Певучий, богатый тембр — основа струнной группы.',
+           descEn:'Leading voice of the orchestra. Lyrical, rich tone — backbone of the string section.',
+           vkQ:'скрипка соло классика',ymQ:'скрипка соло'},
+          {emoji:'🎻',ru:'Альт',en:'Viola',range:'C3–E6',
+           descRu:'Средний голос струнных. Тёплый матовый тон, чуть глубже скрипки.',
+           descEn:'Middle voice of strings. Warm, muted tone, slightly deeper than violin.',
+           vkQ:'альт виола классика',ymQ:'альт виола соло'},
+          {emoji:'🎻',ru:'Виолончель',en:'Cello',range:'C2–C6',
+           descRu:'Лирический тенор оркестра. Глубокий насыщенный звук, богатый обертонами.',
+           descEn:'Lyrical tenor of the orchestra. Deep, rich sound, full of overtones.',
+           vkQ:'виолончель соло классика',ymQ:'виолончель соло'},
+          {emoji:'🎸',ru:'Контрабас',en:'Double Bass',range:'E1–C4',
+           descRu:'Фундамент оркестра. Самый низкий голос струнной группы.',
+           descEn:'Foundation of the orchestra. The lowest voice in the string family.',
+           vkQ:'контрабас классика оркестр',ymQ:'контрабас соло'},
+          {emoji:'🎵',ru:'Арфа',en:'Harp',range:'B♭0–G♯7',
+           descRu:'Колористический инструмент. Глиссандо и арпеджио создают эффект водопада звуков.',
+           descEn:'Coloristic instrument. Glissandi and arpeggios create cascading sound effects.',
+           vkQ:'арфа классика соло',ymQ:'арфа соло'}
+        ]
+      },
+      {
+        ru:'Деревянные духовые', en:'Woodwinds',
+        items:[
+          {emoji:'🎵',ru:'Флейта',en:'Flute',range:'B3–D7',
+           descRu:'Прозрачный, светлый тембр. В оркестре часто изображает пение птиц и лёгкость.',
+           descEn:'Clear, bright tone. Often depicts birdsong and airiness in the orchestra.',
+           vkQ:'флейта соло классика',ymQ:'флейта соло'},
+          {emoji:'🎵',ru:'Флейта-пикколо',en:'Piccolo',range:'D4–C8',
+           descRu:'Самый высокий духовой инструмент оркестра. Пронзительный, острый тон.',
+           descEn:'Highest wind instrument in the orchestra. Piercing, sharp tone.',
+           vkQ:'флейта пикколо оркестр',ymQ:'пикколо флейта'},
+          {emoji:'🎵',ru:'Гобой',en:'Oboe',range:'B♭3–A6',
+           descRu:'Певучий гнусоватый тон. Гобой задаёт концертную ноту «ля» перед выступлением.',
+           descEn:'Nasal, penetrating tone. The oboe gives the concert pitch A before performances.',
+           vkQ:'гобой соло классика',ymQ:'гобой соло'},
+          {emoji:'🎵',ru:'Кларнет',en:'Clarinet',range:'E3–C7',
+           descRu:'Самый широкий диапазон среди деревянных. Три регистра: шалюмо, переходный, кларино.',
+           descEn:'Widest range of woodwinds. Three registers: chalumeau, throat, clarino.',
+           vkQ:'кларнет соло классика',ymQ:'кларнет соло'},
+          {emoji:'🎵',ru:'Фагот',en:'Bassoon',range:'B♭1–E♭5',
+           descRu:'Мягкий баритональный тон. Бас деревянных духовых, двойная трость.',
+           descEn:'Mellow baritonal tone. Bass of the woodwind family, double reed.',
+           vkQ:'фагот соло классика',ymQ:'фагот соло'}
+        ]
+      },
+      {
+        ru:'Медные духовые', en:'Brass',
+        items:[
+          {emoji:'🎺',ru:'Валторна',en:'French Horn',range:'B1–F5',
+           descRu:'Бархатистый, благородный тон. Связующий голос между деревянными и медными.',
+           descEn:'Velvety, noble tone. Bridging voice between woodwinds and brass.',
+           vkQ:'валторна соло классика',ymQ:'валторна соло'},
+          {emoji:'🎺',ru:'Труба',en:'Trumpet',range:'F♯3–B♭5',
+           descRu:'Яркий фанфарный тон. Главный солист медной группы, символ торжества.',
+           descEn:'Bright, fanfare tone. Principal soloist of the brass section.',
+           vkQ:'труба соло классика',ymQ:'труба соло'},
+          {emoji:'🎺',ru:'Тромбон',en:'Trombone',range:'E2–F5',
+           descRu:'Единственный кулисный инструмент. Мощный, певучий звук, широкий диапазон.',
+           descEn:'The only slide instrument. Powerful, singing tone, wide range.',
+           vkQ:'тромбон соло классика',ymQ:'тромбон соло'},
+          {emoji:'🎺',ru:'Туба',en:'Tuba',range:'D1–F4',
+           descRu:'Самый низкий медный инструмент. Бас медной группы, самый большой духовой.',
+           descEn:'Lowest brass instrument. Bass of the brass section, largest wind instrument.',
+           vkQ:'туба соло классика',ymQ:'туба соло'}
+        ]
+      },
+      {
+        ru:'Ударные', en:'Percussion',
+        items:[
+          {emoji:'🥁',ru:'Литавры',en:'Timpani',range:'D2–A3',
+           descRu:'Главный ударный инструмент. Котловидные барабаны с педальной настройкой высоты.',
+           descEn:'Principal percussion instrument. Kettle drums with pedal pitch tuning.',
+           vkQ:'литавры оркестр',ymQ:'литавры симфонический'},
+          {emoji:'🎹',ru:'Ксилофон',en:'Xylophone',range:'F4–C8',
+           descRu:'Деревянные пластинки. Сухой, отрывистый тон — колорит и ритм.',
+           descEn:'Wooden bars. Dry, staccato tone for color and rhythm.',
+           vkQ:'ксилофон соло',ymQ:'ксилофон соло'},
+          {emoji:'🎹',ru:'Маримба',en:'Marimba',range:'C2–C7',
+           descRu:'Деревянные пластинки с трубчатыми резонаторами. Тёплый певучий тон.',
+           descEn:'Wooden bars with tubular resonators. Warm, singing tone.',
+           vkQ:'маримба соло',ymQ:'маримба соло'},
+          {emoji:'🥁',ru:'Малый барабан',en:'Snare Drum',
+           descRu:'Острый трескучий тон. Военная традиция, маршевые ритмы.',
+           descEn:'Sharp, rattling tone. Military tradition, march rhythms.',
+           vkQ:'малый барабан оркестр',ymQ:'снэр оркестр'},
+          {emoji:'🔔',ru:'Тарелки',en:'Cymbals',
+           descRu:'Металлический блеск и сверкание. Акценты, tremolo, вершины crescendo.',
+           descEn:'Metallic shimmer and brilliance. Accents, tremolo, crescendo peaks.',
+           vkQ:'тарелки оркестр',ymQ:'тарелки симфонический'}
+        ]
+      }
+    ]
+  },
+
+  {
+    id:'folk',
+    icon:SVG_FOLK_TAB,
+    ru:'Народный',
+    en:'Folk',
+    descRu:'Оркестр русских народных инструментов. Объединяет традиционные струнные щипковые, клавишно-язычковые и духовые инструменты.',
+    descEn:'Russian Folk Instrument Orchestra. Combines traditional plucked strings, keyboard-reed, and wind instruments.',
+    vkFull:'оркестр русских народных инструментов',
+    mrFull:'russian folk orchestra',
+    ymFull:'оркестр народных инструментов',
+    groups:[
+      {
+        ru:'Струнные щипковые', en:'Plucked Strings',
+        items:[
+          {emoji:SVG_DOMRA,ru:'Домра',en:'Domra',
+           descRu:'Основа народного оркестра. Семейство: прима, альт, тенор, бас. Яркий, щипковый тон.',
+           descEn:'Foundation of the folk orchestra. Family: prima, alto, tenor, bass. Bright, plucked tone.',
+           vkQ:'домра соло народная',ymQ:'домра оркестр'},
+          {emoji:SVG_BALALAIKA,ru:'Балалайка',en:'Balalaika',
+           descRu:'Треугольный корпус, три струны. Семейство от примы до контрабаса.',
+           descEn:'Triangular body, three strings. Family from prima to contrabass.',
+           vkQ:'балалайка народная соло',ymQ:'балалайка оркестр'},
+          {emoji:'🎵',ru:'Гусли',en:'Gusli',
+           descRu:'Старинный русский инструмент. Крыловидные и столообразные разновидности.',
+           descEn:'Ancient Russian instrument. Wing-shaped and table-shaped varieties.',
+           vkQ:'гусли народная',ymQ:'гусли русский'}
+        ]
+      },
+      {
+        ru:'Клавишно-язычковые', en:'Keyboard-Reed',
+        items:[
+          {emoji:SVG_BAYAN,ru:'Баян',en:'Bayan',
+           descRu:'Русский хроматический аккордеон. Богатый насыщенный тон, широкий репертуар.',
+           descEn:'Russian chromatic button accordion. Rich, full tone with wide repertoire.',
+           vkQ:'баян соло народная',ymQ:'баян соло'},
+          {emoji:SVG_AKKORDEON,ru:'Аккордеон',en:'Accordion',
+           descRu:'Западный аналог баяна с пианинными клавишами. Популярен в эстраде и народной музыке.',
+           descEn:'Western accordion with piano-style keys. Popular in folk and popular music.',
+           vkQ:'аккордеон соло народная',ymQ:'аккордеон соло'},
+          {emoji:'🎵',ru:'Гармонь',en:'Garmon',
+           descRu:'Диатонический русский инструмент. Неотъемлемый звук народных гуляний.',
+           descEn:'Diatonic Russian instrument. Quintessential sound of folk celebrations.',
+           vkQ:'гармонь народная',ymQ:'гармонь русская'}
+        ]
+      },
+      {
+        ru:'Духовые', en:'Wind',
+        items:[
+          {emoji:'🎵',ru:'Жалейка',en:'Zhalanka',
+           descRu:'Тростниковая флейта с раструбом из рога или бересты. Жалобный, пронзительный звук.',
+           descEn:'Reed flute with a bell of horn or birch bark. Plaintive, piercing tone.',
+           vkQ:'жалейка народная',ymQ:'жалейка русская'},
+          {emoji:'🎵',ru:'Свирель',en:'Svirel',
+           descRu:'Парная продольная флейта без клапанов. Нежный пастуший тембр.',
+           descEn:'Double end-blown flute without keys. Gentle shepherd-like timbre.',
+           vkQ:'свирель народная русская',ymQ:'свирель русская'},
+          {emoji:'🎵',ru:'Рожок',en:'Rozhok',
+           descRu:'Деревянный духовой конической формы. Пронзительный сигнальный тон.',
+           descEn:'Conical wooden wind instrument. Piercing, signaling tone.',
+           vkQ:'рожок народный',ymQ:'рожок русский'}
+        ]
+      },
+      {
+        ru:'Ударные и шумовые', en:'Percussion & Noise',
+        items:[
+          {emoji:'🥄',ru:'Ложки',en:'Spoons',
+           descRu:'Деревянные ложки как ударный инструмент. Звонкие щелчки в народных ансамблях.',
+           descEn:'Wooden spoons as percussion. Bright clicks in folk ensembles.',
+           vkQ:'ложки народный ансамбль',ymQ:'ложки народная'},
+          {emoji:'🔔',ru:'Трещотки',en:'Ratchets',
+           descRu:'Связка деревянных пластинок. Шуршащий трескучий ритм.',
+           descEn:'Bundle of wooden slats. Rustling, rattling rhythm.',
+           vkQ:'трещотки народный',ymQ:'трещотки ансамбль'},
+          {emoji:'🥁',ru:'Бубен',en:'Tambourine',
+           descRu:'Рамочный барабан с металлическими тарелочками. Ритм и акценты.',
+           descEn:'Frame drum with metal jingles. Rhythm and accents.',
+           vkQ:'бубен народная',ymQ:'бубен народный'}
+        ]
+      }
+    ]
+  },
+
+  {
+    id:'jazz',
+    icon:'🎷',
+    ru:'Джазовый',
+    en:'Jazz',
+    descRu:'Биг-бэнд и камерные джазовые составы. Саксофоны, медные, ритм-секция и импровизация.',
+    descEn:'Big band and small jazz ensembles. Saxophones, brass, rhythm section, and improvisation.',
+    vkFull:'джазовый оркестр биг бэнд',
+    mrFull:'jazz big band orchestra',
+    ymFull:'джазовый оркестр биг бэнд',
+    groups:[
+      {
+        ru:'Саксофоны', en:'Saxophones',
+        items:[
+          {emoji:'🎷',ru:'Альт-саксофон',en:'Alto Saxophone',range:'E♭',
+           descRu:'Ведущий голос джаза. Лёгкий, пронзительный тон. Чарли Паркер, Кэннонболл Эддерли.',
+           descEn:'Leading jazz voice. Bright, cutting tone. Charlie Parker, Cannonball Adderley.',
+           vkQ:'альт саксофон джаз',ymQ:'alto saxophone jazz'},
+          {emoji:'🎷',ru:'Тенор-саксофон',en:'Tenor Saxophone',range:'B♭',
+           descRu:'Насыщенный, «горячий» тон. Джон Колтрейн, Колман Хокинс, Сонни Роллинс.',
+           descEn:'Rich, "hot" tone. John Coltrane, Coleman Hawkins, Sonny Rollins.',
+           vkQ:'тенор саксофон джаз',ymQ:'tenor saxophone jazz'},
+          {emoji:'🎷',ru:'Баритон-саксофон',en:'Baritone Saxophone',range:'E♭',
+           descRu:'Низкий, мясистый тон. Держит гармонию в секции саксофонов.',
+           descEn:'Low, full-bodied tone. Anchors harmony in the saxophone section.',
+           vkQ:'баритон саксофон джаз',ymQ:'baritone saxophone jazz'},
+          {emoji:'🎷',ru:'Сопрано-саксофон',en:'Soprano Saxophone',range:'B♭',
+           descRu:'Высокий, похожий на кларнет тон. Колтрейн «My Favorite Things», Сидни Беше.',
+           descEn:'High, clarinet-like tone. Coltrane\'s "My Favorite Things", Sidney Bechet.',
+           vkQ:'сопрано саксофон джаз',ymQ:'soprano saxophone jazz'}
+        ]
+      },
+      {
+        ru:'Медные', en:'Brass',
+        items:[
+          {emoji:'🎺',ru:'Труба',en:'Trumpet',range:'F♯3–B♭5',
+           descRu:'Яркий солирующий голос. Луи Армстронг, Майлс Дэвис, Диззи Гиллеспи.',
+           descEn:'Bright, leading voice. Louis Armstrong, Miles Davis, Dizzy Gillespie.',
+           vkQ:'труба джаз',ymQ:'trumpet jazz'},
+          {emoji:'🎺',ru:'Флюгельгорн',en:'Flugelhorn',
+           descRu:'Мягче и теплее трубы. Используется для лирических, задумчивых соло.',
+           descEn:'Softer and warmer than trumpet. Used for lyrical, contemplative solos.',
+           vkQ:'флюгельгорн джаз',ymQ:'flugelhorn jazz'},
+          {emoji:'🎺',ru:'Тромбон',en:'Trombone',range:'E2–F5',
+           descRu:'Кулисный инструмент. В джазе — тёплый тон, эффект wa-wa сурдиной.',
+           descEn:'Slide instrument. In jazz — warm tone, wa-wa mute effect.',
+           vkQ:'тромбон джаз',ymQ:'trombone jazz'}
+        ]
+      },
+      {
+        ru:'Ритм-секция', en:'Rhythm Section',
+        items:[
+          {emoji:'🎹',ru:'Фортепиано',en:'Piano',
+           descRu:'Гармонические воисинги и сольные импровизации. Билл Эванс, Оскар Питерсон.',
+           descEn:'Harmonic voicings and solo improvisation. Bill Evans, Oscar Peterson.',
+           vkQ:'фортепиано джаз пианино',ymQ:'piano jazz'},
+          {emoji:'🎸',ru:'Контрабас',en:'Double Bass',range:'E1–C4',
+           descRu:'Основа ритма. Преимущественно пиццикато, ходячий бас (walking bass).',
+           descEn:'Rhythmic foundation. Predominantly pizzicato, walking bass lines.',
+           vkQ:'контрабас джаз',ymQ:'double bass jazz'},
+          {emoji:'🥁',ru:'Ударная установка',en:'Drum Kit',
+           descRu:'Хай-хэт, тарелки райд и краш, снэр, бас-барабан. Свинговый грув.',
+           descEn:'Hi-hat, ride and crash cymbals, snare, bass drum. Swing groove.',
+           vkQ:'ударные джаз',ymQ:'drum kit jazz'},
+          {emoji:'🎸',ru:'Электрогитара',en:'Electric Guitar',
+           descRu:'Ритм-паттерны и одиночные линии. Уэс Монтгомери, Джо Пасс.',
+           descEn:'Rhythm patterns and single lines. Wes Montgomery, Joe Pass.',
+           vkQ:'гитара джаз',ymQ:'electric guitar jazz'}
+        ]
+      },
+      {
+        ru:'Прочие инструменты', en:'Other Instruments',
+        items:[
+          {emoji:'🎵',ru:'Кларнет',en:'Clarinet',range:'E3–C7',
+           descRu:'Король диксиленда и свинга. Бенни Гудман, Сидни Беше.',
+           descEn:'King of Dixieland and Swing. Benny Goodman, Sidney Bechet.',
+           vkQ:'кларнет джаз',ymQ:'clarinet jazz'},
+          {emoji:'🔔',ru:'Вибрафон',en:'Vibraphone',
+           descRu:'Металлические пластинки с мотором для вибрато. Милт Джексон, Гэри Бёртон.',
+           descEn:'Metal bars with motorized vibrato. Milt Jackson, Gary Burton.',
+           vkQ:'вибрафон джаз',ymQ:'vibraphone jazz'},
+          {emoji:'🎹',ru:'Орган Хаммонда',en:'Hammond Organ',
+           descRu:'Электроорган с тоновым колесом. Душа джаза и соула. Джимми Смит.',
+           descEn:'Tonewheel electric organ. Soul of jazz and soul music. Jimmy Smith.',
+           vkQ:'орган хаммонд джаз',ymQ:'hammond organ jazz'}
+        ]
+      }
+    ]
+  }
+];
+
+/* ─── Theme & Lang ─── */
+function updateThemeBtn(){
+  var dark=document.documentElement.getAttribute('data-theme')==='dark';
+  document.getElementById('themeBtn').textContent=dark?T[lang].light:T[lang].dark;
+}
+function toggleTheme(){
+  var d=document.documentElement;
+  var dark=d.getAttribute('data-theme')==='dark';
+  d.setAttribute('data-theme',dark?'light':'dark');
+  localStorage.setItem('musicapp_theme',dark?'light':'dark');
+  updateThemeBtn();
+}
+function toggleLang(){
+  lang=lang==='ru'?'en':'ru';
+  localStorage.setItem('musicapp_lang',lang);
+  applyLang();
+}
+function applyLang(){
+  var t=T[lang];
+  document.getElementById('ttl').textContent=t.title;
+  document.getElementById('sub').textContent=t.sub;
+  document.getElementById('langBtn').textContent=lang==='ru'?'RU':'EN';
+  document.documentElement.lang=lang==='ru'?'ru':'en';
+  updateThemeBtn();
+  renderAll();
+}
+updateThemeBtn();
+
+/* ─── Tabs ─── */
+var activeTab='symphony';
+function setTab(id){
+  activeTab=id;
+  document.querySelectorAll('.tab-btn').forEach(function(b){
+    b.classList.toggle('active',b.dataset.id===id);
+  });
+  document.querySelectorAll('.tab-panel').forEach(function(p){
+    p.classList.toggle('active',p.dataset.id===id);
+  });
+}
+
+/* ─── Render ─── */
+function renderAll(){
+  var tabsRow=document.getElementById('tabsRow');
+  var panels=document.getElementById('panels');
+  tabsRow.innerHTML='';
+  panels.innerHTML='';
+  var t=T[lang];
+
+  ORCHESTRAS.forEach(function(orch){
+    // Tab button
+    var btn=document.createElement('button');
+    btn.className='tab-btn'+(orch.id===activeTab?' active':'');
+    btn.dataset.id=orch.id;
+    btn.innerHTML=orch.icon+' '+(lang==='ru'?orch.ru:orch.en);
+    btn.onclick=function(){setTab(orch.id);};
+    tabsRow.appendChild(btn);
+
+    // Panel
+    var panel=document.createElement('div');
+    panel.className='tab-panel'+(orch.id===activeTab?' active':'');
+    panel.dataset.id=orch.id;
+
+    // Description
+    var desc=document.createElement('div');
+    desc.className='orch-desc';
+    desc.textContent=lang==='ru'?orch.descRu:orch.descEn;
+    panel.appendChild(desc);
+
+    // Listen card
+    var vkFull='https://vk.com/audio?q='+encodeURIComponent(orch.vkFull);
+    var mrFull='https://my.mail.ru/music/search/'+encodeURIComponent(orch.mrFull);
+    var ymFull='https://music.yandex.ru/search?text='+encodeURIComponent(orch.ymFull);
+
+    var listenCard=document.createElement('div');
+    listenCard.className='listen-card';
+    listenCard.innerHTML=
+      '<div class="listen-label">'+t.listenLabel+'</div>'+
+      '<div class="listen-btns">'+
+        '<a href="'+vkFull+'" target="_blank" rel="noopener" class="vk-link-sm">'+t.vkBtn+'</a>'+
+        '<a href="'+mrFull+'" target="_blank" rel="noopener" class="mr-link-sm">'+t.mrBtn+'</a>'+
+        '<a href="'+ymFull+'" target="_blank" rel="noopener" class="ym-link">'+t.ymBtn+'</a>'+
+      '</div>';
+    panel.appendChild(listenCard);
+
+    // Groups
+    var orchHasVisible=false;
+    orch.groups.forEach(function(grp){
+      var items = favOnly
+        ? grp.items.filter(function(inst){ return isFavInstrument(orch.id+'::'+inst.en); })
+        : grp.items;
+      if(!items.length) return;
+      orchHasVisible=true;
+
+      var gh=document.createElement('div');
+      gh.className='group-hdr';
+      gh.textContent=lang==='ru'?grp.ru:grp.en;
+      panel.appendChild(gh);
+
+      var grid=document.createElement('div');
+      grid.className='instr-grid';
+
+      items.forEach(function(inst){
+        var card=document.createElement('div');
+        card.className='icard';
+
+        var vkUrl='https://vk.com/audio?q='+encodeURIComponent(inst.vkQ);
+        var mrUrl='https://my.mail.ru/music/search/'+encodeURIComponent(inst.en);
+        var ymUrl='https://music.yandex.ru/search?text='+encodeURIComponent(inst.ymQ);
+        var rangeHtml=inst.range?'<div class="icard-range">'+inst.range+'</div>':'';
+        var favKey=orch.id+'::'+inst.en;
+        var isFav=isFavInstrument(favKey);
+
+        card.innerHTML=
+          '<div class="icard-top">'+
+            '<div class="icard-emoji">'+inst.emoji+'</div>'+
+            '<div class="icard-right">'+
+              '<div class="icard-name">'+(lang==='ru'?inst.ru:inst.en)+'</div>'+
+              '<div class="icard-name-en">'+(lang==='ru'?inst.en:inst.ru)+'</div>'+
+              rangeHtml+
+            '</div>'+
+            '<button class="fav-star'+(isFav?' active':'')+'" data-fav-key="'+favKey.replace(/"/g,'&quot;')+'" title="'+(lang==='ru'?'В избранное':'Add to favorites')+'">'+(isFav?'★':'☆')+'</button>'+
+          '</div>'+
+          '<div class="icard-desc">'+(lang==='ru'?inst.descRu:inst.descEn)+'</div>'+
+          '<div class="music-btns">'+
+            '<a href="'+vkUrl+'" target="_blank" rel="noopener" class="vk-link-sm">'+t.vkBtn+'</a>'+
+            '<a href="'+mrUrl+'" target="_blank" rel="noopener" class="mr-link-sm">'+t.mrBtn+'</a>'+
+            '<a href="'+ymUrl+'" target="_blank" rel="noopener" class="ym-link">'+t.ymBtn+'</a>'+
+          '</div>';
+
+        var starBtn=card.querySelector('.fav-star');
+        starBtn.addEventListener('click',function(){ toggleFavInstrument(favKey,inst,orch); });
+
+        grid.appendChild(card);
+      });
+
+      panel.appendChild(grid);
+    });
+
+    if(favOnly && !orchHasVisible){
+      var empty=document.createElement('div');
+      empty.style.cssText='text-align:center;padding:30px 0;color:var(--muted);font-size:12px;font-weight:700;';
+      empty.textContent=t.favEmpty;
+      panel.appendChild(empty);
+    }
+
+    panels.appendChild(panel);
+  });
+  updateFavToggleBtn();
+}
+
+/* ─── Init ─── */
+if(lang!=='ru'){
+  document.getElementById('ttl').textContent=T[lang].title;
+  document.getElementById('sub').textContent=T[lang].sub;
+  document.getElementById('langBtn').textContent='EN';
+}
+(function(){
+  var m=location.hash.match(/^#orch-(.+)$/);
+  if(m)activeTab=decodeURIComponent(m[1]);
+})();
+renderAll();
+</script>
+</body>
+</html>

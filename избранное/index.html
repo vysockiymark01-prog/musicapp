@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="ru" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Избранное</title>
+<meta name="theme-color" content="#1c3a8e">
+<script>(function(){var t=localStorage.getItem('musicapp_theme');var dark=t==='dark';document.documentElement.setAttribute('data-theme',dark?'dark':'light');})()</script>
+<style>
+:root{--bg:#f8fafc;--card:#fff;--text:#0f172a;--muted:#94a3b8;--border:#e2e8f0;
+  --sl100:#f1f5f9;--sl200:#e2e8f0;--blue:#2563eb;--shadow:0 1px 4px rgba(0,0,0,.07);}
+[data-theme="dark"]{--bg:#0f172a;--card:#1e293b;--text:#f1f5f9;--muted:#64748b;
+  --border:#334155;--sl100:#334155;--sl200:#475569;}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+  background:var(--bg);color:var(--text);transition:background .3s,color .3s;min-height:100vh;}
+.wrap{max-width:900px;margin:0 auto;padding:12px 14px 40px;}
+.back{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:800;
+  text-decoration:none;opacity:.65;padding:5px 11px;border:1px solid var(--border);
+  border-radius:10px;margin-bottom:10px;color:inherit;}
+.hdr{display:flex;justify-content:space-between;align-items:center;
+  padding:14px 20px;background:var(--card);border:1px solid var(--border);
+  border-radius:20px;margin-bottom:16px;box-shadow:var(--shadow);}
+.hdr-left{display:flex;align-items:center;gap:12px;}
+.logo{font-size:28px;line-height:1;}
+.hdr-title{font-weight:900;font-size:18px;}
+.hdr-sub{font-size:11px;font-weight:700;color:var(--muted);}
+.hdr-btns{display:flex;gap:6px;}
+.hbtn{padding:7px 13px;background:var(--sl100);border:none;border-radius:10px;
+  font-size:10px;font-weight:800;text-transform:uppercase;cursor:pointer;
+  color:var(--text);display:flex;align-items:center;gap:5px;}
+.hbtn:hover{background:var(--sl200);}
+.filter-bar{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px;}
+.chip{padding:6px 13px;border:1.5px solid var(--border);border-radius:20px;
+  background:var(--card);font-size:11px;font-weight:700;cursor:pointer;
+  color:var(--muted);transition:all .15s;white-space:nowrap;}
+.chip:hover{border-color:var(--blue);color:var(--text);}
+.chip.active{background:var(--blue);border-color:var(--blue);color:#fff;}
+.section-title{font-size:10px;font-weight:900;text-transform:uppercase;
+  letter-spacing:.8px;color:var(--muted);margin:20px 0 10px;padding-left:2px;}
+.section-title:first-of-type{margin-top:0;}
+.recent-row{display:flex;gap:8px;overflow-x:auto;padding-bottom:6px;margin-bottom:6px;}
+.recent-chip{flex-shrink:0;display:flex;align-items:center;gap:7px;padding:8px 12px;
+  background:var(--card);border:1px solid var(--border);border-radius:12px;
+  text-decoration:none;color:var(--text);box-shadow:var(--shadow);min-width:150px;}
+.recent-chip:hover{border-color:var(--blue);}
+.recent-ico{font-size:16px;}
+.recent-label{font-size:11px;font-weight:800;line-height:1.2;}
+.recent-sub{font-size:9px;color:var(--muted);font-weight:600;margin-top:1px;}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px;}
+.fcard{background:var(--card);border:1.5px solid var(--border);border-radius:16px;
+  padding:14px;display:flex;flex-direction:column;gap:6px;position:relative;
+  text-decoration:none;color:var(--text);transition:transform .15s,box-shadow .15s;}
+.fcard:hover{transform:translateY(-2px);box-shadow:0 6px 16px rgba(0,0,0,.1);}
+.fcard-top{display:flex;align-items:center;gap:8px;}
+.fcard-ico{font-size:20px;flex-shrink:0;}
+.fcard-name{font-size:13px;font-weight:800;line-height:1.25;flex:1;}
+.fcard-sub{font-size:10px;color:var(--muted);font-weight:600;}
+.fcard-tag{display:inline-block;padding:2px 8px;border-radius:8px;
+  font-size:8px;font-weight:900;text-transform:uppercase;letter-spacing:.4px;
+  width:fit-content;background:var(--sl100);color:var(--muted);}
+.fcard-remove{position:absolute;top:8px;right:8px;background:none;border:none;
+  cursor:pointer;font-size:18px;line-height:1;color:#f59e0b;padding:3px;
+  transition:transform .12s;}
+.fcard-remove:hover{transform:scale(1.2);}
+.empty-state{text-align:center;padding:50px 20px;color:var(--muted);}
+.empty-state-emoji{font-size:40px;margin-bottom:12px;}
+.empty-state-title{font-size:14px;font-weight:800;color:var(--text);margin-bottom:6px;}
+.empty-state-text{font-size:12px;line-height:1.6;max-width:360px;margin:0 auto 16px;}
+.empty-state-links{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;}
+.empty-state-links a{font-size:11px;font-weight:800;text-decoration:none;color:var(--blue);
+  padding:6px 12px;border:1.5px solid var(--border);border-radius:10px;}
+.empty-state-links a:hover{border-color:var(--blue);}
+.summary{font-size:11px;color:var(--muted);font-weight:700;margin-bottom:10px;}
+</style>
+</head>
+<body>
+<div class="wrap">
+<a class="back" href="../index.html" id="backHomeLink">← Главная</a>
+<div class="hdr">
+  <div class="hdr-left">
+    <div class="logo">⭐</div>
+    <div>
+      <div class="hdr-title" id="hdrTitle">Избранное</div>
+      <div class="hdr-sub" id="hdrSub">Всё, что вы сохранили</div>
+    </div>
+  </div>
+  <div class="hdr-btns">
+    <button class="hbtn" id="themeBtn">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" id="themeIco">
+        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+      </svg>
+      <span id="themeText">Тёмная</span>
+    </button>
+    <button class="hbtn" id="langBtn">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+        <path d="m5 8 6 6"/><path d="m4 14 6-6 2-3"/><path d="M2 5h12"/><path d="M7 2h1"/>
+        <path d="m22 22-5-10-5 10"/><path d="M14 18h6"/>
+      </svg>
+      <span id="langText">RU</span>
+    </button>
+  </div>
+</div>
+
+<div class="section-title" id="recentTitle" style="display:none">🕐 Недавно просмотренное</div>
+<div class="recent-row" id="recentRow" style="display:none"></div>
+
+<div class="section-title" id="favTitle">⭐ Избранное</div>
+<div class="summary" id="summary"></div>
+<div class="filter-bar" id="catFilter"></div>
+<div class="grid" id="favGrid"></div>
+<div id="emptyState" style="display:none"></div>
+
+</div>
+<script>
+const CATS=[
+  {key:'ml:composer',   ru:'Композиторы',         en:'Composers',        icon:'🎭'},
+  {key:'ml:work',       ru:'Произведения',        en:'Works',            icon:'🎼'},
+  {key:'orchestra:instrument', ru:'Инструменты',   en:'Instruments',      icon:'🎻'},
+  {key:'jazz:performer',ru:'Джаз-исполнители',    en:'Jazz performers',  icon:'🎷'},
+  {key:'jazz:work',     ru:'Джазовые произведения',en:'Jazz works',      icon:'🎺'},
+  {key:'glossary:term', ru:'Термины',             en:'Terms',            icon:'📖'},
+  {key:'quotes:quote',  ru:'Цитаты',              en:'Quotes',           icon:'💬'},
+];
+const REMOVE_MAP={
+  'ml:composer':(id)=>{
+    const raw=JSON.parse(localStorage.getItem('musicapp_ml_favorites')||'{}');
+    raw.composers=(raw.composers||[]).filter(x=>x!==id);
+    localStorage.setItem('musicapp_ml_favorites',JSON.stringify(raw));
+  },
+  'ml:work':(id)=>{
+    const raw=JSON.parse(localStorage.getItem('musicapp_ml_favorites')||'{}');
+    raw.works=(raw.works||[]).filter(x=>x!==id);
+    localStorage.setItem('musicapp_ml_favorites',JSON.stringify(raw));
+  },
+  'orchestra:instrument':(id)=>{
+    const raw=JSON.parse(localStorage.getItem('musicapp_orch_favorites')||'[]');
+    localStorage.setItem('musicapp_orch_favorites',JSON.stringify((Array.isArray(raw)?raw:[]).filter(x=>x!==id)));
+  },
+  'jazz:performer':(id)=>{
+    const raw=JSON.parse(localStorage.getItem('musicapp_jazz_fav_performers')||'[]');
+    localStorage.setItem('musicapp_jazz_fav_performers',JSON.stringify((Array.isArray(raw)?raw:[]).filter(x=>x!==id)));
+  },
+  'jazz:work':(id)=>{
+    const raw=JSON.parse(localStorage.getItem('musicapp_jazz_fav_works')||'[]');
+    localStorage.setItem('musicapp_jazz_fav_works',JSON.stringify((Array.isArray(raw)?raw:[]).filter(x=>x!==id)));
+  },
+  'glossary:term':(id)=>{
+    const raw=JSON.parse(localStorage.getItem('musicapp_glossary_favorites')||'[]');
+    localStorage.setItem('musicapp_glossary_favorites',JSON.stringify((Array.isArray(raw)?raw:[]).filter(x=>x!==id)));
+  },
+  'quotes:quote':(id)=>{
+    const raw=JSON.parse(localStorage.getItem('musicapp_quotes_favorites')||'[]');
+    localStorage.setItem('musicapp_quotes_favorites',JSON.stringify((Array.isArray(raw)?raw:[]).filter(x=>x!==id)));
+  }
+};
+
+let lang=localStorage.getItem('musicapp_lang')||'ru';
+let catFilter='all';
+let favIndex={};
+
+function loadIndex(){
+  try{
+    favIndex=JSON.parse(localStorage.getItem('musicapp_fav_index')||'{}');
+  }catch(e){favIndex={};}
+}
+
+function removeFavorite(module,type,id){
+  const fn=REMOVE_MAP[module+':'+type];
+  if(fn)fn(id);
+  delete favIndex[module+':'+type+':'+id];
+  localStorage.setItem('musicapp_fav_index',JSON.stringify(favIndex));
+  renderCatFilter();
+  renderGrid();
+}
+
+function renderCatFilter(){
+  const entries=Object.values(favIndex);
+  const total=entries.length;
+  const el=document.getElementById('catFilter');
+  const allLabel=lang==='ru'?'Все':'All';
+  let html=`<button class="chip${catFilter==='all'?' active':''}" onclick="setCatFilter('all')">${allLabel} (${total})</button>`;
+  CATS.forEach(c=>{
+    const count=entries.filter(e=>(e.module+':'+e.type)===c.key).length;
+    if(count===0)return;
+    html+=`<button class="chip${catFilter===c.key?' active':''}" onclick="setCatFilter('${c.key}')">${c.icon} ${lang==='ru'?c.ru:c.en} (${count})</button>`;
+  });
+  el.innerHTML=html;
+}
+
+function setCatFilter(key){
+  catFilter=key;
+  renderCatFilter();
+  renderGrid();
+}
+
+function renderGrid(){
+  const grid=document.getElementById('favGrid');
+  const empty=document.getElementById('emptyState');
+  const summary=document.getElementById('summary');
+  let entries=Object.values(favIndex).sort((a,b)=>(b.ts||0)-(a.ts||0));
+  if(catFilter!=='all')entries=entries.filter(e=>(e.module+':'+e.type)===catFilter);
+
+  if(!Object.values(favIndex).length){
+    grid.style.display='none';
+    summary.style.display='none';
+    document.getElementById('catFilter').style.display='none';
+    empty.style.display='block';
+    empty.innerHTML=`<div class="empty-state">
+      <div class="empty-state-emoji">⭐</div>
+      <div class="empty-state-title">${lang==='ru'?'Пока пусто':'Nothing here yet'}</div>
+      <div class="empty-state-text">${lang==='ru'?'Сохраняйте композиторов, произведения, инструменты, джазовых исполнителей, термины и цитаты — они появятся здесь.':'Save composers, works, instruments, jazz performers, terms and quotes — they will show up here.'}</div>
+      <div class="empty-state-links">
+        <a href="../муз-литература/index.html">🎭 ${lang==='ru'?'Муз-литература':'Music history'}</a>
+        <a href="../инструменты оркестра/index.html">🎻 ${lang==='ru'?'Инструменты':'Instruments'}</a>
+        <a href="../джазовая-гармония/index.html">🎷 ${lang==='ru'?'Джаз':'Jazz'}</a>
+        <a href="../словарик терминов/index.html">📖 ${lang==='ru'?'Словарик':'Glossary'}</a>
+        <a href="../цитаты/index.html">💬 ${lang==='ru'?'Цитаты':'Quotes'}</a>
+      </div>
+    </div>`;
+    return;
+  }
+  empty.style.display='none';
+  grid.style.display='grid';
+  summary.style.display='block';
+  document.getElementById('catFilter').style.display='flex';
+  summary.textContent=lang==='ru'?`Всего сохранено: ${Object.values(favIndex).length}`:`Total saved: ${Object.values(favIndex).length}`;
+
+  if(!entries.length){
+    grid.innerHTML=`<div class="empty-state" style="grid-column:1/-1">${lang==='ru'?'Ничего не найдено':'Nothing found'}</div>`;
+    return;
+  }
+
+  grid.innerHTML=entries.map(e=>{
+    const label=lang==='ru'?(e.labelRu||e.labelEn||e.id):(e.labelEn||e.labelRu||e.id);
+    const sub=lang==='ru'?(e.subRu||e.subEn||''):(e.subEn||e.subRu||'');
+    const cat=CATS.find(c=>c.key===(e.module+':'+e.type));
+    const tag=cat?(lang==='ru'?cat.ru:cat.en):e.type;
+    const href='../'+(e.link||'index.html');
+    return `<a class="fcard" href="${href}">
+      <button class="fcard-remove" onclick="event.preventDefault();event.stopPropagation();removeFavorite('${e.module}','${e.type}','${String(e.id).replace(/'/g,"\\'")}')" title="${lang==='ru'?'Убрать из избранного':'Remove from favorites'}">★</button>
+      <div class="fcard-top">
+        <div class="fcard-ico">${e.icon||'⭐'}</div>
+        <div class="fcard-name">${label}</div>
+      </div>
+      ${sub?`<div class="fcard-sub">${sub}</div>`:''}
+      <span class="fcard-tag">${tag}</span>
+    </a>`;
+  }).join('');
+}
+
+function renderRecent(){
+  let recent=[];
+  try{ recent=JSON.parse(localStorage.getItem('musicapp_recent')||'[]'); }catch(e){recent=[];}
+  const row=document.getElementById('recentRow');
+  const title=document.getElementById('recentTitle');
+  if(!Array.isArray(recent)||!recent.length){
+    row.style.display='none';
+    title.style.display='none';
+    return;
+  }
+  row.style.display='flex';
+  title.style.display='block';
+  row.innerHTML=recent.slice(0,15).map(r=>{
+    const label=lang==='ru'?(r.labelRu||r.labelEn||''):(r.labelEn||r.labelRu||'');
+    const sub=lang==='ru'?(r.subRu||r.subEn||''):(r.subEn||r.subRu||'');
+    const href='../'+(r.link||'index.html');
+    return `<a class="recent-chip" href="${href}">
+      <span class="recent-ico">${r.icon||'🕐'}</span>
+      <span>
+        <div class="recent-label">${label}</div>
+        ${sub?`<div class="recent-sub">${sub}</div>`:''}
+      </span>
+    </a>`;
+  }).join('');
+}
+
+function applyLang(){
+  document.getElementById('hdrTitle').textContent=lang==='ru'?'Избранное':'Favorites';
+  document.getElementById('hdrSub').textContent=lang==='ru'?'Всё, что вы сохранили':'Everything you saved';
+  document.getElementById('backHomeLink').textContent=lang==='ru'?'← Главная':'← Home';
+  document.getElementById('recentTitle').textContent=lang==='ru'?'🕐 Недавно просмотренное':'🕐 Recently viewed';
+  document.getElementById('favTitle').textContent=lang==='ru'?'⭐ Избранное':'⭐ Favorites';
+  document.getElementById('langText').textContent=lang==='ru'?'RU':'EN';
+  const dk=document.documentElement.getAttribute('data-theme')==='dark';
+  document.getElementById('themeText').textContent=dk?(lang==='ru'?'Светлая':'Light'):(lang==='ru'?'Тёмная':'Dark');
+  renderCatFilter();
+  renderGrid();
+  renderRecent();
+}
+
+document.getElementById('langBtn').addEventListener('click',()=>{
+  lang=lang==='ru'?'en':'ru';
+  localStorage.setItem('musicapp_lang',lang);
+  applyLang();
+});
+document.getElementById('themeBtn').addEventListener('click',()=>{
+  const dk=document.documentElement.getAttribute('data-theme')==='dark';
+  document.documentElement.setAttribute('data-theme',dk?'light':'dark');
+  localStorage.setItem('musicapp_theme',dk?'light':'dark');
+  const L=lang==='ru';
+  document.getElementById('themeText').textContent=dk?(L?'Тёмная':'Dark'):(L?'Светлая':'Light');
+  document.getElementById('themeIco').innerHTML=dk
+    ?'<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>'
+    :'<circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>';
+});
+
+loadIndex();
+applyLang();
+</script>
+</body>
+</html>

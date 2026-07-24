@@ -40,6 +40,38 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
   font-size:10px;font-weight:800;text-transform:uppercase;cursor:pointer;
   color:var(--text);display:flex;align-items:center;gap:5px;}
 .hbtn:hover{background:var(--sl200);}
+.progress-card{background:var(--card);border:1.5px solid var(--border);border-radius:20px;
+  padding:16px 20px;margin-bottom:24px;box-shadow:var(--shadow);}
+.progress-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;gap:8px;}
+.progress-label{font-size:12px;font-weight:800;color:var(--text);}
+.progress-count{font-size:12px;font-weight:900;color:var(--blue);white-space:nowrap;}
+.progress-track{width:100%;height:8px;background:var(--sl100);border-radius:6px;overflow:hidden;}
+.progress-fill{height:100%;background:var(--blue);border-radius:6px;width:0%;
+  transition:width .5s ease;}
+.data-card{background:var(--card);border:1.5px solid var(--border);border-radius:20px;
+  padding:16px 20px;margin-bottom:24px;box-shadow:var(--shadow);}
+.data-card-title{font-size:12px;font-weight:800;color:var(--text);margin-bottom:4px;}
+.data-card-desc{font-size:11px;color:var(--muted);line-height:1.5;margin-bottom:12px;}
+.data-card-btns{display:flex;gap:8px;flex-wrap:wrap;}
+.data-btn-primary{background:var(--blue) !important;color:#fff;}
+.data-status{margin-top:10px;padding:8px 12px;border-radius:10px;font-size:11px;font-weight:700;}
+.data-status.ok{background:rgba(16,185,129,.12);color:#047857;}
+[data-theme="dark"] .data-status.ok{color:#34d399;}
+.data-status.err{background:rgba(239,68,68,.12);color:#b91c1c;}
+[data-theme="dark"] .data-status.err{color:#f87171;}
+.ach-card{background:var(--card);border:1.5px solid var(--border);border-radius:20px;
+  padding:16px 20px;margin-bottom:24px;box-shadow:var(--shadow);}
+.ach-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;}
+.ach-title{font-size:12px;font-weight:800;color:var(--text);}
+.ach-count{font-size:11px;font-weight:900;color:#f59e0b;}
+.ach-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:8px;}
+.ach-badge{display:flex;flex-direction:column;align-items:center;text-align:center;gap:3px;
+  padding:12px 8px;border-radius:14px;background:var(--sl100);border:1.5px solid var(--border);}
+.ach-badge.unlocked{border-color:#f59e0b;background:rgba(245,158,11,.1);}
+.ach-ico{font-size:22px;filter:grayscale(1);opacity:.35;}
+.ach-badge.unlocked .ach-ico{filter:none;opacity:1;}
+.ach-name{font-size:10px;font-weight:800;color:var(--text);}
+.ach-desc{font-size:9px;color:var(--muted);line-height:1.3;}
 .section{margin-bottom:24px;}
 .section-title{font-size:10px;font-weight:900;text-transform:uppercase;
   letter-spacing:.8px;color:var(--muted);margin-bottom:10px;padding-left:2px;}
@@ -84,6 +116,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
 .cat-contact{--accent:#0077ff;}
 .cat-contact .mcard-tag{background:rgba(0,119,255,.12);color:#0077ff;}
 [data-theme="dark"] .cat-contact .mcard-tag{background:rgba(0,119,255,.25);}
+.cat-fav{--accent:#f59e0b;}
+.cat-fav .mcard-tag{background:rgba(245,158,11,.12);color:#b45309;}
+[data-theme="dark"] .cat-fav .mcard-tag{background:rgba(245,158,11,.25);}
 </style>
 <link rel="manifest" href="/musicapp/manifest.json">
 </head>
@@ -94,7 +129,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
     <div class="logo">🎵</div>
     <div>
       <div class="hdr-title" id="hdrTitle">Музыкальное приложение</div>
-      <div class="hdr-sub" id="hdrSub">Музыкальная школа · 11 модулей</div>
+      <div class="hdr-sub" id="hdrSub">Музыкальная школа · 14 модулей</div>
     </div>
   </div>
   <div class="hdr-btns">
@@ -111,6 +146,44 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
       </svg>
       <span id="langText">RU</span>
     </button>
+  </div>
+</div>
+
+<div class="progress-card">
+  <div class="progress-top">
+    <span class="progress-label" id="progLabel">Ваш прогресс</span>
+    <span class="progress-count" id="progCount">0 из 13</span>
+  </div>
+  <div class="progress-track"><div class="progress-fill" id="progFill"></div></div>
+</div>
+
+<div class="data-card">
+  <div class="data-card-title" id="dataTitle">💾 Данные приложения</div>
+  <div class="data-card-desc" id="dataDesc">Прогресс и избранное хранятся локально на этом устройстве. Сохраните файл, чтобы не потерять их при смене устройства или очистке данных.</div>
+  <div class="data-card-btns">
+    <button class="hbtn data-btn-primary" id="exportBtn">⬇️ <span id="exportBtnText">Экспорт в файл</span></button>
+    <button class="hbtn" id="importBtn">⬆️ <span id="importBtnText">Импорт из файла</span></button>
+    <input type="file" id="importFile" accept="application/json" style="display:none">
+  </div>
+  <div class="data-status" id="dataStatus" style="display:none"></div>
+</div>
+
+<div class="ach-card">
+  <div class="ach-top">
+    <span class="ach-title" id="achTitle">🏅 Достижения</span>
+    <span class="ach-count" id="achCount">0 / 8</span>
+  </div>
+  <div class="ach-grid" id="achGrid"></div>
+</div>
+
+<div class="section">
+  <div class="grid">
+    <a class="mcard cat-fav" href="./избранное/index.html">
+      <div class="mcard-ico">⭐</div>
+      <div class="mcard-name" id="mFav">Избранное</div>
+      <div class="mcard-desc" id="mFavD">Сохранённые композиторы, инструменты, термины и цитаты</div>
+      <span class="mcard-tag" id="mFavT">Моё</span>
+    </a>
   </div>
 </div>
 
@@ -152,6 +225,12 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
       <div class="mcard-name" id="m6">Тональности</div>
       <div class="mcard-desc" id="m6d">Квинтовый круг, знаки, гаммы, параллельные тональности</div>
       <span class="mcard-tag" id="m6t">Сольфеджио</span>
+    </a>
+    <a class="mcard cat-solfege" href="./транспозиция/index.html">
+      <div class="mcard-ico">🎹</div>
+      <div class="mcard-name" id="m7">Транспозиция</div>
+      <div class="mcard-desc" id="m7d">Перенос нот и гамм на интервал, викторина</div>
+      <span class="mcard-tag" id="m7t">Сольфеджио</span>
     </a>
   </div>
 </div>
@@ -201,6 +280,18 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
       <div class="mcard-desc" id="m12d">Настройка гитары, балалайки, домры — авто и ручной режим</div>
       <span class="mcard-tag" id="m12t">Инструменты</span>
     </a>
+    <a class="mcard cat-tools" href="./метроном/index.html">
+      <div class="mcard-ico">🎯</div>
+      <div class="mcard-name" id="m15">Метроном</div>
+      <div class="mcard-desc" id="m15d">Темп, размер такта, акцент, tap tempo — три вида звука</div>
+      <span class="mcard-tag" id="m15t">Инструменты</span>
+    </a>
+    <a class="mcard cat-tools" href="./инструменты оркестра/index.html">
+      <div class="mcard-ico">🎼</div>
+      <div class="mcard-name" id="m16">Инструменты оркестра</div>
+      <div class="mcard-desc" id="m16d">Симфонический, народный, джазовый — состав и звучание</div>
+      <span class="mcard-tag" id="m16t">Инструменты</span>
+    </a>
   </div>
 </div>
 
@@ -228,9 +319,14 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
 let lang=localStorage.getItem('musicapp_lang')||'ru';
 const T={
   ru:{
-    title:'Музыкальное приложение',sub:'Музыкальная школа · 11 модулей',
-    dark:'Тёмная',light:'Светлая',
+    title:'Музыкальное приложение',sub:'Музыкальная школа · 14 модулей',
+    dark:'Тёмная',light:'Светлая',progress:'Ваш прогресс',progressOf:'из',
     sec1:'🎼 Сольфеджио и теория',sec2:'📖 Теория',sec3:'🎭 История и культура',sec4:'🎸 Инструменты',sec5:'🤝 Сотрудничество',
+    mFav:'Избранное',mFavD:'Сохранённые композиторы, инструменты, термины и цитаты',mFavT:'Моё',
+    dataTitle:'💾 Данные приложения',dataDesc:'Прогресс и избранное хранятся локально на этом устройстве. Сохраните файл, чтобы не потерять их при смене устройства или очистке данных.',
+    exportBtnText:'Экспорт в файл',importBtnText:'Импорт из файла',
+    exportedMsg:'Сохранено: ',importedMsg:'Импортировано ключей: ',importedSuffix:'. Обновляю страницу…',importErrMsg:'Не удалось прочитать файл. Проверьте, что это резервная копия этого приложения.',
+    achTitle:'🏅 Достижения',
     m13:'ВКонтакте',m13d:'Написать автору во ВКонтакте — предложения, вопросы, отзывы',m13t:'Связь',
     m14:'Email',m14d:'vysockiy.mark98@mail.ru',m14t:'Связь',
     m1:'Нотная грамота',m1d:'Ноты, ключи, интервалы, построение на нотном стане',m1t:'Сольфеджио',
@@ -239,16 +335,24 @@ const T={
     m4:'Муз. диктанты',m4d:'Одноголосный, двухголосный, ритмический, ошибки',m4t:'Сольфеджио',
     m5:'Цифровка',m5d:'Ступени, аккорды, кадансы — тренажёр',m5t:'Сольфеджио',
     m6:'Тональности',m6d:'Квинтовый круг, знаки, гаммы, параллельные тональности',m6t:'Сольфеджио',
+    m7:'Транспозиция',m7d:'Перенос нот и гамм на интервал, викторина',m7t:'Сольфеджио',
     m8:'Словарик терминов',m8d:'300+ музыкальных терминов с определениями и примерами',m8t:'Теория',
     m9:'Муз. литература',m9d:'Великие композиторы, произведения, хронология, викторина',m9t:'История',
     m10:'Цитатник',m10d:'Мысли великих композиторов о музыке и творчестве',m10t:'История',
-    m11:'Джазовая гармония',m11d:'Блюз, рэгтайм, свинг, бибоп, босса-нова, модальный джаз, фьюжн',m11t:'История',
+    m11:'Джазовая гармония',m11d:'Блюз, свинг, бибоп, кул-джаз, латино-джаз, фьюжн и другие стили',m11t:'История',
     m12:'Тюнер',m12d:'Настройка гитары, балалайки, домры — авто и ручной режим',m12t:'Инструменты',
+    m15:'Метроном',m15d:'Темп, размер такта, акцент, tap tempo — три вида звука',m15t:'Инструменты',
+    m16:'Инструменты оркестра',m16d:'Симфонический, народный, джазовый — состав и звучание',m16t:'Инструменты',
   },
   en:{
-    title:'Music App',sub:'Music School · 11 modules',
-    dark:'Dark',light:'Light',
+    title:'Music App',sub:'Music School · 14 modules',
+    dark:'Dark',light:'Light',progress:'Your Progress',progressOf:'of',
     sec1:'🎼 Solfège & Theory',sec2:'📖 Theory',sec3:'🎭 History & Culture',sec4:'🎸 Instruments',sec5:'🤝 Collaboration',
+    mFav:'Favorites',mFavD:'Saved composers, instruments, terms and quotes',mFavT:'Mine',
+    dataTitle:'💾 App data',dataDesc:'Progress and favorites are stored locally on this device. Save a file so you don\'t lose them if you switch devices or clear your data.',
+    exportBtnText:'Export to file',importBtnText:'Import from file',
+    exportedMsg:'Saved: ',importedMsg:'Imported keys: ',importedSuffix:'. Reloading the page…',importErrMsg:'Could not read the file. Make sure it\'s a backup from this app.',
+    achTitle:'🏅 Achievements',
     m13:'VKontakte',m13d:'Message the author on VKontakte — ideas, questions, feedback',m13t:'Contact',
     m14:'Email',m14d:'vysockiy.mark98@mail.ru',m14t:'Contact',
     m1:'Music Notation',m1d:'Notes, clefs, intervals, staff construction',m1t:'Solfège',
@@ -257,25 +361,30 @@ const T={
     m4:'Dictations',m4d:'Melodic, two-voice, rhythmic, error detection',m4t:'Solfège',
     m5:'Figured Bass',m5d:'Scale degrees, chords, cadences — trainer',m5t:'Solfège',
     m6:'Key Signatures',m6d:'Circle of fifths, signs, scales, relative keys',m6t:'Solfège',
+    m7:'Transposition',m7d:'Transpose notes and scales by interval, quiz',m7t:'Solfège',
     m8:'Glossary',m8d:'300+ musical terms with definitions and examples',m8t:'Theory',
     m9:'Music History',m9d:'Great composers, works, timeline, quiz',m9t:'History',
     m10:'Quotes',m10d:'Thoughts of great composers on music and creativity',m10t:'History',
-    m11:'Jazz Harmony',m11d:'Blues, ragtime, swing, bebop, bossa nova, modal jazz, fusion',m11t:'History',
+    m11:'Jazz Harmony',m11d:'Blues, swing, bebop, cool jazz, latin jazz, fusion, and more',m11t:'History',
     m12:'Tuner',m12d:'Guitar, balalaika, domra tuning — auto and manual mode',m12t:'Instruments',
+    m15:'Metronome',m15d:'Tempo, time signature, accent, tap tempo — three sound types',m15t:'Instruments',
+    m16:'Orchestra Instruments',m16d:'Symphony, folk, jazz — ensemble composition and sound',m16t:'Instruments',
   }
 };
 function applyLang(){
   const L=T[lang];
   const ids=['hdrTitle','hdrSub','sec1Title','sec2Title','sec3Title','sec4Title','sec5Title',
+    'mFav','mFavD','mFavT','dataTitle','dataDesc','exportBtnText','importBtnText',
     'm1','m1d','m1t','m2','m2d','m2t','m3','m3d','m3t','m4','m4d','m4t',
-    'm5','m5d','m5t','m6','m6d','m6t','m8','m8d','m8t',
+    'm5','m5d','m5t','m6','m6d','m6t','m7','m7d','m7t','m8','m8d','m8t',
     'm9','m9d','m9t','m10','m10d','m10t','m11','m11d','m11t',
-    'm12','m12d','m12t','m13','m13d','m13t','m14','m14d','m14t'];
+    'm12','m12d','m12t','m15','m15d','m15t','m16','m16d','m16t','m13','m13d','m13t','m14','m14d','m14t'];
   const keys=['title','sub','sec1','sec2','sec3','sec4','sec5',
+    'mFav','mFavD','mFavT','dataTitle','dataDesc','exportBtnText','importBtnText',
     'm1','m1d','m1t','m2','m2d','m2t','m3','m3d','m3t','m4','m4d','m4t',
-    'm5','m5d','m5t','m6','m6d','m6t','m8','m8d','m8t',
+    'm5','m5d','m5t','m6','m6d','m6t','m7','m7d','m7t','m8','m8d','m8t',
     'm9','m9d','m9t','m10','m10d','m10t','m11','m11d','m11t',
-    'm12','m12d','m12t','m13','m13d','m13t','m14','m14d','m14t'];
+    'm12','m12d','m12t','m15','m15d','m15t','m16','m16d','m16t','m13','m13d','m13t','m14','m14d','m14t'];
   ids.forEach((id,i)=>{
     const el=document.getElementById(id);
     if(el)el.textContent=L[keys[i]]||'';
@@ -283,6 +392,74 @@ function applyLang(){
   const dk=document.documentElement.getAttribute('data-theme')==='dark';
   document.getElementById('themeText').textContent=dk?L.light:L.dark;
   document.getElementById('langText').textContent=lang==='ru'?'RU':'EN';
+  document.getElementById('progLabel').textContent=L.progress;
+  document.getElementById('achTitle').textContent=L.achTitle;
+  updateProgress();
+  renderAchievements();
+}
+const ALL_MODULES=['notation','rhythm','ear','dictation','figured-bass','keys','transposition','glossary','history','quotes','jazz','tuner','metronome','orchestra'];
+function updateProgress(){
+  let visited=[];
+  try{visited=JSON.parse(localStorage.getItem('musicapp_visited')||'[]');}catch(e){visited=[];}
+  const count=ALL_MODULES.filter(id=>visited.indexOf(id)!==-1).length;
+  const total=ALL_MODULES.length;
+  const pct=total?Math.round(count/total*100):0;
+  document.getElementById('progCount').textContent=count+' '+T[lang].progressOf+' '+total;
+  document.getElementById('progFill').style.width=pct+'%';
+}
+
+function getFavIndexEntries(){
+  try{return Object.values(JSON.parse(localStorage.getItem('musicapp_fav_index')||'{}'));}catch(e){return [];}
+}
+function getVisitedCount(){
+  let visited=[];
+  try{visited=JSON.parse(localStorage.getItem('musicapp_visited')||'[]');}catch(e){visited=[];}
+  return ALL_MODULES.filter(id=>visited.indexOf(id)!==-1).length;
+}
+const ACHIEVEMENTS=[
+  {id:'first-step',icon:'🚪',ru:'Первые шаги',en:'First steps',
+    descRu:'Открыть первый раздел',descEn:'Open your first section',
+    check:()=>getVisitedCount()>=1},
+  {id:'explorer',icon:'🗺️',ru:'Исследователь',en:'Explorer',
+    descRu:'Открыть 7+ разделов',descEn:'Open 7+ sections',
+    check:()=>getVisitedCount()>=7},
+  {id:'all-sections',icon:'🏆',ru:'Все разделы',en:'All sections',
+    descRu:'Открыть все 14 разделов',descEn:'Open all 14 sections',
+    check:()=>getVisitedCount()>=ALL_MODULES.length},
+  {id:'first-fav',icon:'⭐',ru:'Первое избранное',en:'First favorite',
+    descRu:'Сохранить первый элемент',descEn:'Save your first item',
+    check:()=>getFavIndexEntries().length>=1},
+  {id:'collector',icon:'💎',ru:'Коллекционер',en:'Collector',
+    descRu:'10+ элементов в избранном',descEn:'10+ items favorited',
+    check:()=>getFavIndexEntries().length>=10},
+  {id:'composer-fan',icon:'🎭',ru:'Знаток композиторов',en:'Composer connoisseur',
+    descRu:'5+ композиторов в избранном',descEn:'5+ composers favorited',
+    check:()=>{try{const r=JSON.parse(localStorage.getItem('musicapp_ml_favorites')||'{}');return (r.composers||[]).length>=5;}catch(e){return false;}}},
+  {id:'jazz-guru',icon:'🎷',ru:'Джазовый гуру',en:'Jazz guru',
+    descRu:'5+ джазовых закладок',descEn:'5+ jazz bookmarks',
+    check:()=>{
+      let p=[],w=[];
+      try{p=JSON.parse(localStorage.getItem('musicapp_jazz_fav_performers')||'[]');}catch(e){}
+      try{w=JSON.parse(localStorage.getItem('musicapp_jazz_fav_works')||'[]');}catch(e){}
+      return (p.length+w.length)>=5;
+    }},
+  {id:'backed-up',icon:'💾',ru:'Резервная копия',en:'Backed up',
+    descRu:'Экспортировать данные приложения',descEn:'Export your app data',
+    check:()=>localStorage.getItem('musicapp_has_exported')==='1'},
+];
+function renderAchievements(){
+  const unlocked=ACHIEVEMENTS.filter(a=>a.check());
+  document.getElementById('achCount').textContent=unlocked.length+' / '+ACHIEVEMENTS.length;
+  document.getElementById('achGrid').innerHTML=ACHIEVEMENTS.map(a=>{
+    const isOn=a.check();
+    const name=lang==='ru'?a.ru:a.en;
+    const desc=lang==='ru'?a.descRu:a.descEn;
+    return `<div class="ach-badge${isOn?' unlocked':''}">
+      <div class="ach-ico">${a.icon}</div>
+      <div class="ach-name">${name}</div>
+      <div class="ach-desc">${desc}</div>
+    </div>`;
+  }).join('');
 }
 document.getElementById('langBtn').addEventListener('click',()=>{
   lang=lang==='ru'?'en':'ru';localStorage.setItem('musicapp_lang',lang);applyLang();
@@ -297,6 +474,62 @@ document.getElementById('themeBtn').addEventListener('click',()=>{
     ?'<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>'
     :'<circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>';
 });
+
+function collectAppData(){
+  const data={};
+  for(let i=0;i<localStorage.length;i++){
+    const k=localStorage.key(i);
+    if(k&&k.indexOf('musicapp_')===0)data[k]=localStorage.getItem(k);
+  }
+  return data;
+}
+function showDataStatus(ok,msg){
+  const el=document.getElementById('dataStatus');
+  el.style.display='block';
+  el.className='data-status '+(ok?'ok':'err');
+  el.textContent=(ok?'✅ ':'⚠️ ')+msg;
+}
+document.getElementById('exportBtn').addEventListener('click',()=>{
+  const payload={app:'musicapp',exportedAt:new Date().toISOString(),data:collectAppData()};
+  const blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json'});
+  const url=URL.createObjectURL(blob);
+  const dateStr=new Date().toISOString().slice(0,10);
+  const filename='musicapp-backup-'+dateStr+'.json';
+  const a=document.createElement('a');
+  a.href=url;a.download=filename;
+  document.body.appendChild(a);a.click();document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  localStorage.setItem('musicapp_has_exported','1');
+  renderAchievements();
+  showDataStatus(true,T[lang].exportedMsg+filename);
+});
+document.getElementById('importBtn').addEventListener('click',()=>{
+  document.getElementById('importFile').click();
+});
+document.getElementById('importFile').addEventListener('change',(e)=>{
+  const file=e.target.files[0];
+  if(!file)return;
+  const reader=new FileReader();
+  reader.onload=(ev)=>{
+    try{
+      const payload=JSON.parse(ev.target.result);
+      const data=(payload&&typeof payload==='object'&&payload.data)?payload.data:payload;
+      if(!data||typeof data!=='object')throw new Error('bad format');
+      let count=0;
+      Object.keys(data).forEach(k=>{
+        if(k.indexOf('musicapp_')===0){localStorage.setItem(k,data[k]);count++;}
+      });
+      if(!count)throw new Error('no keys');
+      showDataStatus(true,T[lang].importedMsg+count+T[lang].importedSuffix);
+      setTimeout(()=>location.reload(),1200);
+    }catch(err){
+      showDataStatus(false,T[lang].importErrMsg);
+    }
+  };
+  reader.readAsText(file);
+  e.target.value='';
+});
+
 applyLang();
 </script>
 <script>

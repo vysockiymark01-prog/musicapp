@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
+<script>(function(){try{var k='musicapp_visited',id='ear';var v=JSON.parse(localStorage.getItem(k)||'[]');if(v.indexOf(id)===-1){v.push(id);localStorage.setItem(k,JSON.stringify(v));}}catch(e){}})();</script>
 <!-- Yandex.Metrika counter -->
 <script type="text/javascript">
     (function(m,e,t,r,i,k,a){
@@ -124,6 +125,44 @@
         .feedback-text.wrong{color:var(--red);}
 
         .hidden{display:none;}
+        /* SCALES sub-tabs */
+        .sub-tabs{display:flex;gap:6px;margin-bottom:14px;}
+        .sub-tab{flex:1;padding:10px;border:1.5px solid var(--border);border-radius:12px;
+          background:var(--sl100);font-size:11px;font-weight:900;text-transform:uppercase;
+          cursor:pointer;color:var(--muted);transition:all .15s;}
+        .sub-tab.active{background:var(--blue);color:#fff;border-color:var(--blue);}
+        /* MINI PIANO */
+        .mini-piano{position:relative;height:80px;margin:12px 0;user-select:none;}
+        .piano-white{display:flex;gap:2px;height:80px;}
+        .pw{flex:1;background:#fff;border:1.5px solid #ccc;border-radius:0 0 5px 5px;
+          cursor:pointer;position:relative;transition:background .1s;}
+        .pw:hover{background:#e8f0fe;}
+        .pw.selected{background:#bfdbfe;}
+        .pw.correct-key{background:#bbf7d0 !important;}
+        .pw.wrong-key{background:#fecaca !important;}
+        .pw.root-key{background:#fde68a !important;}
+        .pw.hint-key{background:#c7d2fe !important;}
+        .piano-blacks{position:absolute;top:0;left:0;right:0;height:50px;
+          pointer-events:none;display:flex;}
+        .pb-slot{flex:1;position:relative;}
+        .pb{position:absolute;width:60%;height:50px;background:#1e293b;
+          border-radius:0 0 4px 4px;top:0;left:50%;transform:translateX(-50%);
+          pointer-events:all;cursor:pointer;z-index:2;transition:background .1s;}
+        .pb:hover{background:#334155;}
+        .pb.selected{background:#3b82f6;}
+        .pb.correct-key{background:#059669 !important;}
+        .pb.wrong-key{background:#dc2626 !important;}
+        .pb.root-key{background:#d97706 !important;}
+        .pb.hint-key{background:#6366f1 !important;}
+        .pb.no-key{display:none;}
+        [data-theme="dark"] .pw{background:#e2e8f0;border-color:#94a3b8;}
+        [data-theme="dark"] .pw:hover{background:#bfdbfe;}
+        .scale-chips{display:flex;gap:6px;flex-wrap:wrap;margin:10px 0;}
+        .scale-chip{padding:5px 11px;border-radius:8px;font-size:11px;font-weight:800;
+          background:var(--sl100);border:1.5px solid var(--border);color:var(--muted);}
+        .scale-chip.hit{background:rgba(16,185,129,.14);border-color:var(--green);color:var(--green);}
+        .scale-chip.root{background:rgba(245,158,11,.15);border-color:#d97706;color:#92400e;}
+        [data-theme="dark"] .scale-chip.root{color:#fbbf24;}
         @media(max-width:600px){
             .answer-grid.cols-4{grid-template-columns:repeat(2,1fr);}
             .answer-grid.cols-3{grid-template-columns:repeat(2,1fr);}
@@ -178,6 +217,7 @@
         <button class="tab" data-tab="chains" id="tabChains">Цепочки</button>
         <button class="tab" data-tab="resolution" id="tabResolution">Разрешение</button>
         <button class="tab" data-tab="modes" id="tabModes">Лад/Вид</button>
+        <button class="tab" data-tab="scales" id="tabScales">Гаммы</button>
     </div>
 
     <!-- INTERVALS -->
@@ -489,6 +529,127 @@
         <div class="status-bar" id="mStatus">Нажмите «Слушать» и определите вид лада</div>
     </div>
 
+    <!-- SCALES -->
+    <div id="scalesContent" class="hidden">
+        <div class="sub-tabs">
+            <button class="sub-tab active" id="sSubEar" onclick="sShowMode('ear')">👂 <span id="sLblEar">На слух</span></button>
+            <button class="sub-tab" id="sSubBuild" onclick="sShowMode('build')">🎹 <span id="sLblBuild">Построение</span></button>
+        </div>
+
+        <!-- EAR panel -->
+        <div id="sEarPanel">
+            <div class="card">
+                <div class="settings-row">
+                    <div class="sg"><div class="sg-label" id="seLblLevel">Уровень</div>
+                        <select class="sg-select" id="seLevel">
+                            <option value="1">1–2 класс</option>
+                            <option value="2">3–4 класс</option>
+                            <option value="3">5–6 класс</option>
+                            <option value="4">7–8 класс</option>
+                        </select>
+                    </div>
+                    <div class="sg"><div class="sg-label" id="seLblSpeed">Скорость</div>
+                        <select class="sg-select" id="seSpeed">
+                            <option value="slow" id="seSpeedS">Медленно</option>
+                            <option value="medium" selected id="seSpeedM">Средне</option>
+                            <option value="fast" id="seSpeedF">Быстро</option>
+                        </select>
+                    </div>
+                    <div class="sg"><div class="sg-label" id="seLblDir">Направление</div>
+                        <select class="sg-select" id="seDir">
+                            <option value="up" id="seDirUp">Вверх</option>
+                            <option value="down" id="seDirDown">Вниз</option>
+                            <option value="both" id="seDirBoth">Оба</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <div class="score-row">
+                <div class="sc-item"><div class="sc-val c" id="seCorrect">0</div><div class="sc-lbl" id="seLblC">Верно</div></div>
+                <div style="font-size:32px;font-weight:900;color:var(--muted)">:</div>
+                <div class="sc-item"><div class="sc-val w" id="seWrong">0</div><div class="sc-lbl" id="seLblW">Ошибки</div></div>
+            </div>
+            <div class="play-panel">
+                <div class="play-label" id="sePlayLabel">Нажмите Слушать</div>
+                <div class="play-answer hidden-ans" id="seAnswer">—</div>
+            </div>
+            <button class="listen-btn" id="seListenBtn">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="white"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                <span id="seListenText">Слушать</span>
+            </button>
+            <div class="answer-grid cols-2" id="seAnswerGrid"></div>
+            <div class="btn-row">
+                <button class="btn btn-secondary" id="seHintBtn">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                    <span id="seHintText">Подсказка</span>
+                </button>
+                <button class="btn btn-primary" id="seNextBtn">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M1 4v6h6"/><path d="M23 20v-6h-6"/><path d="M20.49 9A9 9 0 005.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 013.51 15"/></svg>
+                    <span id="seNextText">Следующий</span>
+                </button>
+            </div>
+            <div class="status-bar" id="seStatus">Нажмите «Слушать» и определите гамму</div>
+        </div>
+
+        <!-- BUILD panel -->
+        <div id="sBuildPanel" class="hidden">
+            <div class="card">
+                <div class="settings-row">
+                    <div class="sg"><div class="sg-label" id="sbLblRoot">Тоника</div>
+                        <select class="sg-select" id="sbRoot">
+                            <option value="C">C (До)</option><option value="D">D (Ре)</option>
+                            <option value="E">E (Ми)</option><option value="F">F (Фа)</option>
+                            <option value="G">G (Соль)</option><option value="A">A (Ля)</option>
+                            <option value="B">B (Си)</option>
+                            <option value="Cs">C# / D♭</option><option value="Ds">D# / E♭</option>
+                            <option value="Fs">F# / G♭</option><option value="Gs">G# / A♭</option>
+                            <option value="As">A# / B♭</option>
+                            <option value="rnd" id="sbRootRnd">Случайная</option>
+                        </select>
+                    </div>
+                    <div class="sg"><div class="sg-label" id="sbLblType">Тип гаммы</div>
+                        <select class="sg-select" id="sbType">
+                            <option value="natMaj">Натуральный мажор</option>
+                            <option value="natMin">Натуральный минор</option>
+                            <option value="harmMin">Гармонический минор</option>
+                            <option value="harmMaj">Гармонический мажор</option>
+                            <option value="melMin">Мелодический минор</option>
+                            <option value="melMaj">Мелодический мажор</option>
+                            <option value="penMaj">Пентатоника мажор</option>
+                            <option value="penMin">Пентатоника минор</option>
+                            <option value="dorian">Дорийский лад</option>
+                            <option value="phrygian">Фригийский лад</option>
+                            <option value="lydian">Лидийский лад</option>
+                            <option value="mixolydian">Миксолидийский лад</option>
+                            <option value="blues">Блюзовая гамма</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <div class="card" style="margin-bottom:12px;">
+                <div style="font-size:11px;font-weight:900;text-transform:uppercase;color:var(--muted);margin-bottom:8px;" id="sbTaskLabel">Постройте гамму на пианино</div>
+                <div style="font-size:13px;font-weight:800;margin-bottom:10px;" id="sbTaskDesc"></div>
+                <div class="mini-piano" id="sbPiano"></div>
+                <div class="scale-chips" id="sbChips"></div>
+            </div>
+            <div class="btn-row">
+                <button class="btn btn-secondary" id="sbHintBtn">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                    <span id="sbHintText">Подсказка</span>
+                </button>
+                <button class="btn btn-primary" id="sbCheckBtn" disabled>
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+                    <span id="sbCheckText">Проверить</span>
+                </button>
+                <button class="btn btn-secondary" id="sbNewBtn">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 4v6h6"/><path d="M23 20v-6h-6"/><path d="M20.49 9A9 9 0 005.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 013.51 15"/></svg>
+                    <span id="sbNewText">Новое</span>
+                </button>
+            </div>
+            <div class="status-bar" id="sbStatus">Выберите ноты гаммы на пианино</div>
+        </div>
+    </div>
+
 </div><!-- /container -->
 
 <div id="feedbackModal" class="feedback-modal hidden">
@@ -529,7 +690,23 @@ ru:{appTitle:'Слуховой анализ',tabIntervals:'Интервалы',t
         melMin:{ru:'Мелодический минор',en:'Melodic Minor'},
     },
     chain3:'3',chain4:'4',chain5:'5',
-    showAnswer:'Ответ показан'},
+    showAnswer:'Ответ показан',
+    tabScales:'Гаммы',
+    sEar:'На слух',sBuild:'Построение',
+    statusSE:'Нажмите «Слушать» и определите гамму',
+    statusSB:'Выберите ноты гаммы на пианино',
+    sbTask:'Постройте гамму на пианино',
+    sbCorrect:'Верно! Гамма построена правильно',sbWrong:'Есть ошибки, попробуйте ещё',
+    sbHint:'Подсказка показана',sbRootRnd:'Случайная',
+    allScales:{
+        natMaj:'Натуральный мажор',natMin:'Натуральный минор',
+        harmMin:'Гармонический минор',harmMaj:'Гармонический мажор',
+        melMin:'Мелодический минор',melMaj:'Мелодический мажор',
+        penMaj:'Пентатоника мажор',penMin:'Пентатоника минор',
+        dorian:'Дорийский лад',phrygian:'Фригийский лад',
+        lydian:'Лидийский лад',mixolydian:'Миксолидийский лад',
+        blues:'Блюзовая гамма',
+    }},
 en:{appTitle:'Ear Training',tabIntervals:'Intervals',tabChords:'Chords',tabChains:'Chains',
     lightTheme:'Light',darkTheme:'Dark',
     lblSpeed:'Speed',speedSlow:'Slow',speedMed:'Medium',speedFast:'Fast',
@@ -561,7 +738,23 @@ en:{appTitle:'Ear Training',tabIntervals:'Intervals',tabChords:'Chords',tabChain
         melMin:{ru:'Melodic Minor',en:'Melodic Minor'},
     },
     chain3:'3',chain4:'4',chain5:'5',
-    showAnswer:'Answer revealed'}
+    showAnswer:'Answer revealed',
+    tabScales:'Scales',
+    sEar:'By Ear',sBuild:'Build',
+    statusSE:'Press Listen and identify the scale',
+    statusSB:'Click the scale notes on the piano',
+    sbTask:'Build the scale on the piano',
+    sbCorrect:'Correct! Scale built right',sbWrong:'Some errors, try again',
+    sbHint:'Hint revealed',sbRootRnd:'Random',
+    allScales:{
+        natMaj:'Natural Major',natMin:'Natural Minor',
+        harmMin:'Harmonic Minor',harmMaj:'Harmonic Major',
+        melMin:'Melodic Minor',melMaj:'Melodic Major',
+        penMaj:'Major Pentatonic',penMin:'Minor Pentatonic',
+        dorian:'Dorian Mode',phrygian:'Phrygian Mode',
+        lydian:'Lydian Mode',mixolydian:'Mixolydian Mode',
+        blues:'Blues Scale',
+    }}
 };
 
 // ── INTERVALS ────────────────────────────────
@@ -1057,14 +1250,29 @@ function rSelectAnswer(id){
 
 // ── MODES / SCALES DATA ───────────────────────
 const SCALES = [
-    {id:'natMaj', steps:[2,2,1,2,2,2,1], level:1},
-    {id:'natMin', steps:[2,1,2,2,1,2,2], level:1},
-    {id:'harmMin',steps:[2,1,2,2,1,3,1], level:2},
-    {id:'harmMaj',steps:[2,2,1,2,1,3,1], level:3},
-    {id:'melMin', steps:[2,1,2,2,2,2,1], level:3},
-    {id:'melMaj', steps:[2,2,1,2,1,2,2], level:4},
+    {id:'natMaj',  steps:[2,2,1,2,2,2,1], level:1},
+    {id:'natMin',  steps:[2,1,2,2,1,2,2], level:1},
+    {id:'harmMin', steps:[2,1,2,2,1,3,1], level:2},
+    {id:'harmMaj', steps:[2,2,1,2,1,3,1], level:3},
+    {id:'melMin',  steps:[2,1,2,2,2,2,1], level:3},
+    {id:'melMaj',  steps:[2,2,1,2,1,2,2], level:4},
+    // Extra for Гаммы tab
+    {id:'penMaj',  steps:[2,2,3,2,3],     level:2},
+    {id:'penMin',  steps:[3,2,2,3,2],     level:2},
+    {id:'dorian',  steps:[2,1,2,2,2,1,2], level:3},
+    {id:'phrygian',steps:[1,2,2,2,1,2,2], level:3},
+    {id:'lydian',  steps:[2,2,2,1,2,2,1], level:4},
+    {id:'mixolydian',steps:[2,2,1,2,2,1,2],level:4},
+    {id:'blues',   steps:[3,2,1,1,3,2],   level:3},
 ];
 const SCALE_LEVELS={1:['natMaj','natMin'],2:['natMaj','natMin','harmMin'],3:['natMaj','natMin','harmMin','harmMaj','melMin'],4:['natMaj','natMin','harmMin','harmMaj','melMin','melMaj']};
+// Levels for Гаммы / Ear tab (wider variety)
+const SE_LEVELS={
+    1:['natMaj','natMin'],
+    2:['natMaj','natMin','harmMin','penMaj','penMin'],
+    3:['natMaj','natMin','harmMin','harmMaj','melMin','dorian','blues'],
+    4:['natMaj','natMin','harmMin','harmMaj','melMin','melMaj','penMaj','penMin','dorian','phrygian','lydian','mixolydian','blues'],
+};
 
 let mLevel=1, mSpeed='medium', mDir='up';
 let mCurrent=null, mCorrect=0, mWrong=0, mAnswered=false, mPlayed=false, mLastCorrect=false;
@@ -1134,6 +1342,233 @@ function mSelectAnswer(id){
         if(btn){btn.classList.add('wrong');setTimeout(()=>btn.classList.remove('wrong'),1500);}
         showFeedback(T[lang].wrong,false);
     }
+}
+
+// ── SCALES TAB ──────────────────────────────────
+const NOTE_NAMES=['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
+const ROOT_MIDI={C:60,D:62,E:64,F:65,G:67,A:69,B:71,Cs:61,Ds:63,Fs:66,Gs:68,As:70};
+const ROOT_LABELS={C:'C',D:'D',E:'E',F:'F',G:'G',A:'A',B:'B',Cs:'C#',Ds:'D#',Fs:'F#',Gs:'G#',As:'A#'};
+
+// ─ Scales Ear ─
+let seLevel=1, seSpeed='medium', seDir='up';
+let seCurrent=null, seCorrect=0, seWrong=0, sePlayed=false, seLastCorrect=false;
+let sMode='ear';
+
+function sShowMode(mode){
+    sMode=mode;
+    document.getElementById('sEarPanel').classList.toggle('hidden',mode!=='ear');
+    document.getElementById('sBuildPanel').classList.toggle('hidden',mode!=='build');
+    document.getElementById('sSubEar').classList.toggle('active',mode==='ear');
+    document.getElementById('sSubBuild').classList.toggle('active',mode==='build');
+}
+
+function seGetPool(){return SE_LEVELS[seLevel].map(id=>SCALES.find(x=>x.id===id)).filter(Boolean);}
+
+function seScaleName(id){return lang==='ru'?T.ru.allScales[id]:T.en.allScales[id];}
+
+function seNewQuestion(){
+    sePlayed=false;
+    const pool=seGetPool();
+    seCurrent=pool[Math.floor(Math.random()*pool.length)];
+    const ans=document.getElementById('seAnswer');
+    ans.textContent='—'; ans.className='play-answer hidden-ans';
+    document.getElementById('sePlayLabel').textContent=T[lang].pressListen;
+    document.getElementById('seStatus').textContent=T[lang].statusSE;
+    seRenderGrid();
+    document.querySelectorAll('#seAnswerGrid .ans-btn').forEach(b=>b.disabled=true);
+}
+
+function seRenderGrid(){
+    const pool=seGetPool();
+    const grid=document.getElementById('seAnswerGrid');
+    const cols=pool.length<=4?'cols-2':'cols-3';
+    grid.className='answer-grid '+cols;
+    grid.innerHTML=pool.map(sc=>`
+        <button class="ans-btn" data-id="${sc.id}">
+            <div class="ans-btn-name">${seScaleName(sc.id)}</div>
+        </button>`).join('');
+    grid.querySelectorAll('.ans-btn').forEach(btn=>btn.addEventListener('click',()=>seSelectAnswer(btn.dataset.id)));
+}
+
+function sePlayCurrent(){
+    if(!seCurrent) seNewQuestion();
+    const ctx=getCtx();
+    const stepDur=speedDur(seSpeed,0.3);
+    const noteDur=stepDur*0.85;
+    let midi=60;
+    const notes=[midi];
+    seCurrent.steps.forEach(s=>{midi+=s; notes.push(midi);});
+    let playNotes=notes;
+    const dir=(seDir==='both')?(Math.random()<0.5?'up':'down'):seDir;
+    if(dir==='down') playNotes=[...notes].reverse();
+    const now=ctx.currentTime+0.05;
+    playNotes.forEach((m,i)=>playTone(m, now+i*stepDur, noteDur, 0.3));
+    sePlayed=true;
+    document.getElementById('sePlayLabel').textContent=lang==='ru'?'Определите гамму':'Identify the scale';
+    document.querySelectorAll('#seAnswerGrid .ans-btn').forEach(b=>b.disabled=false);
+}
+
+function seSelectAnswer(id){
+    if(!sePlayed) return;
+    const isOk=(id===seCurrent.id);
+    if(isOk){
+        seLastCorrect=true; seCorrect++;
+        document.getElementById('seCorrect').textContent=seCorrect;
+        const ans=document.getElementById('seAnswer');
+        ans.textContent=seScaleName(seCurrent.id);
+        ans.className='play-answer correct';
+        document.querySelectorAll('#seAnswerGrid .ans-btn').forEach(btn=>{btn.disabled=true;if(btn.dataset.id===id)btn.classList.add('correct');});
+        showFeedback(T[lang].correct,true);
+        document.getElementById('seStatus').textContent=T[lang].showAnswer;
+    } else {
+        seWrong++;
+        document.getElementById('seWrong').textContent=seWrong;
+        const btn=document.querySelector('#seAnswerGrid .ans-btn[data-id="'+id+'"]');
+        if(btn){btn.classList.add('wrong');setTimeout(()=>btn.classList.remove('wrong'),1500);}
+        showFeedback(T[lang].wrong,false);
+    }
+}
+
+// ─ Scales Build ─
+const WHITE_ORDER=[0,2,4,5,7,9,11]; // semitones of white keys within octave
+const HAS_BLACK=[true,true,true,false,true,true,true]; // C C# D D# E F F# G G# A A# B — after each white key
+
+let sbRootKey='C', sbTypeId='natMaj';
+let sbSelected=new Set(), sbCorrectSet=null, sbChecked=false;
+
+function sbGetScaleNotes(rootMidi, steps){
+    let m=rootMidi;
+    const notes=[m];
+    steps.forEach(s=>{m+=s; notes.push(m);});
+    return notes; // absolute midi values (may exceed one octave for display, mod 12 for pitch class)
+}
+
+function sbBuildPiano(){
+    const piano=document.getElementById('sbPiano');
+    const rootMidi=ROOT_MIDI[sbRootKey];
+    const rootPc=rootMidi%12; // pitch class of root
+
+    // Build 1 octave piano: 8 white keys (C to C), with black keys
+    // We show C4 to C5: 8 white keys
+    const whites=['C','D','E','F','G','A','B','C'];
+    const midiBase=60; // C4
+    // midi values for each white key
+    const whiteMidi=[60,62,64,65,67,69,71,72];
+    // black keys: after C, D, F, G, A (indices 0,1,3,4,5 among whites, before next white)
+    // Slots: 8 white keys → 7 possible black slots
+    // Black key exists between: C-D (C#=61), D-E (D#=63), no E-F, F-G (F#=66), G-A (G#=68), A-B (A#=70), no B-C
+    const blackMap={0:61,1:63,2:null,3:66,4:68,5:70,6:null}; // index = after which white key
+
+    // Calculate correct notes (pitch classes)
+    const scaleObj=SCALES.find(s=>s.id===sbTypeId)||SCALES[0];
+    const scaleNotes=sbGetScaleNotes(rootMidi, scaleObj.steps);
+    sbCorrectSet=new Set(scaleNotes.map(m=>m%12));
+
+    let html='<div class="piano-white">';
+    whiteMidi.forEach((midi,i)=>{
+        const pc=midi%12;
+        const isRoot=(pc===rootPc%12)||(i===7&&rootPc===0);
+        const cls=isRoot?'pw root-key':'pw';
+        html+=`<div class="${cls}" data-midi="${midi}" data-pc="${pc}" onclick="sbClickKey(this,${pc},false)">${whites[i]}</div>`;
+    });
+    html+='</div>';
+
+    html+='<div class="piano-blacks">';
+    for(let i=0;i<7;i++){
+        const bmidi=blackMap[i];
+        if(bmidi===null){
+            html+=`<div class="pb-slot"><div class="pb no-key"></div></div>`;
+        } else {
+            const pc=bmidi%12;
+            const isRoot=(pc===rootPc%12);
+            const cls=isRoot?'pb root-key':'pb';
+            html+=`<div class="pb-slot"><div class="${cls}" data-midi="${bmidi}" data-pc="${pc}" onclick="sbClickKey(this,${pc},true)"></div></div>`;
+        }
+    }
+    html+='</div>';
+
+    piano.innerHTML=html;
+    sbSelected=new Set([rootPc]); // root always selected
+    sbChecked=false;
+    sbUpdateChips();
+    document.getElementById('sbCheckBtn').disabled=false;
+    document.getElementById('sbStatus').textContent=T[lang].statusSB;
+}
+
+function sbClickKey(el,pc,isBlack){
+    if(sbChecked) return;
+    const rootPc=ROOT_MIDI[sbRootKey]%12;
+    if(pc===rootPc) return; // root always selected
+    if(sbSelected.has(pc)){
+        sbSelected.delete(pc);
+        el.classList.remove('selected');
+    } else {
+        sbSelected.add(pc);
+        el.classList.add('selected');
+    }
+    sbUpdateChips();
+}
+
+function sbUpdateChips(){
+    const rootPc=ROOT_MIDI[sbRootKey]%12;
+    const ordered=[...sbSelected].sort((a,b)=>{
+        const da=(a-rootPc+12)%12, db=(b-rootPc+12)%12;
+        return da-db;
+    });
+    const chips=document.getElementById('sbChips');
+    chips.innerHTML=ordered.map(pc=>{
+        const name=NOTE_NAMES[pc];
+        const isRoot=(pc===rootPc);
+        return `<span class="scale-chip ${isRoot?'root':''}">${name}</span>`;
+    }).join('');
+}
+
+function sbCheckBuild(){
+    if(!sbCorrectSet) return;
+    sbChecked=true;
+    // Compare sbSelected with sbCorrectSet (pitch classes)
+    const correct=sbCorrectSet;
+    const sel=sbSelected;
+    let allOk=correct.size===sel.size && [...correct].every(pc=>sel.has(pc));
+    // Color piano keys
+    document.querySelectorAll('#sbPiano .pw, #sbPiano .pb').forEach(el=>{
+        if(el.classList.contains('no-key')) return;
+        const pc=+el.dataset.pc;
+        el.classList.remove('selected','root-key');
+        if(correct.has(pc)&&sel.has(pc)) el.classList.add('correct-key');
+        else if(sel.has(pc)&&!correct.has(pc)) el.classList.add('wrong-key');
+        else if(correct.has(pc)&&!sel.has(pc)) el.classList.add('hint-key');
+    });
+    document.getElementById('sbStatus').textContent=allOk?T[lang].sbCorrect:T[lang].sbWrong;
+    showFeedback(allOk?T[lang].correct:T[lang].wrong, allOk);
+}
+
+function sbShowHint(){
+    if(!sbCorrectSet) return;
+    document.querySelectorAll('#sbPiano .pw, #sbPiano .pb').forEach(el=>{
+        if(el.classList.contains('no-key')) return;
+        const pc=+el.dataset.pc;
+        if(sbCorrectSet.has(pc)) el.classList.add('hint-key');
+    });
+    document.getElementById('sbStatus').textContent=T[lang].sbHint;
+}
+
+function sbNewExercise(){
+    const rootVal=document.getElementById('sbRoot').value;
+    sbRootKey=(rootVal==='rnd')?Object.keys(ROOT_MIDI)[Math.floor(Math.random()*Object.keys(ROOT_MIDI).length)]:rootVal;
+    sbTypeId=document.getElementById('sbType').value;
+    const scaleObj=SCALES.find(s=>s.id===sbTypeId)||SCALES[0];
+    const rootLabel=ROOT_LABELS[sbRootKey]||sbRootKey;
+    const typeName=lang==='ru'?(T.ru.allScales[sbTypeId]||sbTypeId):(T.en.allScales[sbTypeId]||sbTypeId);
+    document.getElementById('sbTaskDesc').textContent=rootLabel+' — '+typeName;
+    sbBuildPiano();
+}
+
+function sbUpdateTypeOptions(){
+    const sel=document.getElementById('sbType');
+    [...sel.options].forEach(opt=>{
+        opt.text=lang==='ru'?(T.ru.allScales[opt.value]||opt.value):(T.en.allScales[opt.value]||opt.value);
+    });
 }
 
 // ── FEEDBACK MODAL ────────────────────────────
@@ -1221,6 +1656,20 @@ function applyLang(){
     // Rebuild grids with new lang
     iRenderGrid();cRenderGrid();
     const bhl=document.getElementById('backHomeLink');if(bhl)bhl.textContent=lang==='ru'?'← Главная':'← Home';
+    // Scales tab
+    const tabSc=document.getElementById('tabScales');if(tabSc)tabSc.textContent=t.tabScales;
+    const sLblEar=document.getElementById('sLblEar');if(sLblEar)sLblEar.textContent=t.sEar;
+    const sLblBuild=document.getElementById('sLblBuild');if(sLblBuild)sLblBuild.textContent=t.sBuild;
+    const seStatus=document.getElementById('seStatus');if(seStatus&&!sePlayed)seStatus.textContent=t.statusSE;
+    const sbStatus=document.getElementById('sbStatus');if(sbStatus&&!sbChecked)sbStatus.textContent=t.statusSB;
+    const sbTaskLbl=document.getElementById('sbTaskLabel');if(sbTaskLbl)sbTaskLbl.textContent=t.sbTask;
+    ['seLevel','seSpeed','sbRoot'].forEach(id=>{
+        const s=document.getElementById(id);if(!s)return;
+        if(id==='seLevel')[t.lvl1,t.lvl2,t.lvl3,t.lvl4].forEach((lbl,i)=>{if(s.options[i])s.options[i].text=lbl;});
+    });
+    seRenderGrid();
+    sbUpdateTypeOptions();
+    if(sbRootKey){const rootLabel=ROOT_LABELS[sbRootKey]||sbRootKey;const typeName=lang==='ru'?(T.ru.allScales[sbTypeId]||sbTypeId):(T.en.allScales[sbTypeId]||sbTypeId);const desc=document.getElementById('sbTaskDesc');if(desc)desc.textContent=rootLabel+' — '+typeName;}
 }
 
 function applyTheme(){
@@ -1240,7 +1689,7 @@ document.addEventListener('DOMContentLoaded',function(){
     document.querySelectorAll('.tab').forEach(function(tab){
         tab.addEventListener('click',function(){
             activeTab=tab.dataset.tab;
-            ['intervals','chords','chains','resolution','modes'].forEach(function(id){
+            ['intervals','chords','chains','resolution','modes','scales'].forEach(function(id){
                 document.getElementById(id+'Content').classList.toggle('hidden',id!==activeTab);
                 const tabEl=document.getElementById('tab'+id[0].toUpperCase()+id.slice(1));
                 if(tabEl) tabEl.classList.toggle('active',id===activeTab);
@@ -1318,12 +1767,34 @@ document.addEventListener('DOMContentLoaded',function(){
         ans.className='play-answer correct';
     });
 
+    // Scales Ear
+    document.getElementById('seLevel').addEventListener('change',function(e){seLevel=parseInt(e.target.value);seNewQuestion();});
+    document.getElementById('seSpeed').addEventListener('change',function(e){seSpeed=e.target.value;});
+    document.getElementById('seDir').addEventListener('change',function(e){seDir=e.target.value;});
+    document.getElementById('seListenBtn').addEventListener('click',function(){if(!sePlayed||seLastCorrect){seLastCorrect=false;seNewQuestion();}sePlayCurrent();});
+    document.getElementById('seNextBtn').addEventListener('click',function(){seNewQuestion();});
+    document.getElementById('seHintBtn').addEventListener('click',function(){
+        if(!seCurrent) return;
+        const ans=document.getElementById('seAnswer');
+        ans.textContent=seScaleName(seCurrent.id);
+        ans.className='play-answer correct';
+        document.getElementById('seStatus').textContent=T[lang].showAnswer;
+    });
+    // Scales Build
+    document.getElementById('sbRoot').addEventListener('change',sbNewExercise);
+    document.getElementById('sbType').addEventListener('change',sbNewExercise);
+    document.getElementById('sbCheckBtn').addEventListener('click',sbCheckBuild);
+    document.getElementById('sbHintBtn').addEventListener('click',sbShowHint);
+    document.getElementById('sbNewBtn').addEventListener('click',sbNewExercise);
+
     // Init questions
     iNewQuestion();
     cNewQuestion();
     chNewChain();
     rNewQuestion();
     mNewQuestion();
+    seNewQuestion();
+    sbNewExercise();
 
     applyLang();
     applyTheme();

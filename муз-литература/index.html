@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="ru" data-theme="light">
 <head>
+<script>(function(){try{var k='musicapp_visited',id='history';var v=JSON.parse(localStorage.getItem(k)||'[]');if(v.indexOf(id)===-1){v.push(id);localStorage.setItem(k,JSON.stringify(v));}}catch(e){}})();</script>
 <!-- Yandex.Metrika counter -->
 <script type="text/javascript">
     (function(m,e,t,r,i,k,a){
@@ -52,6 +53,24 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
   color:var(--muted);transition:all .15s;white-space:nowrap;}
 .chip:hover{border-color:var(--blue);color:var(--text);}
 .chip.active{background:var(--blue);border-color:var(--blue);color:#fff;}
+/* SEARCH */
+.search-wrap{margin-bottom:10px;}
+.search-inp{width:100%;padding:8px 14px;border:1.5px solid var(--border);border-radius:12px;
+  background:var(--card);color:var(--text);font-size:12px;font-weight:600;outline:none;
+  transition:border-color .15s;}
+.search-inp:focus{border-color:var(--blue);}
+.search-inp::placeholder{color:var(--muted);}
+.no-results{text-align:center;padding:40px 0;color:var(--muted);font-size:13px;font-weight:700;}
+/* FAVORITES */
+.fav-star{margin-left:auto;background:none;border:none;cursor:pointer;font-size:22px;
+  line-height:1;color:var(--muted);padding:2px 4px;flex-shrink:0;
+  transition:transform .12s,color .12s;}
+.fav-star:hover{transform:scale(1.15);}
+.fav-star.active{color:#f59e0b;}
+.fav-star-work{background:none;border:none;cursor:pointer;font-size:14px;line-height:1;
+  color:var(--muted);padding:2px 4px;transition:transform .12s,color .12s;}
+.fav-star-work:hover{transform:scale(1.15);}
+.fav-star-work.active{color:#f59e0b;}
 /* COMPOSER CARDS */
 .cards{columns:2;column-gap:12px;}
 @media(max-width:560px){.cards{columns:1;}}
@@ -67,10 +86,14 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
 .comp-meta{font-size:10px;color:var(--muted);font-weight:600;margin-top:2px;}
 .era-badge{display:inline-block;padding:2px 8px;border-radius:10px;font-size:9px;
   font-weight:900;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;}
+.era-medieval .era-badge{background:rgba(146,64,14,.15);color:#92400e;}
+.era-renaissance .era-badge{background:rgba(22,101,52,.15);color:#166534;}
 .era-baroque .era-badge{background:rgba(217,119,6,.15);color:#d97706;}
 .era-classicism .era-badge{background:rgba(5,150,105,.15);color:#059669;}
 .era-romanticism .era-badge{background:rgba(124,58,237,.15);color:#7c3aed;}
 .era-modern .era-badge{background:rgba(8,145,178,.15);color:#0891b2;}
+[data-theme="dark"] .era-medieval .era-badge{background:rgba(146,64,14,.3);}
+[data-theme="dark"] .era-renaissance .era-badge{background:rgba(22,101,52,.3);}
 [data-theme="dark"] .era-baroque .era-badge{background:rgba(217,119,6,.25);}
 [data-theme="dark"] .era-classicism .era-badge{background:rgba(5,150,105,.25);}
 [data-theme="dark"] .era-romanticism .era-badge{background:rgba(124,58,237,.25);}
@@ -222,6 +245,13 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
 <!-- CARDS -->
 <div class="panel show" id="panel0">
   <div class="filter-bar" id="eraFilter"></div>
+  <div class="filter-bar" id="originFilter"></div>
+  <div class="filter-bar" id="favFilterBar"></div>
+  <div class="search-wrap">
+    <input class="search-inp" type="text" id="searchInput"
+      placeholder="Поиск по имени или произведению..."
+      oninput="onSearch(this.value)">
+  </div>
   <div class="cards" id="compCards"></div>
 </div>
 
@@ -271,6 +301,88 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
 
 <script>
 const COMPOSERS = [
+  /* ── СРЕДНЕВЕКОВЬЕ ─────────────────────────── */
+  {id:'hildegard',color:'#7c2d12',ini:'ХФ',era:'medieval',origin:'foreign',birth:1098,death:1179,
+   name:{ru:'Хильдегарда Бингенская',en:'Hildegard von Bingen'},
+   country:{ru:'Германия',en:'Germany'},
+   bio:{ru:'Немецкая аббатиса, теолог, поэтесса и целительница — одна из наиболее значительных фигур западного Средневековья. Сочинила более 70 священных песнопений, объединив их в сборник «Симфония». Её музыка отличается необычно широким мелодическим диапазоном и мистической одухотворённостью.',
+        en:'German abbess, theologian, poet, and healer — one of the most remarkable figures of the Western Middle Ages. She composed over 70 sacred songs collected in "Symphoniae." Her music stands apart for its sweeping melodic range and mystical intensity.'},
+   works:[
+     {name:{ru:'Ordo Virtutum',en:'Ordo Virtutum'},year:'~1151',genre:{ru:'Литургическая драма',en:'Liturgical drama'},
+      desc:{ru:'Музыкальная драма о битве добродетелей с дьяволом за душу — древнейший из сохранившихся образцов музыкального театра.',en:'A musical drama of virtues battling the Devil for a soul — the oldest surviving morality play set to music.'},
+      story:{ru:'«Ordo Virtutum» («Действо добродетелей») написан около 1151 года и является старейшим из известных музыкально-театральных произведений, где сохранились и текст, и музыка.\nВ нём 82 персонажа — 16 добродетелей и Дьявол. Примечательно, что партия Дьявола не имеет мелодии: он кричит прозой, ибо, по замыслу Хильдегарды, зло не способно петь.\nПроизведение исполнялось монахинями обители Рупертсберг. Музыка написана одноголосно — в традиции григорианского хорала, но с неожиданно широким диапазоном и свободным ритмом.',
+             en:'"Ordo Virtutum" (c.1151) is the oldest known musical drama where both text and music survive.\nNotably, the Devil\'s role has no melody — he shouts in prose, because in Hildegard\'s conception, evil is incapable of song.\nThe work was performed by the nuns of Rupertsberg. The music is monophonic — in the Gregorian tradition — but with an unusually wide melodic range and free rhythm.'}},
+     {name:{ru:'O viridissima virga',en:'O viridissima virga'},year:'~1150',genre:{ru:'Антифон',en:'Antiphon'},
+      desc:{ru:'«О зеленейшая ветвь» — гимн Деве Марии, полный образов природы. Мелодия охватывает почти две октавы.',en:'"O greenest branch" — a hymn to the Virgin Mary full of nature imagery, spanning nearly two octaves.'},
+      story:{ru:'Хильдегарда постоянно обращалась к образам природы — растениям, свету, влаге. «O viridissima virga» — олицетворение Девы Марии как ветви, от которой произрастает «цветок» — Христос.\nМелодия охватывает почти две октавы, что необычно для средневековой монодии. Современники обвиняли её мелодии в «неслыханной дерзости».\nСегодня произведение входит в репертуар многих ансамблей старинной музыки по всему миру.',
+             en:'Hildegard constantly drew on nature imagery. "O viridissima virga" personifies the Virgin Mary as a branch from which the "flower" of Christ springs.\nThe melody spans nearly two octaves, unusual for medieval monody. Contemporaries criticized her melodies for "unheard-of boldness."\nToday it is a staple of early music ensembles worldwide.'}}
+   ]},
+  {id:'machaut',color:'#1e3a5f',ini:'ГМ',era:'medieval',origin:'foreign',birth:1300,death:1377,
+   name:{ru:'Гильом де Машо',en:'Guillaume de Machaut'},
+   country:{ru:'Франция',en:'France'},
+   bio:{ru:'Крупнейший французский поэт и композитор XIV века, ведущая фигура стиля Ars Nova. Служил секретарём при нескольких европейских монархах. Создал первую полную полифоническую мессу одного автора и определил облик французской куртуазной лирики.',
+        en:'The greatest French poet-composer of the 14th century and the leading figure of Ars Nova. He served as secretary to European monarchs and composed the first complete polyphonic Mass by a single composer.'},
+   works:[
+     {name:{ru:'Месса Нотр-Дам',en:'Messe de Nostre Dame'},year:'~1364',genre:{ru:'Месса',en:'Mass'},
+      desc:{ru:'Первая полная полифоническая месса одного автора в истории — монументальный шедевр Ars Nova.',en:'The first complete polyphonic Mass by a single composer — a landmark of Ars Nova.'},
+      story:{ru:'«Месса Нотр-Дам» стала первым в истории полным полифоническим ординарием мессы одного автора.\nМашо сочинил её для Реймсского собора, где служил каноником. По его завещанию мессу пели ежегодно за упокой его души ещё более века после смерти.\nМузыка написана в технике изоритмии: мотив в тенорах повторяется в разных ритмических соотношениях, создавая сложную математическую структуру — главную черту Ars Nova.',
+             en:'"Messe de Nostre Dame" (c.1364) is the first complete polyphonic Ordinary of the Mass by a single composer.\nMachaut wrote it for Reims Cathedral, where he served as a canon. His will stipulated that the Mass be sung annually for his soul — honored for over a century after his death.\nThe music uses isorhythm: the tenor melody repeats in varied rhythmic proportions — the hallmark of Ars Nova.'}},
+     {name:{ru:'Ma fin est mon commencement',en:'Ma fin est mon commencement'},year:'~1360',genre:{ru:'Рондо',en:'Rondeau'},
+      desc:{ru:'«Конец мой есть начало» — палиндромная пьеса, где контратенор исполняет партию тенора в обратном порядке.',en:'"My end is my beginning" — a palindrome piece where the contratenor sings the tenor part in reverse.'},
+      story:{ru:'Это рондо — музыкальная загадка: контратенор поёт ту же мелодию, что и тенор, но в обратном порядке — от конца к началу.\nМашо сам пояснил: «Моё трёхголосное рондо трёхголосно исполняется само собой». Один из ранних примеров музыкальной инверсии.\nПьеса совмещает поэтическую игру слов, математическую структуру и мелодическую красоту — квинтэссенция средневекового идеала учёного искусства.',
+             en:'This rondeau is a musical puzzle: the contratenor sings the tenor melody in reverse — from end to beginning.\nMachaut wrote: "My three-voiced rondeau is performed as three voices by itself." One of the earliest examples of melodic inversion.\nThe piece combines wordplay, mathematical structure, and genuine melodic beauty — the quintessence of the medieval ideal of learned art.'}}
+   ]},
+  /* ── ВОЗРОЖДЕНИЕ ────────────────────────────── */
+  {id:'palestrina',color:'#14532d',ini:'ПП',era:'renaissance',origin:'foreign',birth:1525,death:1594,
+   name:{ru:'Джованни Палестрина',en:'Giovanni Palestrina'},
+   country:{ru:'Италия',en:'Italy'},
+   bio:{ru:'Итальянский мастер полифонии и крупнейший католический церковный композитор эпохи Возрождения. Служил капельмейстером в соборе Святого Петра в Риме. Его строгий полифонический стиль стал образцом «идеальной» церковной музыки.',
+        en:'Italian master of polyphony and the greatest Catholic church composer of the Renaissance. He served as choirmaster at St. Peter\'s Basilica in Rome. His strict polyphonic style became the model of "ideal" sacred music.'},
+   works:[
+     {name:{ru:'Месса Папы Марцелла',en:'Missa Papae Marcelli'},year:'1562',genre:{ru:'Месса',en:'Mass'},
+      desc:{ru:'Месса, легенда о которой гласит, что она спасла полифонию от запрета на Тридентском соборе.',en:'The Mass whose legend holds that it saved polyphony from being banned at the Council of Trent.'},
+      story:{ru:'Тридентский собор (1545–1563) обсуждал запрет полифонии в церкви: критики утверждали, что сложное переплетение голосов делает слова неразборчивыми.\nПо легенде, Палестрина написал эту мессу, чтобы доказать: полифония может быть одновременно сложной и ясной. Текст прекрасно слышен, голоса движутся плавно, диссонансы разрешены строго.\nПалестрина навсегда остался в истории как «спаситель церковной музыки». Его стиль настолько совершенен, что ренессансный контрапункт до сих пор преподают по его правилам.',
+             en:'The Council of Trent (1545–1563) debated banning polyphony from the Church — critics claimed complex voice-weaving made the words unintelligible.\nLegend holds that Palestrina wrote this Mass to prove polyphony could be both complex and clear. Palestrina was forever enshrined as the "savior of church music."\nHis style is so refined that Renaissance counterpoint is still taught by his rules.'}},
+     {name:{ru:'Stabat Mater',en:'Stabat Mater'},year:'~1590',genre:{ru:'Мотет',en:'Motet'},
+      desc:{ru:'Восьмиголосный гимн скорбящей Матери у Креста — вершина полифонической выразительности.',en:'An eight-voice setting of the grieving Mother at the Cross — a pinnacle of polyphonic expressiveness.'},
+      story:{ru:'«Stabat Mater» написана для двух хоров по четыре голоса. Голоса движутся с такой плавностью, что современники сравнивали эффект с «течением реки».\nВ XVIII веке Моцарт добавил к «Stabat Mater» Палестрины инструментальное сопровождение — настолько чтил это произведение.\nСочинение создано в зрелые годы для Папской капеллы и считается образцом позднего стиля Палестрины.',
+             en:'"Stabat Mater" is written for two four-voice choirs. The voices move with such smoothness that contemporaries compared the effect to "a river flowing."\nIn the 18th century Mozart added instrumental accompaniment — a mark of how deeply he revered the work.\nWritten for the Papal Chapel, it is considered the model of Palestrina\'s late style.'}},
+     {name:{ru:'Sicut cervus',en:'Sicut cervus'},year:'~1584',genre:{ru:'Мотет',en:'Motet'},
+      desc:{ru:'«Как лань желает воды» — четырёхголосный мотет, хрестоматийный пример строгого ренессансного стиля.',en:'"As the deer pants for water" — a four-voice motet and the textbook example of strict Renaissance polyphony.'},
+      story:{ru:'Слова взяты из 41-го псалма («Как лань желает к потокам воды»). Тема — жажда приближения к Богу.\nПалестрина открывает произведение широкой восходящей мелодией в теноре, которую поочерёдно подхватывают остальные голоса. Эта техника имитации — основа полифонического мышления эпохи.\n«Sicut cervus» — обязательная пьеса в учебниках контрапункта во всём мире как идеальный образец четырёхголосной имитационной полифонии.',
+             en:'The text comes from Psalm 42 ("As the deer longs for streams of water").\nPalestrina opens with a broad ascending melody in the tenor, then each voice enters in imitation. This technique is the foundation of Renaissance polyphonic thinking.\n"Sicut cervus" is required in counterpoint textbooks worldwide as the ideal model of four-voice imitative polyphony.'}}
+   ]},
+  {id:'lasso',color:'#b45309',ini:'ОЛ',era:'renaissance',origin:'foreign',birth:1532,death:1594,
+   name:{ru:'Орландо ди Лассо',en:'Orlando di Lasso'},
+   country:{ru:'Нидерланды / Германия',en:'Flanders / Germany'},
+   bio:{ru:'Один из наиболее плодовитых и универсальных композиторов XVI века. Фламандец по происхождению, провёл большую часть жизни на баварском дворе в Мюнхене. Написал более 2000 произведений во всех жанрах.',
+        en:'One of the most prolific and versatile composers of the 16th century. Flemish by birth, he spent most of his career at the Bavarian court in Munich. He wrote over 2,000 works in all genres.'},
+   works:[
+     {name:{ru:'Покаянные псалмы',en:'Penitential Psalms'},year:'1563',genre:{ru:'Псалмы',en:'Psalms'},
+      desc:{ru:'Семь покаянных псалмов Давида — вершина ренессансной духовной музыки, хранившаяся как личная реликвия баварского двора.',en:'Seven Penitential Psalms of David — a pinnacle of Renaissance sacred music, treasured as a private relic of the Bavarian court.'},
+      story:{ru:'Цикл написан около 1563 года по заказу герцога Баварского Альбрехта V. Рукопись была иллюминирована художником Гансом Миллихом и хранилась в герцогской библиотеке как сокровище — не для публичного исполнения, а для личного благочестия двора.\nПсалмы написаны для 4–6 голосов. Лассо мастерски передаёт покаянное настроение через неожиданные гармонии, хроматические ходы и внезапные паузы.\nРукопись была напечатана только в XIX веке и признана одним из шедевров западной полифонии.',
+             en:'Written c.1563 on commission from Duke Albrecht V of Bavaria. The manuscript was illuminated by Hans Mielich and stored in the ducal library as a treasure — for the private devotion of the court, not public performance.\nThe psalms are for 4–6 voices. Lasso conveys penitential emotion through unexpected harmonies, chromatic moves, and sudden silences.\nThe manuscript was only printed in the 19th century, when it was recognized as a masterwork of Western polyphony.'}},
+     {name:{ru:'Матона, моя дорогая',en:'Matona mia cara'},year:'1581',genre:{ru:'Мадригал',en:'Madrigal'},
+      desc:{ru:'Комическая серенада немецкого ландскнехта на ломаном итальянском — один из самых знаменитых ренессансных мадригалов.',en:'A comic serenade by a German soldier in mangled Italian — one of the most famous Renaissance madrigals.'},
+      story:{ru:'Шуточная серенада от лица немецкого наёмника, ухаживающего за итальянкой на ломаном итальянском языке. Ошибки в тексте намеренны — это лингвистический юмор.\nПесня стала сенсацией ещё при жизни Лассо и многократно переиздавалась. Музыка проста, запоминаема и заразительно ритмична.\nЭто произведение показывает другую грань Лассо: в отличие от строгого церковного стиля Палестрины, он умел создавать лёгкую, юмористическую и доступную музыку.',
+             en:'"Matona mia cara" is a mock serenade by a German mercenary courting an Italian woman in broken Italian — the grammatical errors are deliberate humor.\nThe song became a sensation in Lasso\'s lifetime and was reprinted many times. The music is simple, catchy, and irresistibly rhythmic.\nThis shows another side of Lasso: unlike the strict sacred style of Palestrina, he could also create light, humorous, accessible music.'}}
+   ]},
+  {id:'monteverdi',color:'#7e22ce',ini:'КМ',era:'renaissance',origin:'foreign',birth:1567,death:1643,
+   name:{ru:'Клаудио Монтеверди',en:'Claudio Monteverdi'},
+   country:{ru:'Италия',en:'Italy'},
+   bio:{ru:'Итальянский композитор на рубеже эпох: мастер мадригала позднего Возрождения и создатель первых великих опер. Его карьера охватила полвека — от мантуанского двора до венецианского собора Святого Марка. Монтеверди превратил оперу из экспериментального жанра в живое искусство.',
+        en:'Italian composer at the turn of eras: a master of late Renaissance madrigal and creator of the first great operas. His career spanned half a century, from the Mantuan court to St Mark\'s Basilica in Venice. Monteverdi transformed opera from an experiment into a living art form.'},
+   works:[
+     {name:{ru:'«Орфей»',en:'"L\'Orfeo"'},year:'1607',genre:{ru:'Опера',en:'Opera'},
+      desc:{ru:'Первая великая опера в истории — история певца Орфея, спустившегося в подземный мир за Эвридикой.',en:'The first great opera in history — the story of Orpheus descending to the underworld for Eurydice.'},
+      story:{ru:'«Орфей» поставлен в феврале 1607 года в Мантуе при дворе Гонзаги.\nОпера сочетает речитатив (изобретение Флорентийской камераты), хоровые мадригалы и виртуозные арии. Оркестр насчитывал около 40 инструментов — для эпохи это была фантастическая роскошь.\nКульминация — ария Орфея «Possente spirto», в которой певец умоляет Харона перевезти его через реку Стикс. Монтеверди написал её в двух вариантах: простом и богато орнаментированном.\n«Орфей» превратил оперу из камерного эксперимента в мощный жанр, завоевавший всю Европу.',
+             en:'"L\'Orfeo" was staged in February 1607 at the Gonzaga court in Mantua.\nThe opera combines recitative, choral madrigals, and virtuoso arias. The orchestra numbered around 40 instruments — almost fantastic luxury for the period.\nThe emotional climax is Orpheus\'s aria "Possente spirto," pleading with Charon to ferry him across the Styx. Monteverdi wrote it in two versions: plain and richly ornamented.\n"L\'Orfeo" transformed opera from a private experiment into a genre that would conquer all of Europe.'}},
+     {name:{ru:'Мадригалы. Книга VIII',en:'Madrigals, Book VIII'},year:'1638',genre:{ru:'Мадригал',en:'Madrigal'},
+      desc:{ru:'«Мадригалы войны и любви» — вершина жанра. Включает «Плач нимфы» и первый пример stile concitato (взволнованного стиля).',en:'"Madrigals of War and Love" — the pinnacle of the genre, with the "Lament of the Nymph" and the first stile concitato (agitated style).'},
+      story:{ru:'Восьмая книга вышла, когда Монтеверди было уже 71 год — и это его самое амбициозное сочинение.\nОн изобрёл «stile concitato» («взволнованный стиль»): быстрое повторение одной ноты у струнных, имитирующее взволнованность и боевой ритм. Сегодня мы называем это «тремоло».\n«Lamento della ninfa» — трёхголосная ария над неподвижным нисходящим басом (passacaglia), повторяющим четыре ноты, пока нимфа оплакивает потерянную любовь.\nКнига VIII вышла в год, когда Монтеверди принял сан священника, — лебединая песня светского творчества.',
+             en:'The Eighth Book appeared when Monteverdi was 71 — and it is his most ambitious work.\nHe invented "stile concitato" (agitated style): rapid note repetition in strings imitating battle rhythm. We call this technique tremolo today.\n"Lamento della ninfa" is a three-voice aria over a repeating descending bass (passacaglia), looping while the nymph mourns lost love.\nBook VIII appeared the year Monteverdi took holy orders — the swan song of his secular output.'}}
+   ]},
+  /* ── БАРОККО ────────────────────────────────── */
   {id:'vivaldi',color:'#e11d48',ini:'AV',era:'baroque',origin:'foreign',birth:1678,death:1741,
    name:{ru:'Антонио Вивальди',en:'Antonio Vivaldi'},
    country:{ru:'Италия',en:'Italy'},
@@ -802,14 +914,81 @@ const COMPOSERS = [
 ];
 
 const ERA_LABELS={
-  baroque:{ru:'Барокко',en:'Baroque'},
-  classicism:{ru:'Классицизм',en:'Classicism'},
-  romanticism:{ru:'Романтизм',en:'Romanticism'},
-  modern:{ru:'XX век',en:'20th Century'}
+  medieval:    {ru:'Средневековье', en:'Medieval'},
+  renaissance: {ru:'Возрождение',   en:'Renaissance'},
+  baroque:     {ru:'Барокко',       en:'Baroque'},
+  classicism:  {ru:'Классицизм',    en:'Classicism'},
+  romanticism: {ru:'Романтизм',     en:'Romanticism'},
+  modern:      {ru:'XX век',        en:'20th Century'}
 };
-const ERA_COLORS={baroque:'#d97706',classicism:'#059669',romanticism:'#7c3aed',modern:'#0891b2'};
+const ERA_COLORS={medieval:'#92400e',renaissance:'#166534',baroque:'#d97706',classicism:'#059669',romanticism:'#7c3aed',modern:'#0891b2'};
 
-let lang=localStorage.getItem('musicapp_lang')||'ru', eraFilter='all', expandedId=null, quizScore={c:0,w:0}, quizCorrect=null;
+let lang=localStorage.getItem('musicapp_lang')||'ru', eraFilter='all', originFilter='all', searchQ='', expandedId=null, quizScore={c:0,w:0}, quizCorrect=null;
+let favComposers=[], favWorks=[], favOnly=false;
+function loadFavorites(){
+  try{
+    const raw=JSON.parse(localStorage.getItem('musicapp_ml_favorites')||'{}');
+    favComposers=Array.isArray(raw.composers)?raw.composers:[];
+    favWorks=Array.isArray(raw.works)?raw.works:[];
+  }catch(e){favComposers=[];favWorks=[];}
+}
+function saveFavorites(){
+  localStorage.setItem('musicapp_ml_favorites',JSON.stringify({composers:favComposers,works:favWorks}));
+}
+function favIndexSet(module,type,id,data){
+  try{
+    const idx=JSON.parse(localStorage.getItem('musicapp_fav_index')||'{}');
+    idx[module+':'+type+':'+id]=Object.assign({module,type,id,ts:Date.now()},data);
+    localStorage.setItem('musicapp_fav_index',JSON.stringify(idx));
+  }catch(e){}
+}
+function favIndexRemove(module,type,id){
+  try{
+    const idx=JSON.parse(localStorage.getItem('musicapp_fav_index')||'{}');
+    delete idx[module+':'+type+':'+id];
+    localStorage.setItem('musicapp_fav_index',JSON.stringify(idx));
+  }catch(e){}
+}
+function isFavComposer(id){return favComposers.indexOf(id)!==-1;}
+function toggleFavComposer(id){
+  const i=favComposers.indexOf(id);
+  if(i===-1){
+    favComposers.push(id);
+    const c=COMPOSERS.find(x=>x.id===id);
+    if(c)favIndexSet('ml','composer',id,{labelRu:c.name.ru,labelEn:c.name.en,subRu:c.country.ru,subEn:c.country.en,icon:'🎭',link:'муз-литература/index.html#composer-'+id});
+  }else{
+    favComposers.splice(i,1);
+    favIndexRemove('ml','composer',id);
+  }
+  saveFavorites();
+  renderCards();
+}
+function workKey(cid,wi){return cid+'::'+wi;}
+function isFavWork(cid,wi){return favWorks.indexOf(workKey(cid,wi))!==-1;}
+function toggleFavWork(cid,wi){
+  const k=workKey(cid,wi);
+  const i=favWorks.indexOf(k);
+  if(i===-1){
+    favWorks.push(k);
+    const c=COMPOSERS.find(x=>x.id===cid), w=c&&c.works[wi];
+    if(c&&w)favIndexSet('ml','work',k,{labelRu:w.name.ru,labelEn:w.name.en,subRu:c.name.ru,subEn:c.name.en,icon:'🎼',link:'муз-литература/index.html#composer-'+cid});
+  }else{
+    favWorks.splice(i,1);
+    favIndexRemove('ml','work',k);
+  }
+  saveFavorites();
+  renderCards();
+}
+function toggleFavOnly(){
+  favOnly=!favOnly;
+  renderFavFilter();
+  renderCards();
+}
+function renderFavFilter(){
+  document.getElementById('favFilterBar').innerHTML=
+    `<button class="chip${favOnly?' active':''}" onclick="toggleFavOnly()">⭐ ${lang==='ru'?'Избранное':'Favorites'}</button>`;
+}
+loadFavorites();
 
 /* ─── MODAL ─────────────────────────────────── */
 function showWorkModal(composerId, workIdx, e) {
@@ -843,6 +1022,22 @@ document.addEventListener('keydown', e => { if(e.key==='Escape') hideModal(); })
 
 /* ─── LISTEN LINKS ──────────────────────────── */
 const YM={
+  // Hildegard
+  'Ordo Virtutum':'https://music.yandex.ru/search?text=Hildegard+von+Bingen+Ordo+Virtutum',
+  'O viridissima virga':'https://music.yandex.ru/search?text=Hildegard+von+Bingen+O+viridissima+virga',
+  // Machaut
+  'Messe de Nostre Dame':'https://music.yandex.ru/search?text=Machaut+Messe+de+Nostre+Dame',
+  'Ma fin est mon commencement':'https://music.yandex.ru/search?text=Machaut+Ma+fin+est+mon+commencement',
+  // Palestrina
+  'Missa Papae Marcelli':'https://music.yandex.ru/search?text=Palestrina+Missa+Papae+Marcelli',
+  'Stabat Mater':'https://music.yandex.ru/search?text=Palestrina+Stabat+Mater',
+  'Sicut cervus':'https://music.yandex.ru/search?text=Palestrina+Sicut+cervus',
+  // Monteverdi
+  '"L\'Orfeo"':'https://music.yandex.ru/search?text=Monteverdi+L+Orfeo',
+  'Madrigals, Book VIII':'https://music.yandex.ru/search?text=Monteverdi+Madrigals+Book+VIII+Lamento',
+  // Lasso
+  'Penitential Psalms':'https://music.yandex.ru/search?text=Lasso+Penitential+Psalms',
+  'Matona mia cara':'https://music.yandex.ru/search?text=Lasso+Matona+mia+cara',
   // Vivaldi
   'The Four Seasons':'https://music.yandex.ru/search?text=Vivaldi+Four+Seasons',
   'Gloria in D major':'https://music.yandex.ru/search?text=Vivaldi+Gloria+D+major',
@@ -1055,6 +1250,22 @@ const YT={
   'Symphony No. 10 in E minor':'https://www.youtube.com/results?search_query=Shostakovich+Symphony+10',
 };
 const VK={
+  // Hildegard
+  'Ordo Virtutum':                   'https://vk.com/audio?q=Hildegard+von+Bingen+Ordo+Virtutum',
+  'O viridissima virga':             'https://vk.com/audio?q=Hildegard+O+viridissima+virga',
+  // Machaut
+  'Messe de Nostre Dame':            'https://vk.com/audio?q=Machaut+Messe+de+Nostre+Dame',
+  'Ma fin est mon commencement':     'https://vk.com/audio?q=Machaut+Ma+fin+est+mon+commencement',
+  // Palestrina
+  'Missa Papae Marcelli':            'https://vk.com/audio?q=Palestrina+Missa+Papae+Marcelli',
+  'Stabat Mater':                    'https://vk.com/audio?q=Palestrina+Stabat+Mater',
+  'Sicut cervus':                    'https://vk.com/audio?q=Palestrina+Sicut+cervus',
+  // Monteverdi
+  '"L\'Orfeo"':                      'https://vk.com/audio?q=Monteverdi+L+Orfeo+opera',
+  'Madrigals, Book VIII':            'https://vk.com/audio?q=Monteverdi+Madrigals+Book+VIII',
+  // Lasso
+  'Penitential Psalms':              'https://vk.com/audio?q=Orlando+di+Lasso+Penitential+Psalms',
+  'Matona mia cara':                 'https://vk.com/audio?q=Lasso+Matona+mia+cara',
   'The Four Seasons':                        'https://vk.com/audio?q=Vivaldi+Four+Seasons',
   'Gloria in D major':                       'https://vk.com/audio?q=Vivaldi+Gloria+D+major',
   'Concerto for Two Violins in A minor':     'https://vk.com/audio?q=Vivaldi+Concerto+Two+Violins',
@@ -1152,12 +1363,28 @@ const VK={
 
 /* ─── CARDS ─────────────────────────────────── */
 function getFiltered(){
-  return COMPOSERS.filter(c=>eraFilter==='all'||c.era===eraFilter);
+  let list=COMPOSERS;
+  if(eraFilter!=='all') list=list.filter(c=>c.era===eraFilter);
+  if(originFilter!=='all') list=list.filter(c=>c.origin===originFilter);
+  if(favOnly) list=list.filter(c=>isFavComposer(c.id)||c.works.some((w,wi)=>isFavWork(c.id,wi)));
+  if(searchQ){
+    const q=searchQ.toLowerCase();
+    list=list.filter(c=>
+      (c.name.ru||'').toLowerCase().includes(q)||
+      (c.name.en||'').toLowerCase().includes(q)||
+      c.works.some(w=>(w.name.ru||'').toLowerCase().includes(q)||(w.name.en||'').toLowerCase().includes(q))
+    );
+  }
+  return list;
 }
 
 function renderCards(){
   const list=getFiltered();
   const grid=document.getElementById('compCards');
+  if(!list.length){
+    grid.innerHTML=`<div class="no-results">${lang==='ru'?'Ничего не найдено':'No results found'}</div>`;
+    return;
+  }
   grid.innerHTML=list.map(c=>{
     const eraLabel=(ERA_LABELS[c.era]||{})[lang];
     const isExp=expandedId===c.id;
@@ -1168,7 +1395,9 @@ function renderCards(){
       const vkBtn=vkUrl?`<a href="${vkUrl}" target="_blank" rel="noopener" class="vk-link-sm" onclick="event.stopPropagation()">♪ ВК Музыка</a>`:'';
       const mrBtn=`<a href="${mrUrl}" target="_blank" rel="noopener" class="mr-link-sm" onclick="event.stopPropagation()">🎵 Mail.ru</a>`;
       const ymBtn=ymUrl?`<a href="${ymUrl}" target="_blank" rel="noopener" class="ym-link" onclick="event.stopPropagation()">🎵 ${lang==='ru'?'Яндекс Музыка':'Yandex Music'}</a>`:'';
-      const links=`<div class="work-links">${vkBtn}${mrBtn}${ymBtn}</div>`;
+      const isFavW=isFavWork(c.id,wi);
+      const favWorkBtn=`<button class="fav-star-work${isFavW?' active':''}" onclick="event.stopPropagation();toggleFavWork('${c.id}',${wi})" title="${lang==='ru'?'В избранное':'Add to favorites'}">${isFavW?'★':'☆'}</button>`;
+      const links=`<div class="work-links">${vkBtn}${mrBtn}${ymBtn}${favWorkBtn}</div>`;
       return `<div class="work" onclick="showWorkModal('${c.id}',${wi},event)">
         <div class="work-name">${w.name[lang]||w.name.ru}</div>
         <div class="work-meta">${w.year} · ${w.genre[lang]||w.genre.ru}</div>
@@ -1177,13 +1406,15 @@ function renderCards(){
         <div class="work-hint">${lang==='ru'?'Подробнее →':'Details →'}</div>
       </div>`;
     }).join('');
-    return `<div class="ccard era-${c.era}${isExp?' expanded':''}" onclick="toggleCard('${c.id}')">
+    const isFavC=isFavComposer(c.id);
+    return `<div class="ccard era-${c.era}${isExp?' expanded':''}" id="ccard-${c.id}" onclick="toggleCard('${c.id}')">
       <div class="comp-row">
         <div class="avatar" style="background:${c.color}">${c.ini}</div>
         <div>
           <div class="comp-name">${c.name[lang]||c.name.ru}</div>
           <div class="comp-meta">${c.birth}–${c.death} · ${c.country[lang]||c.country.ru}</div>
         </div>
+        <button class="fav-star${isFavC?' active':''}" onclick="event.stopPropagation();toggleFavComposer('${c.id}')" title="${lang==='ru'?'В избранное':'Add to favorites'}">${isFavC?'★':'☆'}</button>
       </div>
       <span class="era-badge">${eraLabel}</span>
       <div class="bio">${c.bio[lang]||c.bio.ru}</div>
@@ -1196,14 +1427,28 @@ function renderCards(){
   }).join('');
 }
 
+function recordRecent(module,type,id,data){
+  try{
+    let arr=JSON.parse(localStorage.getItem('musicapp_recent')||'[]');
+    if(!Array.isArray(arr))arr=[];
+    arr=arr.filter(e=>!(e.module===module&&e.type===type&&e.id===id));
+    arr.unshift(Object.assign({module,type,id,ts:Date.now()},data));
+    if(arr.length>20)arr=arr.slice(0,20);
+    localStorage.setItem('musicapp_recent',JSON.stringify(arr));
+  }catch(e){}
+}
 function toggleCard(id){
   expandedId=expandedId===id?null:id;
+  if(expandedId===id){
+    const c=COMPOSERS.find(x=>x.id===id);
+    if(c)recordRecent('ml','composer',id,{labelRu:c.name.ru,labelEn:c.name.en,subRu:c.country.ru,subEn:c.country.en,icon:'🎭',link:'муз-литература/index.html#composer-'+id});
+  }
   renderCards();
 }
 
 /* ─── ERA FILTER ────────────────────────────── */
 function renderEraFilter(){
-  const eras=['all','baroque','classicism','romanticism','modern'];
+  const eras=['all','medieval','renaissance','baroque','classicism','romanticism','modern'];
   const labels={all:{ru:'Все',en:'All'},...ERA_LABELS};
   document.getElementById('eraFilter').innerHTML=eras.map(e=>
     `<button class="chip${eraFilter===e?' active':''}" onclick="setEra('${e}')">${labels[e][lang]||labels[e].ru}</button>`
@@ -1213,6 +1458,31 @@ function renderEraFilter(){
 function setEra(e){
   eraFilter=e;
   renderEraFilter();
+  renderCards();
+}
+
+/* ─── ORIGIN FILTER ─────────────────────────── */
+function renderOriginFilter(){
+  const L=lang==='ru';
+  const opts=[
+    {val:'all',  ru:'Все',           en:'All'},
+    {val:'russian', ru:'Русские',   en:'Russian'},
+    {val:'foreign', ru:'🌍 Зарубежные', en:'🌍 Foreign'},
+  ];
+  document.getElementById('originFilter').innerHTML=opts.map(o=>
+    `<button class="chip${originFilter===o.val?' active':''}" onclick="setOrigin('${o.val}')">${L?o.ru:o.en}</button>`
+  ).join('');
+}
+
+function setOrigin(o){
+  originFilter=o;
+  renderOriginFilter();
+  renderCards();
+}
+
+/* ─── SEARCH ────────────────────────────────── */
+function onSearch(val){
+  searchQ=val.trim();
   renderCards();
 }
 
@@ -1314,7 +1584,11 @@ function applyLang(){
   const dk=document.documentElement.getAttribute('data-theme')==='dark';
   document.getElementById('themeText').textContent=dk?(L?'Светлая':'Light'):(L?'Тёмная':'Dark');
   const bhl=document.getElementById('backHomeLink');if(bhl)bhl.textContent=L?'← Главная':'← Home';
+  const si=document.getElementById('searchInput');
+  if(si)si.placeholder=L?'Поиск по имени или произведению...':'Search by name or work...';
   renderEraFilter();
+  renderOriginFilter();
+  renderFavFilter();
   renderCards();
   if(document.getElementById('panel1').classList.contains('show'))renderTimeline();
   if(document.getElementById('quizQ').textContent)nextQuiz();
@@ -1338,6 +1612,21 @@ document.getElementById('themeBtn').addEventListener('click',()=>{
 });
 
 renderEraFilter();
+renderOriginFilter();
+renderFavFilter();
 renderCards();
+
+(function(){
+  const m=location.hash.match(/^#composer-(.+)$/);
+  if(!m)return;
+  const id=decodeURIComponent(m[1]);
+  if(!COMPOSERS.some(c=>c.id===id))return;
+  expandedId=id;
+  renderCards();
+  setTimeout(()=>{
+    const el=document.getElementById('ccard-'+id);
+    if(el&&el.scrollIntoView)el.scrollIntoView({behavior:'smooth',block:'center'});
+  },100);
+})();
 </script></body>
 </html>

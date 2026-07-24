@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="ru" data-theme="light">
 <head>
+<script>(function(){try{var k='musicapp_visited',id='jazz';var v=JSON.parse(localStorage.getItem(k)||'[]');if(v.indexOf(id)===-1){v.push(id);localStorage.setItem(k,JSON.stringify(v));}}catch(e){}})();</script>
 <!-- Yandex.Metrika counter -->
 <script type="text/javascript">
     (function(m,e,t,r,i,k,a){
@@ -100,6 +101,17 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
   align-items:center;justify-content:center;font-size:8px;font-weight:900;
   color:#fff;flex-shrink:0;}
 .performer-name{font-size:11px;font-weight:700;}
+.performer-fav{background:none;border:none;cursor:pointer;font-size:14px;line-height:1;
+  color:var(--muted);padding:0 2px 0 4px;transition:transform .12s,color .12s;}
+.performer-fav:hover{transform:scale(1.15);}
+.performer-fav.active{color:#f59e0b;}
+.work-fav{background:none;border:none;cursor:pointer;font-size:14px;line-height:1;
+  color:var(--muted);padding:2px 4px;transition:transform .12s,color .12s;}
+.work-fav:hover{transform:scale(1.15);}
+.work-fav.active{color:#f59e0b;}
+.work-item-top{display:flex;align-items:flex-start;justify-content:space-between;gap:6px;}
+.hbtn.fav-toggle.active{background:#f59e0b;color:#fff;}
+.no-fav-results{text-align:center;padding:30px 0;color:var(--muted);font-size:12px;font-weight:700;}
 .work-item{padding:8px 10px;background:var(--sl100);border-radius:10px;margin-bottom:6px;}
 .work-name{font-size:12px;font-weight:800;}
 .work-meta{font-size:10px;color:var(--muted);margin-top:2px;}
@@ -304,6 +316,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
     <div class="hdr-sub" id="hdrSub">Стили, история, звучание</div>
   </div>
   <div class="hdr-btns">
+    <button class="hbtn fav-toggle" id="favToggleBtn" onclick="toggleFavOnly()">⭐</button>
     <button class="hbtn" id="themeBtn">
       <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" id="themeIco">
         <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
@@ -322,7 +335,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
 
 <div class="intro">
   <div class="intro-title" id="introTitle">🎷 Джазовая гармония</div>
-  <div class="intro-sub" id="introSub">Семь главных стилей джаза — от блюзовых корней до электрического фьюжна. История каждого направления, характерные черты и живое звучание.</div>
+  <div class="intro-sub" id="introSub">Двенадцать главных стилей джаза — от блюзовых корней до электрического фьюжна и смус-джаза. История каждого направления, характерные черты и живое звучание.</div>
 </div>
 
 <!-- MAIN TABS -->
@@ -436,6 +449,61 @@ const STYLES = [
     performers:[{name:'Майлс Дэвис',ini:'МД',color:'#dc2626'},{name:'Weather Report',ini:'WR',color:'#b91c1c'},{name:'Chick Corea',ini:'CC',color:'#ef4444'},{name:'Джон Маклафлин',ini:'ДМ',color:'#991b1b'}],
     works:[{name:{ru:'Bitches Brew',en:'Bitches Brew'},year:'1970',who:'Miles Davis',desc:{ru:'Альбом, запустивший эпоху фьюжна.',en:'The album that launched the fusion era.'}},{name:{ru:'Birdland',en:'Birdland'},year:'1977',who:'Weather Report',desc:{ru:'Главный хит Weather Report.',en:'Weather Report\'s biggest hit.'}},{name:{ru:'Spain',en:'Spain'},year:'1972',who:'Chick Corea',desc:{ru:'Латинский фьюжн — горячий ритм, джазовая гармония.',en:'Latin fusion — hot rhythm, jazz harmony.'}}]
   },
+  {
+    id:'cool',emoji:'❄️',color:'#0369a1',
+    name:{ru:'Кул-джаз',en:'Cool Jazz'},
+    period:{ru:'1949 — 1950-е',en:'1949 – 1950s'},
+    origin:{ru:'США, Нью-Йорк и Калифорния',en:'USA, New York & California'},
+    bio:{ru:'Спокойная, сдержанная реакция на бешеный темп бибопа. Мягкий звук, лёгкие аранжировки, влияние классической музыки. Началось с нонета Майлса Дэвиса «Birth of the Cool» (1949–50) и продолжилось на Западном побережье.',en:'A calm, restrained response to the frantic pace of bebop. Soft tone, light arrangements, and classical influence. Launched by Miles Davis\'s nonet on "Birth of the Cool" (1949–50) and continued on the West Coast.'},
+    features:{ru:['Мягкий, «прохладный» тембр','Лёгкие, прозрачные аранжировки','Умеренные темпы','Влияние классической гармонии','Контрапункт между инструментами'],en:['Soft, "cool" tone','Light, transparent arrangements','Moderate tempos','Classical harmonic influence','Contrapuntal interplay between instruments']},
+    history:{ru:'В 1949–50 годах Майлс Дэвис собрал нонет с необычным составом — валторна и туба наряду с типичной джазовой секцией — и записал сессии, позже изданные как альбом «Birth of the Cool». Аранжировщики Гил Эванс и Джерри Маллиган писали сложные, почти камерные партитуры вместо привычного джем-сейшна бибопа.\n\nСтиль подхватили музыканты Западного побережья — трубач Чет Бейкер и баритон-саксофонист Джерри Маллиган выступали дуэтом без пианино, оставляя гармонию открытой. Их квартет 1952 года стал визитной карточкой «вест-коуст-джаза».\n\nКул-джаз доказал, что джаз может быть интеллектуальным и лиричным, а не только виртуозным и стремительным — эта линия позже привела к третьему течению и модальному джазу.',en:'In 1949–50 Miles Davis assembled a nonet with an unusual lineup — French horn and tuba alongside a standard jazz section — and recorded sessions later released as "Birth of the Cool." Arrangers Gil Evans and Gerry Mulligan wrote intricate, almost chamber-music scores instead of the usual bebop jam session.\n\nThe style was picked up on the West Coast — trumpeter Chet Baker and baritone saxophonist Gerry Mulligan performed as a pianoless quartet, leaving the harmony open. Their 1952 quartet became the calling card of "West Coast jazz."\n\nCool jazz proved that jazz could be intellectual and lyrical, not only virtuosic and fast — a lineage that later led to third stream and modal jazz.'},
+    performers:[{name:'Майлс Дэвис',ini:'МД',color:'#0369a1'},{name:'Чет Бейкер',ini:'ЧБ',color:'#0284c7'},{name:'Джерри Маллиган',ini:'ДМ',color:'#0891b2'},{name:'Дэйв Брубек',ini:'ДБ',color:'#075985'}],
+    works:[{name:{ru:'Boplicity',en:'Boplicity'},year:'1949',who:'Miles Davis',desc:{ru:'Ключевой трек сессий «Birth of the Cool».',en:'A key track from the "Birth of the Cool" sessions.'}},{name:{ru:'My Funny Valentine',en:'My Funny Valentine'},year:'1954',who:'Chet Baker',desc:{ru:'Хрупкий, лиричный вокал Бейкера сделал стандарт визитной карточкой кул-джаза.',en:"Baker's fragile, lyrical vocal made this standard a cool jazz calling card."}},{name:{ru:'Take Five',en:'Take Five'},year:'1959',who:'Dave Brubeck',desc:{ru:'Джаз в размере 5/4, ставший самым продаваемым джазовым синглом.',en:'Jazz in 5/4 time that became the best-selling jazz single ever.'}}]
+  },
+  {
+    id:'hardbop',emoji:'🥁',color:'#c2410c',
+    name:{ru:'Хард-боп',en:'Hard Bop'},
+    period:{ru:'1954 — 1960-е',en:'1954 – 1960s'},
+    origin:{ru:'США, Нью-Йорк и Детройт',en:'USA, New York & Detroit'},
+    bio:{ru:'Ответ бибопа на слишком «холодный» кул-джаз — возвращение горячего блюзового и госпел-звучания в более собранные, мелодичные темы. Расцвёл на лейбле Blue Note середины 1950-х.',en:'Bebop\'s answer to the overly "cool" cool jazz — bringing hot blues and gospel feeling back into more structured, melodic tunes. Flourished on the Blue Note label of the mid-1950s.'},
+    features:{ru:['Блюзовые и госпел-интонации','Плотный, «горячий» звук','Чёткие темы-хуки','Составы с двумя духовыми','Опора на квинтет/секстет'],en:['Blues and gospel inflections','Dense, "hot" sound','Strong hook-driven themes','Two-horn frontlines','Quintet/sextet format']},
+    history:{ru:'К середине 1950-х многие музыканты сочли кул-джаз слишком отстранённым и «европеизированным». Барабанщик Арт Блейки и пианист Хорас Силвер решили вернуть в джаз горячую энергию блюза, госпела и ритм-н-блюза.\n\nГруппа Блейки Jazz Messengers стала главной «кузницей кадров» хард-бопа — через неё прошли десятки будущих звёзд. Хорас Силвер соединил церковные гармонии с острым свингом.\n\nЛейбл Blue Note Records документировал почти всю сцену хард-бопа, выпустив сотни классических альбомов с характерной фотографией и дизайном обложек Рида Майлса.',en:'By the mid-1950s many musicians felt cool jazz had become too detached and "Europeanized." Drummer Art Blakey and pianist Horace Silver set out to bring the hot energy of blues, gospel, and R&B back into jazz.\n\nBlakey\'s band, the Jazz Messengers, became hard bop\'s great finishing school — dozens of future stars passed through its ranks. Horace Silver fused churchy harmonies with sharp, driving swing.\n\nBlue Note Records documented nearly the entire hard bop scene, releasing hundreds of classic albums with their instantly recognizable photography and Reid Miles cover design.'},
+    performers:[{name:'Арт Блейки',ini:'АБ',color:'#c2410c'},{name:'Хорас Силвер',ini:'ХС',color:'#ea580c'},{name:'Ли Морган',ini:'ЛМ',color:'#9a3412'},{name:'Кэннонболл Эддерли',ini:'КЭ',color:'#f97316'}],
+    works:[{name:{ru:"Moanin'",en:"Moanin'"},year:'1958',who:'Art Blakey & the Jazz Messengers',desc:{ru:'Госпел-хук Бобби Тиммонса — гимн хард-бопа.',en:"Bobby Timmons's gospel hook — an anthem of hard bop."}},{name:{ru:'The Sidewinder',en:'The Sidewinder'},year:'1963',who:'Lee Morgan',desc:{ru:'Танцевальный буг-алу-грув стал неожиданным хитом Blue Note.',en:'A danceable boogaloo groove that became an unexpected Blue Note hit.'}},{name:{ru:'Song for My Father',en:'Song for My Father'},year:'1964',who:'Horace Silver',desc:{ru:'Латинский ритмический намёк и незабываемая тема.',en:'A hint of Latin rhythm and an unforgettable theme.'}}]
+  },
+  {
+    id:'freejazz',emoji:'🌀',color:'#475569',
+    name:{ru:'Фри-джаз',en:'Free Jazz'},
+    period:{ru:'1959 — 1970-е',en:'1959 – 1970s'},
+    origin:{ru:'США, Лос-Анджелес и Нью-Йорк',en:'USA, Los Angeles & New York'},
+    bio:{ru:'Полный отказ от фиксированных аккордов, темпов и формы. Импровизация становится главным и почти единственным содержанием музыки. Назван по одноимённому альбому Орнетта Коулмана 1960 года.',en:"A total break from fixed chord changes, tempo, and form. Improvisation becomes the primary — almost the only — content of the music. Named after Ornette Coleman's 1960 album of the same title."},
+    features:{ru:['Отказ от гармонической сетки','Коллективная свободная импровизация','Нестандартные тембры и техники','Атональность и кластеры','Отсутствие фиксированной формы'],en:['No fixed chord progression','Collective free improvisation','Unconventional timbres and techniques','Atonality and tone clusters','No fixed form']},
+    history:{ru:'В 1959 году саксофонист Орнетт Коулман приехал в Нью-Йорк со своим квартетом и начал играть музыку почти без заранее написанных аккордов — только тема и общая идея, а дальше полная свобода. Часть публики была в ярости, часть — в восторге.\n\nАльбом «Free Jazz: A Collective Improvisation» (1960), записанный двойным квартетом, дал название всему направлению. Джон Колтрейн в поздний период («Ascension», 1965) и пианист Сесил Тейлор довели идею до предела — плотных, почти оркестровых импровизационных стен звука.\n\nФри-джаз стал музыкальным выражением движения за гражданские права — многие музыканты видели в отказе от «правил» гармонии политическое высказывание о свободе.',en:'In 1959 saxophonist Ornette Coleman arrived in New York with his quartet and began playing music with almost no pre-written chords — just a theme and a general idea, after which everything was open. Part of the audience was outraged; part was thrilled.\n\nThe album "Free Jazz: A Collective Improvisation" (1960), recorded by a double quartet, gave the whole movement its name. John Coltrane in his late period ("Ascension," 1965) and pianist Cecil Taylor pushed the idea to its limit — dense, almost orchestral walls of improvised sound.\n\nFree jazz became a musical expression of the civil rights movement — many musicians saw the rejection of harmonic "rules" as a political statement about freedom.'},
+    performers:[{name:'Орнетт Коулман',ini:'ОК',color:'#475569'},{name:'Джон Колтрейн',ini:'ДК',color:'#334155'},{name:'Сесил Тейлор',ini:'СТ',color:'#64748b'},{name:'Альберт Айлер',ini:'АА',color:'#1e293b'}],
+    works:[{name:{ru:'Lonely Woman',en:'Lonely Woman'},year:'1959',who:'Ornette Coleman',desc:{ru:'Тема без чётких аккордов, ставшая манифестом свободного джаза.',en:'A theme with no fixed chords that became a manifesto for free jazz.'}},{name:{ru:'Free Jazz: A Collective Improvisation',en:'Free Jazz: A Collective Improvisation'},year:'1960',who:'Ornette Coleman Double Quartet',desc:{ru:'37-минутная коллективная импровизация, давшая имя стилю.',en:"A 37-minute collective improvisation that gave the style its name."}},{name:{ru:'Ascension',en:'Ascension'},year:'1965',who:'John Coltrane',desc:{ru:'Одиннадцать музыкантов в плотной, экстатической коллективной импровизации.',en:'Eleven musicians in dense, ecstatic collective improvisation.'}}]
+  },
+  {
+    id:'latinjazz',emoji:'🥁',color:'#ca8a04',
+    name:{ru:'Латино-джаз',en:'Latin Jazz'},
+    period:{ru:'1940-е — наши дни',en:'1940s – present'},
+    origin:{ru:'США и Куба, Нью-Йорк',en:'USA & Cuba, New York'},
+    bio:{ru:'Слияние афро-кубинских и латиноамериканских ритмов с джазовой гармонией и импровизацией. Началось со встречи Диззи Гиллеспи и кубинского перкуссиониста Чано Посо в 1947 году.',en:"A fusion of Afro-Cuban and Latin American rhythms with jazz harmony and improvisation. Began with trumpeter Dizzy Gillespie's meeting with Cuban percussionist Chano Pozo in 1947."},
+    features:{ru:['Клавé-ритм','Конга, бонго, тимбалес','Монтуно-фигуры фортепиано','Джазовая гармония и импровизация','Медные секции как в биг-бэнде'],en:['Clave rhythm','Conga, bongo, timbales','Piano montuno patterns','Jazz harmony and improvisation','Big-band-style horn sections']},
+    history:{ru:'В 1947 году Диззи Гиллеспи пригласил кубинского конгеро Чано Посо в свой биг-бэнд. Их совместная композиция «Manteca» соединила афро-кубинский клавé-ритм с гармонией бибопа — так родился «кубоп».\n\nПараллельно в Нью-Йорке дирижёр Мачито и аранжировщик Марио Бауса развивали похожую идею в своём оркестре Afro-Cubans. В 1950–60-е к направлению добавились бразильские и другие латиноамериканские влияния.\n\nСегодня латино-джаз остаётся одним из самых живых направлений джаза благодаря музыкантам Кубы, Пуэрто-Рико и Нью-Йорка, продолжающим традицию Тито Пуэнте и Мачито.',en:'In 1947 Dizzy Gillespie invited Cuban conguero Chano Pozo into his big band. Their joint composition "Manteca" fused the Afro-Cuban clave rhythm with bebop harmony — giving birth to "Cubop."\n\nAt the same time in New York, bandleader Machito and arranger Mario Bauzá were developing a similar idea with their Afro-Cubans orchestra. In the 1950s–60s, Brazilian and other Latin American influences were folded into the mix.\n\nLatin jazz remains one of the most vital branches of jazz today, kept alive by generations of musicians from Cuba, Puerto Rico, and New York continuing the tradition of Tito Puente and Machito.'},
+    performers:[{name:'Диззи Гиллеспи',ini:'ДГ',color:'#ca8a04'},{name:'Чано Посо',ini:'ЧП',color:'#a16207'},{name:'Тито Пуэнте',ini:'ТП',color:'#eab308'},{name:'Мачито',ini:'МЧ',color:'#854d0e'}],
+    works:[{name:{ru:'Manteca',en:'Manteca'},year:'1947',who:'Dizzy Gillespie & Chano Pozo',desc:{ru:'Композиция, соединившая клавé-ритм с бибопом.',en:'The composition that fused the clave rhythm with bebop.'}},{name:{ru:'Oye Como Va',en:'Oye Como Va'},year:'1963',who:'Tito Puente',desc:{ru:'Ча-ча-ча с джазовой гармонией, позже прославленный Карлосом Сантаной.',en:'A cha-cha-chá with jazz harmony, later made famous by Carlos Santana.'}},{name:{ru:'Afro Blue',en:'Afro Blue'},year:'1959',who:'Mongo Santamaría',desc:{ru:'Афро-кубинский стандарт, позже переосмысленный Джоном Колтрейном.',en:'An Afro-Cuban standard later reinterpreted by John Coltrane.'}}]
+  },
+  {
+    id:'smoothjazz',emoji:'🌆',color:'#db2777',
+    name:{ru:'Смус-джаз и джаз-фанк',en:'Smooth Jazz & Jazz-Funk'},
+    period:{ru:'1970-е — наши дни',en:'1970s – present'},
+    origin:{ru:'США',en:'USA'},
+    bio:{ru:'Мелодичный, коммерческий джаз с фанковыми и R&B-грувами, электрическими инструментами и минимумом резких диссонансов. Рождён на стыке фьюжна и радиоформатов 1970–80-х.',en:'Melodic, radio-friendly jazz with funk and R&B grooves, electric instruments, and minimal harsh dissonance. Born at the crossroads of fusion and 1970s–80s radio formats.'},
+    features:{ru:['Фанковый бас и барабаны','Электропиано и синтезаторы','Простые, запоминающиеся мелодии','Минимум импровизационной резкости','Ориентация на радиоформат'],en:['Funky bass and drums','Electric piano and synthesizers','Simple, memorable melodies','Minimal improvisational edge','Built for radio airplay']},
+    history:{ru:'В начале 1970-х такие музыканты, как органист Грант Грин и саксофонист Гровер Вашингтон-младший, начали смешивать джазовую импровизацию с фанковыми грувами соул- и R&B-сцены — так родился джаз-фанк.\n\nК концу 1970-х и в 1980-е более гладкая, мелодичная версия этого звучания — во многом благодаря гитаристу Джорджу Бенсону и радиостанциям формата smooth jazz — превратилась в отдельный коммерческий жанр.\n\nСтиль подвергался критике джазовых пуристов за «чрезмерную гладкость», но принёс джазовую гармонию массовой аудитории и познакомил целое поколение слушателей с более сложными формами джаза.',en:'In the early 1970s musicians like organist Grant Green and saxophonist Grover Washington Jr. began blending jazz improvisation with the funky grooves of the soul and R&B scene, giving rise to jazz-funk.\n\nBy the late 1970s and through the 1980s, a smoother, more melodic version of this sound — driven in large part by guitarist George Benson and dedicated smooth jazz radio formats — became its own commercial genre.\n\nThe style drew criticism from jazz purists for being "too polished," but it brought jazz harmony to a mass audience and introduced a generation of listeners to more complex forms of jazz.'},
+    performers:[{name:'Джордж Бенсон',ini:'ДБ',color:'#db2777'},{name:'Гровер Вашингтон-мл.',ini:'ГВ',color:'#be185d'},{name:'Kenny G',ini:'KG',color:'#ec4899'},{name:'Херби Хэнкок',ini:'ХХ',color:'#9d174d'}],
+    works:[{name:{ru:'Just the Two of Us',en:'Just the Two of Us'},year:'1980',who:'Grover Washington Jr.',desc:{ru:'Один из главных хитов, определивших звук смус-джаза.',en:'One of the defining hits of the smooth jazz sound.'}},{name:{ru:"Breezin'",en:"Breezin'"},year:'1976',who:'George Benson',desc:{ru:'Альбом, ставший самым продаваемым джазовым релизом своего времени.',en:'The album that became the best-selling jazz release of its time.'}},{name:{ru:'Chameleon',en:'Chameleon'},year:'1973',who:'Herbie Hancock',desc:{ru:'Фанковый бас-риф, соединивший джаз и танцевальный грув.',en:'A funky bass riff that bridged jazz and dance-floor groove.'}}]
+  },
 ];
 
 /* ─── YOUTUBE LINKS ─────────────────────────────────── */
@@ -461,6 +529,21 @@ const YM={
   'Bitches Brew':          'https://music.yandex.ru/search?text=Bitches+Brew+Miles+Davis',
   'Birdland':              'https://music.yandex.ru/search?text=Birdland+Weather+Report',
   'Spain':                 'https://music.yandex.ru/search?text=Spain+Chick+Corea+Return+to+Forever',
+  'Boplicity':             'https://music.yandex.ru/search?text=Boplicity+Miles+Davis',
+  'My Funny Valentine':    'https://music.yandex.ru/search?text=My+Funny+Valentine+Chet+Baker',
+  'Take Five':             'https://music.yandex.ru/search?text=Take+Five+Dave+Brubeck',
+  "Moanin'":               'https://music.yandex.ru/search?text=Moanin+Art+Blakey+Jazz+Messengers',
+  'The Sidewinder':        'https://music.yandex.ru/search?text=The+Sidewinder+Lee+Morgan',
+  'Song for My Father':    'https://music.yandex.ru/search?text=Song+for+My+Father+Horace+Silver',
+  'Lonely Woman':          'https://music.yandex.ru/search?text=Lonely+Woman+Ornette+Coleman',
+  'Free Jazz: A Collective Improvisation': 'https://music.yandex.ru/search?text=Free+Jazz+Ornette+Coleman',
+  'Ascension':             'https://music.yandex.ru/search?text=Ascension+John+Coltrane',
+  'Manteca':               'https://music.yandex.ru/search?text=Manteca+Dizzy+Gillespie',
+  'Oye Como Va':           'https://music.yandex.ru/search?text=Oye+Como+Va+Tito+Puente',
+  'Afro Blue':             'https://music.yandex.ru/search?text=Afro+Blue+Mongo+Santamaria',
+  'Just the Two of Us':    'https://music.yandex.ru/search?text=Just+the+Two+of+Us+Grover+Washington',
+  "Breezin'":              'https://music.yandex.ru/search?text=Breezin+George+Benson',
+  'Chameleon':             'https://music.yandex.ru/search?text=Chameleon+Herbie+Hancock',
 };
 const YT={
   'Sweet Home Chicago':     'https://www.youtube.com/results?search_query=Sweet+Home+Chicago+Robert+Johnson',
@@ -507,6 +590,21 @@ const VK={
   'Bitches Brew':          'https://vk.com/audio?q=Bitches+Brew+Miles+Davis',
   'Birdland':              'https://vk.com/audio?q=Birdland+Weather+Report',
   'Spain':                 'https://vk.com/audio?q=Spain+Chick+Corea',
+  'Boplicity':             'https://vk.com/audio?q=Boplicity+Miles+Davis',
+  'My Funny Valentine':    'https://vk.com/audio?q=My+Funny+Valentine+Chet+Baker',
+  'Take Five':             'https://vk.com/audio?q=Take+Five+Dave+Brubeck',
+  "Moanin'":               'https://vk.com/audio?q=Moanin+Art+Blakey',
+  'The Sidewinder':        'https://vk.com/audio?q=The+Sidewinder+Lee+Morgan',
+  'Song for My Father':    'https://vk.com/audio?q=Song+for+My+Father+Horace+Silver',
+  'Lonely Woman':          'https://vk.com/audio?q=Lonely+Woman+Ornette+Coleman',
+  'Free Jazz: A Collective Improvisation': 'https://vk.com/audio?q=Free+Jazz+Ornette+Coleman',
+  'Ascension':             'https://vk.com/audio?q=Ascension+John+Coltrane',
+  'Manteca':               'https://vk.com/audio?q=Manteca+Dizzy+Gillespie',
+  'Oye Como Va':           'https://vk.com/audio?q=Oye+Como+Va+Tito+Puente',
+  'Afro Blue':             'https://vk.com/audio?q=Afro+Blue+Mongo+Santamaria',
+  'Just the Two of Us':    'https://vk.com/audio?q=Just+the+Two+of+Us+Grover+Washington',
+  "Breezin'":              'https://vk.com/audio?q=Breezin+George+Benson',
+  'Chameleon':             'https://vk.com/audio?q=Chameleon+Herbie+Hancock',
 };
 
 /* ─── AUDIO ─────────────────────────────────────────── */
@@ -534,9 +632,15 @@ const PATTERNS={
   bossanova(t){const BPM=88,b=60/BPM;[{bass:NF.D3,ch:[NF.D4,NF['F#4'],NF.A4,NF['C#5']],beats:[0,1.5,2,3.5]},{bass:NF.E3,ch:[NF.E4,NF.G4,NF.B4,NF.D5],beats:[4,5.5,6,7.5]}].forEach(p=>{p.beats.forEach(beat=>playChord(p.ch,t+beat*b,0.8*b,0.07));playBass(p.bass,t+p.beats[0]*b,2*b*0.5);});[NF.F5,NF['F#5'],NF.F5,NF.Eb5,NF.F5,NF.D5,NF['C#5'],NF.D5,NF.F5].forEach((f,i)=>playMel(f,t+[0,0.5,1,1.5,2,2.5,3,3.5,4][i]*b,0.9*b,0.13));},
   modal(t){const BPM=80,b=60/BPM;playChord([NF.C3,NF.G3,NF.C4,NF.F4,NF.A4],t,10*b,0.06);[NF.D4,NF.E4,NF.F4,NF.G4,NF.A4,NF.B4,NF.C5,NF.D5,NF.E5,NF.D5,NF.C5,NF.A4,NF.G4,NF.F4,NF.E4,NF.D4].forEach((f,i)=>playMel(f,t+[0,1,2,3,4,5,6,7,8,8.75,9.5,10,11,12,13,14][i]*b,1.8*b,0.14));},
   fusion(t){const BPM=120,b=60/BPM;const em9=[NF.E3,NF.B3,NF.D4,NF['F#4'],NF.A4];for(let i=0;i<16;i++)playChord(em9,t+i*b*0.5,0.4*b,0.06);playBass(NF.E3,t,4*b,0.25);playBass(NF.E3,t+4*b,4*b,0.25);[NF.E5,NF.D5,NF.B4,NF.A4,NF['F#4'],NF.E4,NF['F#4'],NF.A4,NF.B4,NF.D5,NF.E5,NF['F#5'],NF.E5,NF.D5,NF.B4,NF.G4].forEach((f,i)=>playMel(f,t+[0,0.5,1,1.5,2,2.5,3,3.5,4,4.5,5,5.5,6,6.5,7,7.5][i]*b,0.45*b,0.13));},
+  cool(t){const BPM=66,b=60/BPM;[{bass:NF.D3,ch:[NF.D4,NF.F4,NF.A4,NF.C5],beat:0,dur:4},{bass:NF.G3,ch:[NF.G4,NF.B4,NF.D5,NF.F5],beat:4,dur:4},{bass:NF.C3,ch:[NF.C4,NF.E4,NF.G4,NF.B4],beat:8,dur:6}].forEach(p=>{playBass(p.bass,t+p.beat*b,p.dur*b*0.9);playChord(p.ch,t+p.beat*b,p.dur*b*0.8,0.07);});[NF.E4,NF.G4,NF.A4,NF.C5,NF.B4,NF.G4,NF.F4,NF.D4,NF.E4,NF.G4].forEach((f,i)=>playMel(f,t+[0,1.5,3,4.5,6,7,8,9,10,11][i]*b,1.3*b,0.11));},
+  hardbop(t){const BPM=190,b=60/BPM;[{bass:NF.F3,ch:[NF.F4,NF.A4,NF.C5,NF.Eb5],beat:0,dur:4},{bass:NF.Bb3,ch:[NF.Bb4,NF.D5,NF.F5],beat:4,dur:4},{bass:NF.F3,ch:[NF.F4,NF.A4,NF.C5,NF.Eb5],beat:8,dur:4},{bass:NF.C3,ch:[NF.C4,NF.E4,NF.G4,NF.Bb4],beat:12,dur:4}].forEach(p=>{playBass(p.bass,t+p.beat*b,p.dur*b*0.9);playChord(p.ch,t+p.beat*b,p.dur*b*0.7,0.08);});[NF.C5,NF.Eb5,NF.F5,NF.Eb5,NF.C5,NF.Bb4,NF.G4,NF.F4,NF.Eb4,NF.C4,NF.Eb4,NF.F4,NF.G4,NF.Bb4,NF.C5,NF.Eb5].forEach((f,i)=>playMel(f,t+i*b,b*0.85,0.13));},
+  freejazz(t){playChord([NF.C3,NF.Db4,NF.Gb4,NF.A4],t,6,0.05);[[NF.C5,0],[NF.Db5,0.3],[NF.G4,0.55],[NF.F5,0.9],[NF.B4,1.3],[NF.Eb5,1.6],[NF.A4,2.1],[NF.Db5,2.5],[NF.F4,3.0],[NF.C5,3.4],[NF.Gb5,3.9],[NF.B4,4.3],[NF.E5,4.8],[NF.Ab4,5.2]].forEach(([f,dt])=>playMel(f,t+dt,0.35,0.13));playChord([NF.D3,NF.Ab4,NF.E5],t+5.5,2.5,0.05);},
+  latinjazz(t){const BPM=96,b=60/BPM;[{bass:NF.D3,ch:[NF.D4,NF.F4,NF.A4,NF.C5],beats:[0,0.75,1.5,2.25,3]},{bass:NF.G3,ch:[NF.G3,NF.B3,NF.D4,NF.F4],beats:[4,4.75,5.5,6.25,7]}].forEach(p=>{playBass(p.bass,t+p.beats[0]*b,3.5*b*0.5);p.beats.forEach(beat=>playChord(p.ch,t+beat*b,0.5*b,0.06));});[NF.A4,NF.C5,NF.D5,NF.C5,NF.A4,NF.G4,NF.F4,NF.G4,NF.A4,NF.C5,NF.D5,NF.F5,NF.D5,NF.C5,NF.A4,NF.G4].forEach((f,i)=>playMel(f,t+i*b*0.5,0.4*b,0.13));},
+  smoothjazz(t){const BPM=100,b=60/BPM;const ch=[NF.F4,NF.A4,NF.C5,NF.E5];[0,2,4,6].forEach(beat=>playChord(ch,t+beat*b,1.8*b,0.06));[NF.F3,NF.F3,NF.A3,NF.C4,NF.F3,NF.F3,NF.A3,NF.C4].forEach((f,i)=>playBass(f,t+[0,0.75,1.5,1.75,4,4.75,5.5,5.75][i]*b,0.4*b));[NF.C5,NF.E5,NF.G5,NF.E5,NF.C5,NF.A4,NF.C5,NF.E5].forEach((f,i)=>playMel(f,t+[0,1,2,3,4,5,6,7][i]*b,0.9*b,0.12));},
 };
 
 function playStyle(styleId,btn){
+  if(!PATTERNS[styleId])return;
   initAudio();
   if(playingStyle===styleId){stopAll();playingStyle=null;updatePlayBtn(btn,false);return;}
   stopAll();
@@ -559,14 +663,105 @@ function updatePlayBtn(btn,playing){
 let lang=localStorage.getItem('musicapp_lang')||'ru';
 let expandedId=null;
 
-function eraColor(id){return{blues:'#1e40af',ragtime:'#b45309',swing:'#0e7490',bebop:'#7c3aed',bossanova:'#059669',modal:'#9333ea',fusion:'#dc2626'}[id]||'#64748b';}
+/* ─── FAVORITE PERFORMERS ───────────────────────────── */
+let favPerformers=[];
+let favOnly=false;
+function loadFavPerformers(){
+  try{
+    const raw=JSON.parse(localStorage.getItem('musicapp_jazz_fav_performers')||'[]');
+    favPerformers=Array.isArray(raw)?raw:[];
+  }catch(e){favPerformers=[];}
+}
+function saveFavPerformers(){
+  localStorage.setItem('musicapp_jazz_fav_performers',JSON.stringify(favPerformers));
+}
+function performerKey(styleId,name){return styleId+'::'+name;}
+function isFavPerformer(styleId,name){return favPerformers.indexOf(performerKey(styleId,name))!==-1;}
+function favIndexSet(module,type,id,data){
+  try{
+    const idx=JSON.parse(localStorage.getItem('musicapp_fav_index')||'{}');
+    idx[module+':'+type+':'+id]=Object.assign({module,type,id,ts:Date.now()},data);
+    localStorage.setItem('musicapp_fav_index',JSON.stringify(idx));
+  }catch(e){}
+}
+function favIndexRemove(module,type,id){
+  try{
+    const idx=JSON.parse(localStorage.getItem('musicapp_fav_index')||'{}');
+    delete idx[module+':'+type+':'+id];
+    localStorage.setItem('musicapp_fav_index',JSON.stringify(idx));
+  }catch(e){}
+}
+function toggleFavPerformer(styleId,name){
+  const k=performerKey(styleId,name);
+  const i=favPerformers.indexOf(k);
+  if(i===-1){
+    favPerformers.push(k);
+    const s=STYLES.find(x=>x.id===styleId);
+    if(s)favIndexSet('jazz','performer',k,{labelRu:name,labelEn:name,subRu:s.name.ru,subEn:s.name.en,icon:s.emoji||'🎷',link:'джазовая-гармония/index.html#style-'+styleId});
+  }else{
+    favPerformers.splice(i,1);
+    favIndexRemove('jazz','performer',k);
+  }
+  saveFavPerformers();
+  renderCards();
+}
+let favWorks=[];
+function loadFavWorks(){
+  try{
+    const raw=JSON.parse(localStorage.getItem('musicapp_jazz_fav_works')||'[]');
+    favWorks=Array.isArray(raw)?raw:[];
+  }catch(e){favWorks=[];}
+}
+function saveFavWorks(){
+  localStorage.setItem('musicapp_jazz_fav_works',JSON.stringify(favWorks));
+}
+function workKey(styleId,name){return styleId+'::'+name;}
+function isFavWork(styleId,name){return favWorks.indexOf(workKey(styleId,name))!==-1;}
+function toggleFavWork(styleId,name){
+  const k=workKey(styleId,name);
+  const i=favWorks.indexOf(k);
+  if(i===-1){
+    favWorks.push(k);
+    const s=STYLES.find(x=>x.id===styleId), w=s&&s.works.find(x=>x.name.en===name);
+    if(s&&w)favIndexSet('jazz','work',k,{labelRu:w.name.ru,labelEn:w.name.en,subRu:s.name.ru,subEn:s.name.en,icon:s.emoji||'🎷',link:'джазовая-гармония/index.html#style-'+styleId});
+  }else{
+    favWorks.splice(i,1);
+    favIndexRemove('jazz','work',k);
+  }
+  saveFavWorks();
+  renderCards();
+}
+function toggleFavOnly(){
+  favOnly=!favOnly;
+  updateFavToggleBtn();
+  renderCards();
+}
+function updateFavToggleBtn(){
+  const btn=document.getElementById('favToggleBtn');
+  if(!btn)return;
+  btn.classList.toggle('active',favOnly);
+  btn.textContent=favOnly?(lang==='ru'?'⭐ ИЗБРАННОЕ':'⭐ FAVORITES'):'⭐';
+}
+loadFavPerformers();
+loadFavWorks();
+
+function eraColor(id){return{blues:'#1e40af',ragtime:'#b45309',swing:'#0e7490',bebop:'#7c3aed',bossanova:'#059669',modal:'#9333ea',fusion:'#dc2626',cool:'#0369a1',hardbop:'#c2410c',freejazz:'#475569',latinjazz:'#ca8a04',smoothjazz:'#db2777'}[id]||'#64748b';}
 
 function renderCards(){
   const el=document.getElementById('styleCards');
-  el.innerHTML=STYLES.map(s=>{
-    const col=eraColor(s.id),isExp=expandedId===s.id;
+  let list=STYLES;
+  if(favOnly) list=list.filter(s=>s.performers.some(p=>isFavPerformer(s.id,p.name))||s.works.some(w=>isFavWork(s.id,w.name.en)));
+  if(favOnly && !list.length){
+    el.innerHTML=`<div class="no-fav-results">${lang==='ru'?'В избранном пока нет исполнителей и произведений':'No favorite performers or works yet'}</div>`;
+    return;
+  }
+  el.innerHTML=list.map(s=>{
+    const col=eraColor(s.id),isExp=favOnly?true:expandedId===s.id;
     const features=(s.features[lang]||s.features.ru).map(f=>`<span class="feature-tag">${f}</span>`).join('');
-    const performers=s.performers.map(p=>`<div class="performer-chip"><div class="performer-ini" style="background:${p.color}">${p.ini}</div><div class="performer-name">${p.name}</div></div>`).join('');
+    const performers=s.performers.map(p=>{
+      const isFav=isFavPerformer(s.id,p.name);
+      return `<div class="performer-chip"><div class="performer-ini" style="background:${p.color}">${p.ini}</div><div class="performer-name">${p.name}</div><button class="performer-fav${isFav?' active':''}" onclick="event.stopPropagation();toggleFavPerformer('${s.id}','${p.name.replace(/'/g,"\\'")}')" title="${lang==='ru'?'В избранное':'Add to favorites'}">${isFav?'★':'☆'}</button></div>`;
+    }).join('');
     const works=s.works.map(w=>{
       const ymUrl=YM[w.name.en]||'';
       const vkUrl=VK[w.name.en]||'';
@@ -575,7 +770,9 @@ function renderCards(){
       const mrBtn=`<a href="${mrUrl}" target="_blank" rel="noopener" class="mr-link-sm">🎵 Mail.ru</a>`;
       const ymBtn=ymUrl?`<a href="${ymUrl}" target="_blank" rel="noopener" class="ym-link">🎵 ${lang==='ru'?'Яндекс Музыка':'Yandex Music'}</a>`:'';
       const links=`<div class="work-links">${vkBtn}${mrBtn}${ymBtn}</div>`;
-      return `<div class="work-item"><div class="work-name">${w.name[lang]||w.name.ru}</div><div class="work-meta">${w.year} · ${w.who}</div><div class="work-desc">${w.desc[lang]||w.desc.ru}</div>${links}</div>`;
+      const isFavW=isFavWork(s.id,w.name.en);
+      const favBtn=`<button class="work-fav${isFavW?' active':''}" onclick="event.stopPropagation();toggleFavWork('${s.id}','${w.name.en.replace(/'/g,"\\'")}')" title="${lang==='ru'?'В избранное':'Add to favorites'}">${isFavW?'★':'☆'}</button>`;
+      return `<div class="work-item"><div class="work-item-top"><div class="work-name">${w.name[lang]||w.name.ru}</div>${favBtn}</div><div class="work-meta">${w.year} · ${w.who}</div><div class="work-desc">${w.desc[lang]||w.desc.ru}</div>${links}</div>`;
     }).join('');
     return `<div class="scard" id="sc-${s.id}">
       <div class="scard-header" onclick="toggleExpand('${s.id}')">
@@ -599,7 +796,24 @@ function renderCards(){
   }).join('');
 }
 
-function toggleExpand(id){expandedId=expandedId===id?null:id;renderCards();}
+function recordRecent(module,type,id,data){
+  try{
+    let arr=JSON.parse(localStorage.getItem('musicapp_recent')||'[]');
+    if(!Array.isArray(arr))arr=[];
+    arr=arr.filter(e=>!(e.module===module&&e.type===type&&e.id===id));
+    arr.unshift(Object.assign({module,type,id,ts:Date.now()},data));
+    if(arr.length>20)arr=arr.slice(0,20);
+    localStorage.setItem('musicapp_recent',JSON.stringify(arr));
+  }catch(e){}
+}
+function toggleExpand(id){
+  expandedId=expandedId===id?null:id;
+  if(expandedId===id){
+    const s=STYLES.find(x=>x.id===id);
+    if(s)recordRecent('jazz','style',id,{labelRu:s.name.ru,labelEn:s.name.en,subRu:s.period.ru,subEn:s.period.en,icon:s.emoji||'🎷',link:'джазовая-гармония/index.html#style-'+id});
+  }
+  renderCards();
+}
 
 function showModal(id){
   const s=STYLES.find(x=>x.id===id);
@@ -1312,15 +1526,30 @@ document.getElementById('langBtn').addEventListener('click',()=>{
   document.getElementById('hdrSub').textContent=lang==='ru'?'Стили, история, звучание':'Styles, history, sound';
   document.getElementById('introTitle').textContent=lang==='ru'?'🎷 Джазовая гармония':'🎷 Jazz Harmony';
   document.getElementById('introSub').textContent=lang==='ru'
-    ?'Семь главных стилей джаза — от блюзовых корней до электрического фьюжна. История каждого направления, характерные черты и живое звучание.'
-    :'Seven major jazz styles — from blues roots to electric fusion. The history of each direction, its key features, and its living sound.';
+    ?'Двенадцать главных стилей джаза — от блюзовых корней до электрического фьюжна и смус-джаза. История каждого направления, характерные черты и живое звучание.'
+    :'Twelve major jazz styles — from blues roots to electric fusion and smooth jazz. The history of each direction, its key features, and its living sound.';
   document.getElementById('tabStyles').textContent=lang==='ru'?'Стили':'Styles';
   document.getElementById('tabEx').textContent=lang==='ru'?'Задания':'Exercises';
+  updateFavToggleBtn();
   renderCards();
   if(activeMainTab==='exercises'){renderExTabs();renderExContent();}
 });
 
+updateFavToggleBtn();
 renderCards();
+
+(function(){
+  const m=location.hash.match(/^#style-(.+)$/);
+  if(!m)return;
+  const id=decodeURIComponent(m[1]);
+  if(!STYLES.some(s=>s.id===id))return;
+  expandedId=id;
+  renderCards();
+  setTimeout(()=>{
+    const el=document.getElementById('sc-'+id);
+    if(el&&el.scrollIntoView)el.scrollIntoView({behavior:'smooth',block:'center'});
+  },100);
+})();
 </script>
 </body>
 </html>

@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="ru" data-theme="light">
 <head>
+<script>(function(){try{var k='musicapp_visited',id='transposition';var v=JSON.parse(localStorage.getItem(k)||'[]');if(v.indexOf(id)===-1){v.push(id);localStorage.setItem(k,JSON.stringify(v));}}catch(e){}})();</script>
 <!-- Yandex.Metrika counter -->
 <script type="text/javascript">
     (function(m,e,t,r,i,k,a){
@@ -17,6 +18,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>Транспозиция</title>
 <meta name="theme-color" content="#1c3a8e">
+<script>(function(){var t=localStorage.getItem('musicapp_theme');var dark=t==='dark';document.documentElement.setAttribute('data-theme',dark?'dark':'light');})()</script>
 <style>
 :root{--bg:#f8fafc;--card:#fff;--text:#0f172a;--muted:#94a3b8;--border:#e2e8f0;
   --sl100:#f1f5f9;--sl200:#e2e8f0;--blue:#2563eb;--blue2:#1d4ed8;
@@ -38,9 +40,12 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
   color:var(--text);display:flex;align-items:center;gap:5px;}
 .hbtn:hover{background:var(--sl200);}
 .tabs{display:flex;gap:6px;margin-bottom:12px;background:var(--card);
-  padding:6px;border-radius:14px;border:1px solid var(--border);}
-.tab{flex:1;padding:8px;border:none;border-radius:10px;font-size:11px;font-weight:800;
-  cursor:pointer;background:none;color:var(--muted);transition:all .15s;}
+  padding:6px;border-radius:14px;border:1px solid var(--border);
+  overflow-x:auto;}
+.tabs::-webkit-scrollbar{height:3px;}
+.tabs::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px;}
+.tab{flex:0 0 auto;padding:8px 12px;border:none;border-radius:10px;font-size:11px;font-weight:800;
+  cursor:pointer;background:none;color:var(--muted);transition:all .15s;white-space:nowrap;}
 .tab.active{background:var(--blue);color:#fff;}
 .panel{display:none;background:var(--card);border:1px solid var(--border);
   border-radius:20px;padding:22px;box-shadow:var(--shadow);}
@@ -91,6 +96,19 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
 .quiz-next.show{display:block;}
 .info-tip{font-size:11px;color:var(--muted);line-height:1.5;margin-top:8px;
   padding:10px 12px;background:var(--sl100);border-radius:10px;}
+.mel-row{display:flex;gap:6px;justify-content:center;margin:14px 0;flex-wrap:wrap;}
+.mel-note{padding:8px 12px;background:var(--sl100);border-radius:10px;font-size:14px;font-weight:800;}
+.mel-choices{display:flex;flex-direction:column;gap:8px;margin-bottom:14px;}
+.mel-choice{display:flex;gap:6px;justify-content:center;padding:10px;border:2px solid var(--border);
+  border-radius:12px;background:var(--card);cursor:pointer;flex-wrap:wrap;transition:all .15s;}
+.mel-choice:hover:not(.correct):not(.wrong){border-color:var(--blue);}
+.mel-choice.correct{background:#dcfce7;border-color:var(--green);}
+.mel-choice.wrong{background:#fee2e2;border-color:var(--red);}
+[data-theme="dark"] .mel-choice.correct{background:#166534;}
+[data-theme="dark"] .mel-choice.wrong{background:#7f1d1d;}
+.sc2-v.blue{color:var(--blue);}
+.sc2-v.gold{color:#d97706;}
+[data-theme="dark"] .sc2-v.gold{color:#f59e0b;}
 </style>
 </head>
 <body>
@@ -120,7 +138,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
 <div class="tabs">
   <button class="tab active" id="tab0" onclick="showTab(0)"><span id="t0">Нота</span></button>
   <button class="tab" id="tab1" onclick="showTab(1)"><span id="t1">Гамма</span></button>
-  <button class="tab" id="tab2" onclick="showTab(2)"><span id="t2">Викторина</span></button>
+  <button class="tab" id="tab2" onclick="showTab(2)"><span id="t2">Мелодия</span></button>
+  <button class="tab" id="tab3" onclick="showTab(3)"><span id="t3">Инструменты</span></button>
+  <button class="tab" id="tab4" onclick="showTab(4)"><span id="t4">Викторина</span></button>
 </div>
 
 <!-- TAB 0: single note transposition -->
@@ -162,11 +182,39 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
   <div class="info-tip" id="scaleTip"></div>
 </div>
 
-<!-- TAB 2: quiz -->
+<!-- TAB 2: melody transposition -->
 <div class="panel" id="panel2">
+  <div class="score-row">
+    <div class="sc2"><div class="sc2-v g" id="mqsc">0</div><div class="sc2-l" id="mqslC">Верно</div></div>
+    <div class="sc2"><div class="sc2-v r" id="mqsw">0</div><div class="sc2-l" id="mqslW">Ошибки</div></div>
+  </div>
+  <div class="quiz-q" id="melQ"></div>
+  <div class="mel-row" id="melOrig"></div>
+  <div class="arrow">↓</div>
+  <div class="mel-choices" id="melChoices"></div>
+  <button class="quiz-next" id="melNext" onclick="nextMelody()"><span id="melNextTxt">Следующая →</span></button>
+  <div class="info-tip" id="melTip"></div>
+</div>
+
+<!-- TAB 3: transposing instruments -->
+<div class="panel" id="panel3">
+  <div class="score-row">
+    <div class="sc2"><div class="sc2-v g" id="iqsc">0</div><div class="sc2-l" id="iqslC">Верно</div></div>
+    <div class="sc2"><div class="sc2-v r" id="iqsw">0</div><div class="sc2-l" id="iqslW">Ошибки</div></div>
+  </div>
+  <div class="quiz-q" id="instrQ"></div>
+  <div class="choices" id="instrChoices"></div>
+  <button class="quiz-next" id="instrNext" onclick="nextInstrument()"><span id="instrNextTxt">Следующий →</span></button>
+  <div class="info-tip" id="instrTip"></div>
+</div>
+
+<!-- TAB 4: quiz -->
+<div class="panel" id="panel4">
   <div class="score-row">
     <div class="sc2"><div class="sc2-v g" id="qsc">0</div><div class="sc2-l" id="qslC">Верно</div></div>
     <div class="sc2"><div class="sc2-v r" id="qsw">0</div><div class="sc2-l" id="qslW">Ошибки</div></div>
+    <div class="sc2"><div class="sc2-v blue" id="qstreak">0</div><div class="sc2-l" id="qslS">Серия</div></div>
+    <div class="sc2"><div class="sc2-v gold" id="qbest">0</div><div class="sc2-l" id="qslB">Рекорд</div></div>
   </div>
   <div class="quiz-q" id="quizQ2"></div>
   <div class="choices" id="quizChoices2"></div>
@@ -204,6 +252,10 @@ const INTERVALS = [
   {semis:-4, ru:'б.3 вниз', en:'M3 down'},
   {semis:-5, ru:'ч.4 вниз', en:'P4 down'},
   {semis:-7, ru:'ч.5 вниз', en:'P5 down'},
+  {semis:-8, ru:'м.6 вниз', en:'m6 down'},
+  {semis:-9, ru:'б.6 вниз', en:'M6 down'},
+  {semis:-10,ru:'м.7 вниз', en:'m7 down'},
+  {semis:-11,ru:'б.7 вниз', en:'M7 down'},
   {semis:-12,ru:'Октава вниз', en:'Octave down'},
 ];
 
@@ -238,7 +290,34 @@ const KEYS = [
    notes:['F','G','A','B♭','C','D','E']},
 ];
 
-let lang='ru', quizScore2={c:0,w:0}, quizCorrect2=null;
+// Short melodies for the melody-transposition exercise (pitch-class indices, 0=C)
+const MELODIES = [
+  [0,4,7,4],
+  [2,5,9,7],
+  [4,7,11,9],
+  [7,11,2,0],
+  [9,0,4,2],
+  [0,2,4,0],
+  [5,9,0,7],
+  [7,9,11,7,4],
+];
+
+// Transposing instruments: semis = сколько добавить к написанной ноте, чтобы получить реально звучащую
+const TRANS_INSTR = [
+  {ru:'Труба (B♭)', en:'Trumpet (B♭)', semis:-2},
+  {ru:'Кларнет (B♭)', en:'Clarinet (B♭)', semis:-2},
+  {ru:'Кларнет (A)', en:'Clarinet (A)', semis:-3},
+  {ru:'Валторна (F)', en:'French Horn (F)', semis:-7},
+  {ru:'Английский рожок (F)', en:'English Horn (F)', semis:-7},
+  {ru:'Альт-саксофон (E♭)', en:'Alto Saxophone (E♭)', semis:-9},
+  {ru:'Тенор-саксофон (B♭)', en:'Tenor Saxophone (B♭)', semis:-2},
+];
+
+let lang=localStorage.getItem('musicapp_lang')||'ru', quizScore2={c:0,w:0}, quizCorrect2=null;
+let quizStreak=0, quizBestStreak=parseInt(localStorage.getItem('musicapp_transposition_best_streak')||'0',10)||0;
+let quizChosenVal=null;
+let melScore={c:0,w:0}, melCorrectIdx=null, melAnswered=false, melChosenIdx=null;
+let instrScore={c:0,w:0}, instrCorrect=null, instrChosenVal=null;
 
 /* ─── POPULATE SELECTS ───────────────────────────── */
 function populateSelects(){
@@ -293,63 +372,248 @@ function calcScale(){
   stEl.innerHTML=tk.notes.map((n,i)=>
     `<span class="sc${i===0?' root':' hi'}">${n}</span>`).join('');
 
-  // tip: semitone diff
+  // tip: semitone diff — показываем как более короткое направление (вверх или вниз)
   const diff=((tk.root-fk.root)%12+12)%12;
   const L=lang==='ru';
-  const iv=INTERVALS.find(x=>x.semis===diff);
-  const ivName=iv?iv[lang]:`+${diff} ${L?'пт':'st'}`;
-  document.getElementById('scaleTip').textContent=
-    L?`Транспозиция на ${ivName} вверх`:`Transposed up by ${ivName}`;
+  if(diff===0){
+    document.getElementById('scaleTip').textContent=L?'Тональности совпадают':'Same key';
+    return;
+  }
+  const down=diff>6; // если ближе вниз — покажем как спуск
+  const semis=down?diff-12:diff;
+  const iv=INTERVALS.find(x=>x.semis===semis);
+  const ivName=iv?iv[lang]:`${down?12-diff:diff} ${L?'пт':'st'}`;
+  document.getElementById('scaleTip').textContent=down
+    ?(L?`Транспозиция на ${ivName}`:`Transposed down by ${ivName.replace(/ down$/,'')}`)
+    :(L?`Транспозиция на ${ivName} вверх`:`Transposed up by ${ivName}`);
 }
 
-/* ─── TAB 2: QUIZ ────────────────────────────────── */
-function nextQuiz2(){
-  document.getElementById('quizNext2').classList.remove('show');
-  // random question: what note is X transposed by interval Y?
-  const noteIdx=Math.floor(Math.random()*12);
-  const ivIdx=Math.floor(Math.random()*8); // use first 8 intervals (up only)
-  const semis=INTERVALS[ivIdx].semis;
-  const resultIdx=((noteIdx+semis)%12+12)%12;
-  quizCorrect2=resultIdx;
+/* ─── TAB 2: MELODY TRANSPOSITION ───────────────── */
+function noteName(idx){ return lang==='ru'?NOTE_RU[idx]:NOTE_EN[idx]; }
+function transposeMelody(mel,semis){ return mel.map(n=>((n+semis)%12+12)%12); }
+function melodiesEqual(a,b){ return a.length===b.length && a.every((v,i)=>v===b[i]); }
 
+let curMel=null; // {mel, iv, dir, options} — параметры вопроса, не зависят от языка
+
+function nextMelody(){
+  melAnswered=false;
+  melChosenIdx=null;
+  const mel=MELODIES[Math.floor(Math.random()*MELODIES.length)];
+  const magnitudes=INTERVALS.filter(iv=>iv.semis>0&&iv.semis<=12); // величина интервала, направление — отдельно
+  const iv=magnitudes[Math.floor(Math.random()*magnitudes.length)];
+  const dir=Math.random()<0.5?1:-1; // 1 = вверх, -1 = вниз
+  const correct=transposeMelody(mel,iv.semis*dir);
+
+  const options=[correct];
+  let guard=0;
+  while(options.length<4&&guard<40){
+    guard++;
+    let variant;
+    const kind=Math.floor(Math.random()*4);
+    if(kind===0){
+      // неверная величина интервала, то же направление
+      const wrongIv=magnitudes[Math.floor(Math.random()*magnitudes.length)];
+      variant=transposeMelody(mel,wrongIv.semis*dir);
+    }else if(kind===1){
+      variant=correct.map((n,i)=>i%2===0?n:((n+1)%12));
+    }else if(kind===2){
+      variant=[...correct].reverse();
+    }else{
+      // верная величина, но неверное направление — проверяет внимание к вверх/вниз
+      variant=transposeMelody(mel,iv.semis*-dir);
+    }
+    if(!options.some(o=>melodiesEqual(o,variant)))options.push(variant);
+  }
+  options.sort(()=>Math.random()-.5);
+  melCorrectIdx=options.findIndex(o=>melodiesEqual(o,correct));
+  curMel={mel,iv,dir,options};
+  renderMelody();
+}
+
+// Перерисовывает текущий вопрос на активном языке — новых чисел не генерирует
+function renderMelody(){
+  if(!curMel)return;
   const L=lang==='ru';
-  const srcNote=L?NOTE_RU[noteIdx]:NOTE_EN[noteIdx];
-  const ivName=INTERVALS[ivIdx][lang];
-  document.getElementById('quizQ2').textContent=
-    L?`Нота ${srcNote} (${NOTE_EN[noteIdx]}) + ${ivName} = ?`
-     :`Note ${NOTE_EN[noteIdx]} + ${ivName} = ?`;
+  const {mel,iv,dir,options}=curMel;
+  document.getElementById('melQ').textContent=L
+    ?`Транспонируйте мелодию ${dir>0?'вверх':'вниз'} на ${iv.ru}`
+    :`Transpose the melody ${dir>0?'up':'down'} by ${iv.en}`;
+  document.getElementById('melOrig').innerHTML=mel.map(n=>`<span class="mel-note">${noteName(n)}</span>`).join('');
 
-  // choices
-  const wrong=[...Array(12).keys()].filter(x=>x!==resultIdx)
-    .sort(()=>Math.random()-.5).slice(0,3);
-  const choices=[resultIdx,...wrong].sort(()=>Math.random()-.5);
-  document.getElementById('quizChoices2').innerHTML=choices.map(ci=>{
-    const label=L?`${NOTE_RU[ci]} (${NOTE_EN[ci]})`:NOTE_EN[ci];
-    return `<button class="qc" data-val="${ci}" onclick="answerQuiz2(this)">${label}</button>`;
+  document.getElementById('melChoices').innerHTML=options.map((opt,i)=>{
+    let cls='mel-choice';
+    if(melAnswered&&i===melCorrectIdx)cls+=' correct';
+    else if(melAnswered&&i===melChosenIdx)cls+=' wrong';
+    return `<div class="${cls}" data-idx="${i}" onclick="answerMelody(this)">${opt.map(n=>`<span class="mel-note">${noteName(n)}</span>`).join('')}</div>`;
   }).join('');
+  document.getElementById('melTip').textContent=L
+    ?'Нажмите на вариант мелодии, который получится после транспонирования'
+    :'Click the melody option that results from the transposition';
+  document.getElementById('melNext').classList.toggle('show',melAnswered);
+}
+
+function answerMelody(el){
+  if(melAnswered)return;
+  melAnswered=true;
+  melChosenIdx=parseInt(el.dataset.idx);
+  if(melChosenIdx===melCorrectIdx)melScore.c++;else melScore.w++;
+  document.getElementById('mqsc').textContent=melScore.c;
+  document.getElementById('mqsw').textContent=melScore.w;
+  renderMelody();
+}
+
+/* ─── TAB 3: TRANSPOSING INSTRUMENTS ────────────── */
+let curInstr=null; // {instr, noteIdx, toSounding, choiceOrder}
+
+function nextInstrument(){
+  instrChosenVal=null;
+  const instr=TRANS_INSTR[Math.floor(Math.random()*TRANS_INSTR.length)];
+  const noteIdx=Math.floor(Math.random()*12);
+  const toSounding=Math.random()<0.5;
+  const resultIdx=toSounding
+    ?((noteIdx+instr.semis)%12+12)%12
+    :((noteIdx-instr.semis)%12+12)%12;
+  instrCorrect=resultIdx;
+  const wrong=[...Array(12).keys()].filter(x=>x!==resultIdx).sort(()=>Math.random()-.5).slice(0,3);
+  const choiceOrder=[resultIdx,...wrong].sort(()=>Math.random()-.5);
+  curInstr={instr,noteIdx,toSounding,choiceOrder};
+  renderInstrument();
+}
+
+function renderInstrument(){
+  if(!curInstr)return;
+  const L=lang==='ru';
+  const {instr,noteIdx,toSounding,choiceOrder}=curInstr;
+  const instrName=L?instr.ru:instr.en;
+  let questionText;
+  if(toSounding){
+    questionText=L
+      ?`${instrName}: написана нота ${NOTE_RU[noteIdx]} (${NOTE_EN[noteIdx]}). Какая нота звучит реально?`
+      :`${instrName}: the written note is ${NOTE_EN[noteIdx]}. What pitch actually sounds?`;
+  }else{
+    questionText=L
+      ?`${instrName}: реально звучит нота ${NOTE_RU[noteIdx]} (${NOTE_EN[noteIdx]}). Что нужно написать в партии?`
+      :`${instrName}: the sounding pitch is ${NOTE_EN[noteIdx]}. What should be written in the part?`;
+  }
+  document.getElementById('instrQ').textContent=questionText;
+  document.getElementById('instrTip').textContent=L
+    ?'Транспонирующие инструменты звучат не так, как написано в нотах'
+    :'Transposing instruments sound different from what is written';
+
+  const answered=instrChosenVal!==null;
+  document.getElementById('instrChoices').innerHTML=choiceOrder.map(ci=>{
+    const label=L?`${NOTE_RU[ci]} (${NOTE_EN[ci]})`:NOTE_EN[ci];
+    let cls='qc';
+    if(answered&&ci===instrCorrect)cls+=' correct';
+    else if(answered&&ci===instrChosenVal)cls+=' wrong';
+    return `<button class="${cls}" data-val="${ci}"${answered?' disabled':''} onclick="answerInstrument(this)">${label}</button>`;
+  }).join('');
+  document.getElementById('instrNext').classList.toggle('show',answered);
+}
+
+function answerInstrument(btn){
+  if(instrChosenVal!==null)return;
+  instrChosenVal=parseInt(btn.dataset.val);
+  if(instrChosenVal===instrCorrect){instrScore.c++;}else{instrScore.w++;}
+  document.getElementById('iqsc').textContent=instrScore.c;
+  document.getElementById('iqsw').textContent=instrScore.w;
+  renderInstrument();
+}
+
+/* ─── TAB 4: QUIZ (mixed, with streak) ──────────── */
+let curQuiz=null; // {kind, noteIdx, iv, resultIdx, choiceVals}
+
+function nextQuiz2(){
+  quizChosenVal=null;
+  const kind=Math.random()<0.6?'note':'interval';
+  if(kind==='note'){
+    const noteIdx=Math.floor(Math.random()*12);
+    const usable=INTERVALS.filter(iv=>Math.abs(iv.semis)<=12);
+    const iv=usable[Math.floor(Math.random()*usable.length)];
+    const resultIdx=((noteIdx+iv.semis)%12+12)%12;
+    const wrong=[...Array(12).keys()].filter(x=>x!==resultIdx).sort(()=>Math.random()-.5).slice(0,3);
+    const choiceVals=[resultIdx,...wrong].sort(()=>Math.random()-.5);
+    curQuiz={kind,noteIdx,iv,resultIdx,choiceVals};
+    quizCorrect2={type:'note',val:resultIdx};
+  }else{
+    const noteIdx=Math.floor(Math.random()*12);
+    const upOnly=INTERVALS.filter(iv=>iv.semis>0&&iv.semis<12);
+    const iv=upOnly[Math.floor(Math.random()*upOnly.length)];
+    const resultIdx=(noteIdx+iv.semis)%12;
+    const wrongIvs=upOnly.filter(x=>x.semis!==iv.semis).sort(()=>Math.random()-.5).slice(0,3);
+    const choiceVals=[iv,...wrongIvs].sort(()=>Math.random()-.5);
+    curQuiz={kind,noteIdx,iv,resultIdx,choiceVals};
+    quizCorrect2={type:'interval',val:iv.semis};
+  }
+  renderQuiz2();
+}
+
+function renderQuiz2(){
+  if(!curQuiz)return;
+  const L=lang==='ru';
+  const {kind,noteIdx,iv,resultIdx,choiceVals}=curQuiz;
+  const answered=quizChosenVal!==null;
+  if(kind==='note'){
+    const srcNote=L?NOTE_RU[noteIdx]:NOTE_EN[noteIdx];
+    const ivName=iv[lang];
+    document.getElementById('quizQ2').textContent=
+      L?`Нота ${srcNote} (${NOTE_EN[noteIdx]}) + ${ivName} = ?`
+       :`Note ${NOTE_EN[noteIdx]} + ${ivName} = ?`;
+    document.getElementById('quizChoices2').innerHTML=choiceVals.map(ci=>{
+      const label=L?`${NOTE_RU[ci]} (${NOTE_EN[ci]})`:NOTE_EN[ci];
+      let cls='qc';
+      if(answered&&ci===quizCorrect2.val)cls+=' correct';
+      else if(answered&&ci===quizChosenVal)cls+=' wrong';
+      return `<button class="${cls}" data-val="${ci}"${answered?' disabled':''} onclick="answerQuiz2(this)">${label}</button>`;
+    }).join('');
+  }else{
+    const srcNote=L?NOTE_RU[noteIdx]:NOTE_EN[noteIdx];
+    const dstNote=L?NOTE_RU[resultIdx]:NOTE_EN[resultIdx];
+    document.getElementById('quizQ2').textContent=
+      L?`${srcNote} (${NOTE_EN[noteIdx]}) → ${dstNote} (${NOTE_EN[resultIdx]}). Какой это интервал?`
+       :`${NOTE_EN[noteIdx]} → ${NOTE_EN[resultIdx]}. What interval is this?`;
+    document.getElementById('quizChoices2').innerHTML=choiceVals.map(ci=>{
+      let cls='qc';
+      if(answered&&ci.semis===quizCorrect2.val)cls+=' correct';
+      else if(answered&&ci.semis===quizChosenVal)cls+=' wrong';
+      return `<button class="${cls}" data-val="${ci.semis}"${answered?' disabled':''} onclick="answerQuiz2(this)">${ci[lang]}</button>`;
+    }).join('');
+  }
+  document.getElementById('quizNext2').classList.toggle('show',answered);
 }
 
 function answerQuiz2(btn){
-  const chosen=parseInt(btn.dataset.val);
-  document.querySelectorAll('#quizChoices2 .qc').forEach(b=>{
-    b.disabled=true;
-    if(parseInt(b.dataset.val)===quizCorrect2)b.classList.add('correct');
-    else if(b===btn&&chosen!==quizCorrect2)b.classList.add('wrong');
-  });
-  if(chosen===quizCorrect2){quizScore2.c++;}else{quizScore2.w++;}
+  if(quizChosenVal!==null)return;
+  quizChosenVal=parseInt(btn.dataset.val);
+  const correct=quizChosenVal===quizCorrect2.val;
+  if(correct){
+    quizScore2.c++;
+    quizStreak++;
+    if(quizStreak>quizBestStreak){
+      quizBestStreak=quizStreak;
+      localStorage.setItem('musicapp_transposition_best_streak',String(quizBestStreak));
+    }
+  }else{
+    quizScore2.w++;
+    quizStreak=0;
+  }
   document.getElementById('qsc').textContent=quizScore2.c;
   document.getElementById('qsw').textContent=quizScore2.w;
-  document.getElementById('quizNext2').classList.add('show');
-  if(chosen===quizCorrect2)setTimeout(nextQuiz2,1400);
+  document.getElementById('qstreak').textContent=quizStreak;
+  document.getElementById('qbest').textContent=quizBestStreak;
+  renderQuiz2();
+  if(correct)setTimeout(nextQuiz2,1400);
 }
 
 /* ─── TABS ───────────────────────────────────────── */
 function showTab(n){
-  for(let i=0;i<3;i++){
+  for(let i=0;i<5;i++){
     document.getElementById(`tab${i}`).classList.toggle('active',i===n);
     document.getElementById(`panel${i}`).classList.toggle('show',i===n);
   }
-  if(n===2&&!document.getElementById('quizQ2').textContent)nextQuiz2();
+  if(n===2&&!curMel)nextMelody();
+  if(n===3&&!curInstr)nextInstrument();
+  if(n===4&&!curQuiz)nextQuiz2();
 }
 
 /* ─── LANG / THEME ───────────────────────────────── */
@@ -359,7 +623,9 @@ function applyLang(){
   document.getElementById('hdrSub').textContent=L?'Перенос высоты':'Pitch Transfer';
   document.getElementById('t0').textContent=L?'Нота':'Note';
   document.getElementById('t1').textContent=L?'Гамма':'Scale';
-  document.getElementById('t2').textContent=L?'Викторина':'Quiz';
+  document.getElementById('t2').textContent=L?'Мелодия':'Melody';
+  document.getElementById('t3').textContent=L?'Инструменты':'Instruments';
+  document.getElementById('t4').textContent=L?'Викторина':'Quiz';
   document.getElementById('lNote0').textContent=L?'Исходная нота':'Source note';
   document.getElementById('lInterval').textContent=L?'Интервал':'Interval';
   document.getElementById('resultLabel').textContent=L?'результат':'result';
@@ -367,25 +633,40 @@ function applyLang(){
   document.getElementById('lKey2').textContent=L?'Целевая тональность':'Target key';
   document.getElementById('lOrigScale').textContent=L?'Исходная гамма':'Source scale';
   document.getElementById('lTransScale').textContent=L?'Транспонированная гамма':'Transposed scale';
+  document.getElementById('mqslC').textContent=L?'Верно':'Correct';
+  document.getElementById('mqslW').textContent=L?'Ошибки':'Errors';
+  document.getElementById('melNextTxt').textContent=L?'Следующая →':'Next →';
+  document.getElementById('iqslC').textContent=L?'Верно':'Correct';
+  document.getElementById('iqslW').textContent=L?'Ошибки':'Errors';
+  document.getElementById('instrNextTxt').textContent=L?'Следующий →':'Next →';
   document.getElementById('qslC').textContent=L?'Верно':'Correct';
   document.getElementById('qslW').textContent=L?'Ошибки':'Errors';
+  document.getElementById('qslS').textContent=L?'Серия':'Streak';
+  document.getElementById('qslB').textContent=L?'Рекорд':'Best';
   document.getElementById('qnTxt').textContent=L?'Следующий →':'Next →';
   const dk=document.documentElement.getAttribute('data-theme')==='dark';
   document.getElementById('themeText').textContent=dk?(L?'Светлая':'Light'):(L?'Тёмная':'Dark');
   populateSelects();
   calcNote();
   calcScale();
-  if(document.getElementById('quizQ2').textContent)nextQuiz2();
+  document.getElementById('qstreak').textContent=quizStreak;
+  document.getElementById('qbest').textContent=quizBestStreak;
+  // Перевод уже показанного вопроса — без генерации нового задания
+  renderMelody();
+  renderInstrument();
+  renderQuiz2();
 }
 
 document.getElementById('langBtn').addEventListener('click',()=>{
   lang=lang==='ru'?'en':'ru';
+  localStorage.setItem('musicapp_lang',lang);
   document.getElementById('langText').textContent=lang==='ru'?'RU':'EN';
   applyLang();
 });
 document.getElementById('themeBtn').addEventListener('click',()=>{
   const dk=document.documentElement.getAttribute('data-theme')==='dark';
   document.documentElement.setAttribute('data-theme',dk?'light':'dark');
+  localStorage.setItem('musicapp_theme',dk?'light':'dark');
   const L=lang==='ru';
   document.getElementById('themeText').textContent=dk?(L?'Тёмная':'Dark'):(L?'Светлая':'Light');
   document.getElementById('themeIco').innerHTML=dk
@@ -393,8 +674,10 @@ document.getElementById('themeBtn').addEventListener('click',()=>{
     :'<circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>';
 });
 
-populateSelects();
-calcNote();
-calcScale();
+document.getElementById('langText').textContent=lang==='ru'?'RU':'EN';
+applyLang();
+const __dk0=document.documentElement.getAttribute('data-theme')==='dark';
+document.getElementById('themeText').textContent=__dk0?(lang==='ru'?'Светлая':'Light'):(lang==='ru'?'Тёмная':'Dark');
+if(__dk0)document.getElementById('themeIco').innerHTML='<circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>';
 </script></body>
 </html>

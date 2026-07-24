@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="ru" data-theme="light">
 <head>
+<script>(function(){try{var k='musicapp_visited',id='quotes';var v=JSON.parse(localStorage.getItem(k)||'[]');if(v.indexOf(id)===-1){v.push(id);localStorage.setItem(k,JSON.stringify(v));}}catch(e){}})();</script>
 <!-- Yandex.Metrika counter -->
 <script type="text/javascript">
     (function(m,e,t,r,i,k,a){
@@ -527,6 +528,16 @@ DATA.forEach(c=>{
 let lang=localStorage.getItem('musicapp_lang')||'ru', filterEra='all', filterOrigin='all', filterTheme='all';
 let searchQ='', showFavOnly=false, quizMode=false;
 const favSet=new Set();
+function loadFavSet(){
+  try{
+    const raw=JSON.parse(localStorage.getItem('musicapp_quotes_favorites')||'[]');
+    if(Array.isArray(raw))raw.forEach(id=>favSet.add(id));
+  }catch(e){}
+}
+function saveFavSet(){
+  localStorage.setItem('musicapp_quotes_favorites',JSON.stringify([...favSet]));
+}
+loadFavSet();
 let quizScore={c:0,w:0}, quizIdx=null;
 
 const ERA_LABELS={
@@ -593,7 +604,7 @@ function render(){
     const eraLabel=(ERA_LABELS[q.era]||{})[lang]||q.era;
     const themeLabel=(THEME_LABELS[q.theme]||{})[lang]||q.theme;
     const originLabel=(ORIGIN_LABELS[q.origin]||{})[lang]||q.origin;
-    return `<div class="card era-${q.era}${faved?' faved':''}">
+    return `<div class="card era-${q.era}${faved?' faved':''}" id="q-${id}">
       <span class="origin-badge">${originLabel}</span>
       <div class="comp-row">
         <div class="avatar" style="background:${q.color}">${q.ini}</div>
@@ -613,8 +624,34 @@ function render(){
 }
 
 /* ─── FAVORITES ─────────────────────────────────────────────────────── */
+function favIndexSet(module,type,id,data){
+  try{
+    const idx=JSON.parse(localStorage.getItem('musicapp_fav_index')||'{}');
+    idx[module+':'+type+':'+id]=Object.assign({module,type,id,ts:Date.now()},data);
+    localStorage.setItem('musicapp_fav_index',JSON.stringify(idx));
+  }catch(e){}
+}
+function favIndexRemove(module,type,id){
+  try{
+    const idx=JSON.parse(localStorage.getItem('musicapp_fav_index')||'{}');
+    delete idx[module+':'+type+':'+id];
+    localStorage.setItem('musicapp_fav_index',JSON.stringify(idx));
+  }catch(e){}
+}
 function toggleFav(id){
-  if(favSet.has(id))favSet.delete(id);else favSet.add(id);
+  if(favSet.has(id)){
+    favSet.delete(id);
+    favIndexRemove('quotes','quote',id);
+  }else{
+    favSet.add(id);
+    const q=ALL_QUOTES.find(x=>qid(x)===id);
+    if(q){
+      const snippetRu=(q.ru||'').slice(0,60)+((q.ru||'').length>60?'…':'');
+      const snippetEn=(q.en||q.ru||'').slice(0,60)+((q.en||q.ru||'').length>60?'…':'');
+      favIndexSet('quotes','quote',id,{labelRu:snippetRu,labelEn:snippetEn,subRu:q.composer.ru,subEn:q.composer.en,icon:'💬',link:'цитаты/index.html#quote-'+id});
+    }
+  }
+  saveFavSet();
   render();
   const btn=document.getElementById('favBtn');
   btn.classList.toggle('fav-active',showFavOnly&&favSet.size>0);
@@ -788,5 +825,19 @@ document.getElementById('themeBtn').addEventListener('click',()=>{
 });
 
 applyLang();
+
+(function(){
+  const m=location.hash.match(/^#quote-(.+)$/);
+  if(!m)return;
+  const id=decodeURIComponent(m[1]);
+  setTimeout(()=>{
+    const el=document.getElementById('q-'+id);
+    if(!el)return;
+    if(el.scrollIntoView)el.scrollIntoView({behavior:'smooth',block:'center'});
+    el.style.outline='2px solid #f59e0b';
+    el.style.outlineOffset='2px';
+    setTimeout(()=>{el.style.outline='';el.style.outlineOffset='';},2000);
+  },100);
+})();
 </script></body>
 </html>
