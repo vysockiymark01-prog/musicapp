@@ -113,6 +113,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
 </head>
 <body>
 <div class="wrap">
+<a href="../index.html" id="backHomeLink" style="display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:800;text-decoration:none;opacity:.65;padding:5px 11px;border:1px solid rgba(128,128,128,.25);border-radius:10px;margin-bottom:8px;color:inherit;">← Главная</a>
 <div class="hdr">
   <div>
     <div class="hdr-title">🎹 <span id="hdrTitle">Транспозиция</span></div>
@@ -619,6 +620,7 @@ function showTab(n){
 /* ─── LANG / THEME ───────────────────────────────── */
 function applyLang(){
   const L=lang==='ru';
+  document.getElementById('backHomeLink').textContent=L?'← Главная':'← Home';
   document.getElementById('hdrTitle').textContent=L?'Транспозиция':'Transposition';
   document.getElementById('hdrSub').textContent=L?'Перенос высоты':'Pitch Transfer';
   document.getElementById('t0').textContent=L?'Нота':'Note';
