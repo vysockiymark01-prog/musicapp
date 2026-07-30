@@ -43,6 +43,15 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
   color:var(--text);display:flex;align-items:center;gap:4px;}
 .hbtn:hover{background:var(--sl200);}
 
+/* Category tabs */
+.hidden{display:none!important;}
+.cat-tabs{display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap;}
+.cat-tab{flex:1;min-width:88px;padding:9px 6px;border:1.5px solid var(--border);
+  background:var(--card);border-radius:12px;font-size:11px;font-weight:800;
+  cursor:pointer;color:var(--muted);transition:all .15s;text-transform:uppercase;
+  letter-spacing:.2px;}
+.cat-tab.active{background:#1c3a8e;border-color:#1c3a8e;color:#fff;}
+
 /* Instrument tabs */
 .seg{display:flex;background:var(--sl100);border-radius:14px;padding:4px;
   gap:3px;margin-bottom:14px;}
@@ -137,6 +146,14 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
   .str-btn{min-width:58px;padding:8px 8px;}
   .str-note{font-size:14px;}
 }
+
+/* Favorite instrument toggle */
+.fav-row{display:flex;justify-content:flex-end;margin:-6px 0 12px;}
+.fav-btn{width:34px;height:34px;border:1.5px solid var(--border);background:var(--card);
+  border-radius:10px;cursor:pointer;font-size:17px;color:var(--muted);
+  display:flex;align-items:center;justify-content:center;transition:all .15s;}
+.fav-btn:hover{border-color:#f59e0b;transform:scale(1.08);}
+.fav-btn.on{color:#f59e0b;border-color:#f59e0b;background:rgba(245,158,11,.12);}
 </style>
 </head>
 <body>
@@ -159,12 +176,31 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
   </div>
 </div>
 
-<!-- Instrument selector -->
-<div class="seg" id="instrSeg">
-  <button class="seg-btn active" data-instr="guitar"    id="iBtn0">Гитара</button>
-  <button class="seg-btn"        data-instr="balalaika" id="iBtn1">Балалайка</button>
-  <button class="seg-btn"        data-instr="domra"     id="iBtn2">Домра</button>
-  <button class="seg-btn"        data-instr="chromatic" id="iBtn3">Хром.</button>
+<!-- Category selector -->
+<div class="cat-tabs" id="catTabs">
+  <button class="cat-tab" data-cat="bowed"     id="catBowedBtn">Смычковые</button>
+  <button class="cat-tab active" data-cat="plucked"   id="catPluckedBtn">Щипковые</button>
+  <button class="cat-tab" data-cat="chromatic" id="catChromBtn">Хроматический</button>
+</div>
+
+<!-- Instrument selector: bowed -->
+<div class="seg hidden" id="instrSegBowed">
+  <button class="seg-btn active" data-instr="violin"     id="iBtn_violin">Скрипка</button>
+  <button class="seg-btn"        data-instr="viola"      id="iBtn_viola">Альт</button>
+  <button class="seg-btn"        data-instr="cello"      id="iBtn_cello">Виолончель</button>
+  <button class="seg-btn"        data-instr="contrabass" id="iBtn_contrabass">Контрабас</button>
+</div>
+
+<!-- Instrument selector: plucked -->
+<div class="seg" id="instrSegPlucked">
+  <button class="seg-btn active" data-instr="guitar"    id="iBtn_guitar">Гитара</button>
+  <button class="seg-btn"        data-instr="balalaika" id="iBtn_balalaika">Балалайка</button>
+  <button class="seg-btn"        data-instr="domra"     id="iBtn_domra">Домра</button>
+  <button class="seg-btn"        data-instr="ukulele"   id="iBtn_ukulele">Укулеле</button>
+</div>
+
+<div class="fav-row">
+  <button class="fav-btn" id="favInstrBtn" title="В избранное">♡</button>
 </div>
 
 <!-- Mode selector -->
@@ -281,7 +317,9 @@ const L = {
     micErrHint:'Разрешите доступ к микрофону в настройках браузера',
     selectStr:'Выберите струну',
     strLabel:'стр.',
-    iNames:['Гитара','Балалайка','Домра','Хром.'],
+    iNames:{ guitar:'Гитара', balalaika:'Балалайка', domra:'Домра', ukulele:'Укулеле',
+      violin:'Скрипка', viola:'Альт', cello:'Виолончель', contrabass:'Контрабас' },
+    catNames:{ bowed:'Смычковые', plucked:'Щипковые', chromatic:'Хроматический' },
     notes:['До','До♯','Ре','Ре♯','Ми','Фа','Фа♯','Соль','Соль♯','Ля','Ля♯','Си'],
   },
   en: {
@@ -294,10 +332,15 @@ const L = {
     micErrHint:'Allow microphone access in your browser settings',
     selectStr:'Select a string',
     strLabel:'str.',
-    iNames:['Guitar','Balalaika','Domra','Chrom.'],
+    iNames:{ guitar:'Guitar', balalaika:'Balalaika', domra:'Domra', ukulele:'Ukulele',
+      violin:'Violin', viola:'Viola', cello:'Cello', contrabass:'Contrabass' },
+    catNames:{ bowed:'Bowed', plucked:'Plucked', chromatic:'Chromatic' },
     notes:['C','C♯','D','D♯','E','F','F♯','G','G♯','A','A♯','B'],
   }
 };
+
+const INSTR_CATEGORIES = { bowed:['violin','viola','cello','contrabass'], plucked:['guitar','balalaika','domra','ukulele'] };
+const INSTR_ICONS = { guitar:'🎸', balalaika:'🎸', domra:'🎸', ukulele:'🎸', violin:'🎻', viola:'🎻', cello:'🎻', contrabass:'🎸' };
 
 /* ───────── INSTRUMENTS ───────── */
 // Each string: {midi, strNum, ru, en}
@@ -320,6 +363,36 @@ const INSTR = {
     {midi:69,strNum:1,ru:'Ля₄',  en:'A4'},
     {midi:62,strNum:2,ru:'Ре₄',  en:'D4'},
     {midi:55,strNum:3,ru:'Соль₃',en:'G3'},
+  ]},
+  ukulele:   { strings:[
+    {midi:67,strNum:1,ru:'Соль₄',en:'G4'},
+    {midi:60,strNum:2,ru:'До₄',  en:'C4'},
+    {midi:64,strNum:3,ru:'Ми₄',  en:'E4'},
+    {midi:69,strNum:4,ru:'Ля₄',  en:'A4'},
+  ]},
+  violin:    { strings:[
+    {midi:76,strNum:1,ru:'Ми₅',  en:'E5'},
+    {midi:69,strNum:2,ru:'Ля₄',  en:'A4'},
+    {midi:62,strNum:3,ru:'Ре₄',  en:'D4'},
+    {midi:55,strNum:4,ru:'Соль₃',en:'G3'},
+  ]},
+  viola:     { strings:[
+    {midi:69,strNum:1,ru:'Ля₄',  en:'A4'},
+    {midi:62,strNum:2,ru:'Ре₄',  en:'D4'},
+    {midi:55,strNum:3,ru:'Соль₃',en:'G3'},
+    {midi:48,strNum:4,ru:'До₃',  en:'C3'},
+  ]},
+  cello:     { strings:[
+    {midi:57,strNum:1,ru:'Ля₃',  en:'A3'},
+    {midi:50,strNum:2,ru:'Ре₃',  en:'D3'},
+    {midi:43,strNum:3,ru:'Соль₂',en:'G2'},
+    {midi:36,strNum:4,ru:'До₂',  en:'C2'},
+  ]},
+  contrabass:{ strings:[
+    {midi:43,strNum:1,ru:'Соль₂',en:'G2'},
+    {midi:38,strNum:2,ru:'Ре₂',  en:'D2'},
+    {midi:33,strNum:3,ru:'Ля₁',  en:'A1'},
+    {midi:28,strNum:4,ru:'Ми₁',  en:'E1'},
   ]},
   chromatic: { strings:[] },
 };
@@ -350,9 +423,67 @@ const CHROM_NOTES = [
 
 /* ───────── STATE ───────── */
 let lang = localStorage.getItem('musicapp_lang') || 'ru';
+let currentCat   = 'plucked';
 let currentInstr = 'guitar';
 let currentMode  = 'auto';
 let selectedStr  = null;
+
+/* ───────── FAVORITES ───────── */
+let tunerFavorites = [];
+function loadTunerFavorites() {
+  try {
+    const raw = JSON.parse(localStorage.getItem('musicapp_tuner_favorites') || '[]');
+    tunerFavorites = Array.isArray(raw) ? raw : [];
+  } catch(e) { tunerFavorites = []; }
+}
+function saveTunerFavorites() {
+  localStorage.setItem('musicapp_tuner_favorites', JSON.stringify(tunerFavorites));
+}
+function isFavTunerInstr(key) { return tunerFavorites.indexOf(key) !== -1; }
+function favIndexSet(module, type, id, data) {
+  try {
+    const idx = JSON.parse(localStorage.getItem('musicapp_fav_index') || '{}');
+    idx[module+':'+type+':'+id] = Object.assign({module, type, id, ts: Date.now()}, data);
+    localStorage.setItem('musicapp_fav_index', JSON.stringify(idx));
+  } catch(e) {}
+}
+function favIndexRemove(module, type, id) {
+  try {
+    const idx = JSON.parse(localStorage.getItem('musicapp_fav_index') || '{}');
+    delete idx[module+':'+type+':'+id];
+    localStorage.setItem('musicapp_fav_index', JSON.stringify(idx));
+  } catch(e) {}
+}
+function toggleFavInstr() {
+  if (currentInstr === 'chromatic') return;
+  const i = tunerFavorites.indexOf(currentInstr);
+  if (i === -1) {
+    tunerFavorites.push(currentInstr);
+    favIndexSet('tuner', 'instrument', currentInstr, {
+      labelRu: L.ru.iNames[currentInstr], labelEn: L.en.iNames[currentInstr],
+      subRu: 'Тюнер', subEn: 'Tuner',
+      icon: INSTR_ICONS[currentInstr] || '🎵',
+      link: 'тюнер/index.html#instr-' + currentInstr
+    });
+  } else {
+    tunerFavorites.splice(i, 1);
+    favIndexRemove('tuner', 'instrument', currentInstr);
+  }
+  saveTunerFavorites();
+  updateFavBtn();
+}
+function updateFavBtn() {
+  const btn = document.getElementById('favInstrBtn');
+  if (!btn) return;
+  const show = currentInstr !== 'chromatic';
+  btn.closest('.fav-row').style.display = show ? 'flex' : 'none';
+  if (show) {
+    const on = isFavTunerInstr(currentInstr);
+    btn.classList.toggle('on', on);
+    btn.textContent = on ? '♥' : '♡';
+    btn.title = lang === 'ru' ? (on ? 'Убрать из избранного' : 'В избранное') : (on ? 'Remove from favorites' : 'Add to favorites');
+  }
+}
 
 // Audio – auto mode
 let audioCtx   = null;
@@ -607,8 +738,6 @@ function playTone(str) {
   gainNode = audioCtx.createGain();
   gainNode.gain.setValueAtTime(0, t);
   gainNode.gain.linearRampToValueAtTime(0.5, t + 0.01);
-  gainNode.gain.setValueAtTime(0.5, t + 0.4);
-  gainNode.gain.exponentialRampToValueAtTime(0.001, t + 5);
   gainNode.connect(audioCtx.destination);
 
   oscNode = audioCtx.createOscillator();
@@ -616,7 +745,7 @@ function playTone(str) {
   oscNode.frequency.value = str.freq;
   oscNode.connect(gainNode);
   oscNode.start(t);
-  oscNode.stop(t + 5.1);
+  // Звучит непрерывно, пока пользователь не нажмёт «Стоп»
   playing = true;
   setPlayBtn(true);
   oscNode.onended = () => { playing = false; setPlayBtn(false); };
@@ -706,7 +835,21 @@ function setStrInfo(s) {
   freqEl.textContent = s.freq.toFixed(2) + ' ' + L[lang].hz;
 }
 
-/* ───────── INSTRUMENT / MODE SWITCH ───────── */
+/* ───────── CATEGORY / INSTRUMENT / MODE SWITCH ───────── */
+function pickCategory(cat) {
+  currentCat = cat;
+  document.querySelectorAll('.cat-tab').forEach(b =>
+    b.classList.toggle('active', b.dataset.cat === cat)
+  );
+  document.getElementById('instrSegBowed').classList.toggle('hidden', cat !== 'bowed');
+  document.getElementById('instrSegPlucked').classList.toggle('hidden', cat !== 'plucked');
+  if (cat === 'chromatic') {
+    pickInstr('chromatic');
+  } else if (!INSTR_CATEGORIES[cat].includes(currentInstr)) {
+    pickInstr(INSTR_CATEGORIES[cat][0]);
+  }
+}
+
 function pickInstr(key) {
   currentInstr = key;
   document.querySelectorAll('.seg-btn').forEach(b =>
@@ -715,6 +858,7 @@ function pickInstr(key) {
   buildHints();
   buildGrid();
   stopTone();
+  updateFavBtn();
 }
 
 function pickMode(mode) {
@@ -724,10 +868,10 @@ function pickMode(mode) {
   document.getElementById('autoPanel').style.display   = mode==='auto' ? 'block':'none';
   document.getElementById('manualPanel').style.display = mode==='manual' ? 'block':'none';
   // Chromatic has no reference strings — hide tab in manual mode
-  document.getElementById('iBtn3').style.display = mode==='manual' ? 'none' : '';
+  document.getElementById('catChromBtn').classList.toggle('hidden', mode==='manual');
   if (mode === 'manual') {
     stopListening();
-    if (currentInstr === 'chromatic') pickInstr('guitar');
+    if (currentInstr === 'chromatic') pickCategory('plucked');
   }
   if (mode === 'auto') stopTone();
 }
@@ -744,9 +888,13 @@ function applyLang() {
   document.getElementById('modeManual').textContent = Lc.modeManual;
   document.getElementById('micErrTitle').textContent= Lc.micErrTitle;
   document.getElementById('micErrHint').textContent = Lc.micErrHint;
-  ['guitar','balalaika','domra','chromatic'].forEach((k,i) =>
-    document.getElementById('iBtn'+i).textContent = Lc.iNames[i]
-  );
+  Object.keys(Lc.iNames).forEach(k => {
+    const el = document.getElementById('iBtn_'+k);
+    if (el) el.textContent = Lc.iNames[k];
+  });
+  document.getElementById('catBowedBtn').textContent   = Lc.catNames.bowed;
+  document.getElementById('catPluckedBtn').textContent = Lc.catNames.plucked;
+  document.getElementById('catChromBtn').textContent   = Lc.catNames.chromatic;
   setStartBtn(listening);
   setPlayBtn(playing);
   buildHints();
@@ -757,6 +905,7 @@ function applyLang() {
   if (statusEl && statusEl.classList.contains('c-muted')) {
     statusEl.textContent = Lc.silence;
   }
+  updateFavBtn();
 }
 
 /* ───────── EVENTS ───────── */
@@ -787,15 +936,31 @@ document.getElementById('playBtn').addEventListener('click', () => {
   else if (selectedStr) playTone(selectedStr);
 });
 
-document.getElementById('instrSeg').querySelectorAll('.seg-btn').forEach(btn =>
+document.querySelectorAll('.seg-btn').forEach(btn =>
   btn.addEventListener('click', () => pickInstr(btn.dataset.instr))
+);
+
+document.querySelectorAll('.cat-tab').forEach(btn =>
+  btn.addEventListener('click', () => pickCategory(btn.dataset.cat))
 );
 
 document.getElementById('modeAuto').addEventListener('click',   () => pickMode('auto'));
 document.getElementById('modeManual').addEventListener('click', () => pickMode('manual'));
 
+document.getElementById('favInstrBtn').addEventListener('click', toggleFavInstr);
+
 /* ───────── INIT ───────── */
+loadTunerFavorites();
 applyLang();
+
+// Deep-link из «Избранного»: #instr-violin и т.п.
+(function() {
+  const h = location.hash.replace('#instr-', '');
+  if (!h) return;
+  if (h === 'chromatic') { pickCategory('chromatic'); return; }
+  const cat = Object.keys(INSTR_CATEGORIES).find(c => INSTR_CATEGORIES[c].includes(h));
+  if (cat) { pickCategory(cat); pickInstr(h); }
+})();
 </script>
 </body>
 </html>

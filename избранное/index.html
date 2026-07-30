@@ -121,6 +121,7 @@ const CATS=[
   {key:'jazz:work',     ru:'Джазовые произведения',en:'Jazz works',      icon:'🎺'},
   {key:'glossary:term', ru:'Термины',             en:'Terms',            icon:'📖'},
   {key:'quotes:quote',  ru:'Цитаты',              en:'Quotes',           icon:'💬'},
+  {key:'tuner:instrument',  ru:'Тюнер: инструменты',        en:'Tuner: instruments',    icon:'🎸'},
 ];
 const REMOVE_MAP={
   'ml:composer':(id)=>{
@@ -152,6 +153,10 @@ const REMOVE_MAP={
   'quotes:quote':(id)=>{
     const raw=JSON.parse(localStorage.getItem('musicapp_quotes_favorites')||'[]');
     localStorage.setItem('musicapp_quotes_favorites',JSON.stringify((Array.isArray(raw)?raw:[]).filter(x=>x!==id)));
+  },
+  'tuner:instrument':(id)=>{
+    const raw=JSON.parse(localStorage.getItem('musicapp_tuner_favorites')||'[]');
+    localStorage.setItem('musicapp_tuner_favorites',JSON.stringify((Array.isArray(raw)?raw:[]).filter(x=>x!==id)));
   }
 };
 
@@ -216,6 +221,7 @@ function renderGrid(){
         <a href="../джазовая-гармония/index.html">🎷 ${lang==='ru'?'Джаз':'Jazz'}</a>
         <a href="../словарик терминов/index.html">📖 ${lang==='ru'?'Словарик':'Glossary'}</a>
         <a href="../цитаты/index.html">💬 ${lang==='ru'?'Цитаты':'Quotes'}</a>
+        <a href="../тюнер/index.html">🎸 ${lang==='ru'?'Тюнер':'Tuner'}</a>
       </div>
     </div>`;
     return;

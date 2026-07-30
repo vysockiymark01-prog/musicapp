@@ -183,6 +183,38 @@
             box-shadow: 0 4px 6px rgba(37, 99, 235, 0.2);
         }
 
+        .instr-cat-tabs {
+            display: flex;
+            gap: 6px;
+            background: var(--color-bg-card);
+            padding: 4px;
+            border-radius: 12px;
+            border: 1px solid var(--color-border);
+            margin-bottom: 8px;
+            box-shadow: var(--shadow-sm);
+            overflow-x: auto;
+        }
+
+        .instr-cat-tab {
+            flex: 0 0 auto;
+            padding: 9px 12px;
+            border: none;
+            background: none;
+            border-radius: 8px;
+            font-size: 9px;
+            font-weight: 900;
+            text-transform: uppercase;
+            color: var(--color-text-muted);
+            cursor: pointer;
+            white-space: nowrap;
+        }
+
+        .instr-cat-tab.active {
+            background: var(--color-blue-600);
+            color: white;
+            box-shadow: 0 4px 6px rgba(37, 99, 235, 0.2);
+        }
+
         .instrument-selector {
             display: flex;
             gap: 8px;
@@ -839,6 +871,25 @@
             border-color: var(--color-blue-600);
         }
 
+        .cello-clef-btn {
+            flex: 1;
+            padding: 8px 4px;
+            background: var(--color-bg-card);
+            border: 1px solid var(--color-border);
+            border-radius: 10px;
+            font-size: 10px;
+            font-weight: 900;
+            text-transform: uppercase;
+            color: var(--color-text-muted);
+            cursor: pointer;
+        }
+
+        .cello-clef-btn.active {
+            background: var(--color-blue-600);
+            color: white;
+            border-color: var(--color-blue-600);
+        }
+
         .mic-panel {
             background: var(--color-bg-card);
             border: 1px solid var(--color-border);
@@ -1431,11 +1482,32 @@
         </div>
 
         <div id="theoryContent">
-            <div class="instrument-selector">
+            <div class="instr-cat-tabs" id="instrCatTabs">
+                <button class="instr-cat-tab active" data-cat="keys" id="catKeysBtn">Клавишные</button>
+                <button class="instr-cat-tab" data-cat="bowed" id="catBowedBtn">Струнно-смычковые</button>
+                <button class="instr-cat-tab" data-cat="plucked" id="catPluckedBtn">Струнно-щипковые</button>
+            </div>
+            <div class="instrument-selector" id="instrSelKeys">
                 <button class="instrument-btn active" data-instr="piano" id="pianoBtn">Пианино</button>
+            </div>
+            <div class="instrument-selector hidden" id="instrSelBowed">
+                <button class="instrument-btn" data-instr="violin" id="violinBtn">Скрипка</button>
+                <button class="instrument-btn" data-instr="viola" id="violaBtn">Альт</button>
+                <button class="instrument-btn" data-instr="cello" id="celloBtn">Виолончель</button>
+                <button class="instrument-btn" data-instr="contrabass" id="contrabassBtn">Контрабас</button>
+            </div>
+            <div class="instrument-selector hidden" id="instrSelPlucked">
                 <button class="instrument-btn" data-instr="guitar" id="guitarBtn">Гитара</button>
                 <button class="instrument-btn" data-instr="balalaika" id="balalaika">Балалайка</button>
                 <button class="instrument-btn" data-instr="domra" id="domraBtn">Домра</button>
+                <button class="instrument-btn" data-instr="ukulele" id="ukuleleBtn">Укулеле</button>
+            </div>
+
+            <div class="test-level-row hidden" id="clefModeRow">
+                <button class="cello-clef-btn active" data-clef="auto" id="clefAutoBtn">Авто</button>
+                <button class="cello-clef-btn" data-clef="bass" id="clefBassBtn">Бас</button>
+                <button class="cello-clef-btn hidden" data-clef="tenor" id="clefTenorBtn">Тенор</button>
+                <button class="cello-clef-btn" data-clef="treble" id="clefTrebleBtn">Скрипичный</button>
             </div>
 
             <div class="staff-container">
@@ -1647,6 +1719,18 @@
                 guitar: 'Гитара',
                 balalaika: 'Балалайка',
                 domra: 'Домра',
+                violin: 'Скрипка',
+                viola: 'Альт',
+                cello: 'Виолончель',
+                contrabass: 'Контрабас',
+                ukulele: 'Укулеле',
+                catKeys: 'Клавишные',
+                catBowed: 'Струнно-смычковые',
+                catPlucked: 'Струнно-щипковые',
+                clefAuto: 'Авто',
+                clefBass: 'Бас',
+                clefTenor: 'Тенор',
+                clefTreble: 'Скрипичный',
                 testMode: 'Тест',
                 exit: 'Выход',
                 theory: 'Теория',
@@ -1695,6 +1779,18 @@
                 guitar: 'Guitar',
                 balalaika: 'Balalaika',
                 domra: 'Domra',
+                violin: 'Violin',
+                viola: 'Viola',
+                cello: 'Cello',
+                contrabass: 'Double Bass',
+                ukulele: 'Ukulele',
+                catKeys: 'Keyboard',
+                catBowed: 'Bowed Strings',
+                catPlucked: 'Plucked Strings',
+                clefAuto: 'Auto',
+                clefBass: 'Bass',
+                clefTenor: 'Tenor',
+                clefTreble: 'Treble',
                 testMode: 'Test',
                 exit: 'Exit',
                 theory: 'Theory',
@@ -1750,6 +1846,7 @@
         let isDark = localStorage.getItem('musicapp_theme')==='dark';
         let activeTab = 'theory';
         let instrMode = 'piano';
+        let clefMode = 'auto'; // 'auto' | 'bass' | 'tenor' | 'treble' — для виолончели и контрабаса
         let selectedNote = { note: 'C', octave: 4 };
         let showHint = false;
         let showKeyLabels = true;
@@ -1861,6 +1958,45 @@
                 addOsc(freq*4, 0.07, d * 0.33);
                 addOsc(freq*5, 0.03, d * 0.20);
 
+            } else if (instrMode === 'ukulele') {
+                // Укулеле: короткий звонкий нейлоновый щипок
+                const d = Math.max(duration, 0.55);
+                addNoise(freq * 5, 2.2, 'bandpass', 0.20, 0.020);
+                addOsc(freq,   0.32, d);
+                addOsc(freq*2, 0.16, d * 0.65);
+                addOsc(freq*3, 0.09, d * 0.42);
+                addOsc(freq*4, 0.04, d * 0.28);
+
+            } else if (['violin', 'viola', 'cello', 'contrabass'].includes(instrMode)) {
+                // Смычковые: протяжный тон смычка, медленная атака, лёгкое вибрато
+                const d = Math.max(duration, 1.1);
+                const osc = audioCtx.createOscillator();
+                osc.type = 'sawtooth';
+                osc.frequency.value = freq;
+
+                const vibrato = audioCtx.createOscillator();
+                vibrato.frequency.value = 5.5;
+                const vibratoGain = audioCtx.createGain();
+                vibratoGain.gain.value = freq * 0.006;
+                vibrato.connect(vibratoGain);
+                vibratoGain.connect(osc.frequency);
+
+                const filt = audioCtx.createBiquadFilter();
+                filt.type = 'lowpass';
+                filt.frequency.value = freq * 4.5;
+
+                const g = audioCtx.createGain();
+                g.gain.setValueAtTime(0, now);
+                g.gain.linearRampToValueAtTime(0.28, now + 0.09);
+                g.gain.setValueAtTime(0.28, now + Math.max(d - 0.15, 0.09));
+                g.gain.exponentialRampToValueAtTime(0.0001, now + d);
+
+                osc.connect(filt); filt.connect(g); g.connect(audioCtx.destination);
+                osc.start(now); osc.stop(now + d + 0.05);
+                vibrato.start(now); vibrato.stop(now + d + 0.05);
+                created.push({ osc, gain: g });
+                created.push({ osc: vibrato, gain: vibratoGain });
+
             } else {
                 // Пианино: классический треугольный осциллятор
                 const osc = audioCtx.createOscillator();
@@ -1914,9 +2050,61 @@
             updateUI();
         }
 
+        // Инструменты с единственным ключом (без авто-переключения по октаве, как у пианино)
+        const CLEF_ONLY = { guitar: 'treble', domra: 'treble', balalaika: 'treble', violin: 'treble', ukulele: 'treble', viola: 'alto' };
+
+        // Таблицы позиций нот (relativeY) для каждого ключа. Линии стана всегда на 0,10,20,30,40.
+        const TREBLE_MAP = {
+            2: { 'C': 120, 'D': 115, 'E': 110, 'F': 105, 'G': 100, 'A': 95, 'B': 90 },
+            3: { 'C': 85, 'D': 80, 'E': 75, 'F': 70, 'G': 65, 'A': 60, 'B': 55 },
+            4: { 'C': 50, 'D': 45, 'E': 40, 'F': 35, 'G': 30, 'A': 25, 'B': 20 },
+            5: { 'C': 15, 'D': 10, 'E': 5, 'F': 0, 'G': -5, 'A': -10, 'B': -15 },
+            6: { 'C': -20, 'D': -25, 'E': -30, 'F': -35, 'G': -40, 'A': -45, 'B': -50 }
+        };
+        const BASS_MAP = {
+            2: { 'C': 60, 'D': 55, 'E': 50, 'F': 45, 'G': 40, 'A': 35, 'B': 30 },
+            3: { 'C': 25, 'D': 20, 'E': 15, 'F': 10, 'G': 5, 'A': 0, 'B': -5 },
+            4: { 'C': -10, 'D': -15, 'E': -20, 'F': -25, 'G': -30, 'A': -35, 'B': -40 },
+            5: { 'C': -45, 'D': -50, 'E': -55, 'F': -60, 'G': -65, 'A': -70, 'B': -75 }
+        };
+        // До (C4) — на средней линии альтового ключа
+        const ALTO_MAP = {
+            2: { 'C': 90, 'D': 85, 'E': 80, 'F': 75, 'G': 70, 'A': 65, 'B': 60 },
+            3: { 'C': 55, 'D': 50, 'E': 45, 'F': 40, 'G': 35, 'A': 30, 'B': 25 },
+            4: { 'C': 20, 'D': 15, 'E': 10, 'F': 5, 'G': 0, 'A': -5, 'B': -10 },
+            5: { 'C': -15, 'D': -20, 'E': -25, 'F': -30, 'G': -35, 'A': -40, 'B': -45 },
+            6: { 'C': -50, 'D': -55, 'E': -60, 'F': -65, 'G': -70, 'A': -75, 'B': -80 }
+        };
+        // Теноровый ключ — та же C-скрипка, что и альтовый, но на одну линию выше (До на 4-й линии снизу)
+        const TENOR_MAP = {};
+        Object.keys(ALTO_MAP).forEach(oct => {
+            TENOR_MAP[oct] = {};
+            Object.keys(ALTO_MAP[oct]).forEach(n => { TENOR_MAP[oct][n] = ALTO_MAP[oct][n] - 10; });
+        });
+        const NOTE_MAPS = { treble: TREBLE_MAP, bass: BASS_MAP, alto: ALTO_MAP, tenor: TENOR_MAP };
+
+        const CLEF_SYMBOLS = {
+            treble: { symbol: '𝄞', size: 58, x: 30, y: 38 },
+            bass:   { symbol: '𝄢', size: 52, x: 30, y: 38 },
+            alto:   { symbol: '𝄡', size: 46, x: 28, y: 40 },
+            tenor:  { symbol: '𝄡', size: 46, x: 28, y: 30 }
+        };
+
+        // Универсальный расчёт добавочных линий: staff line'ы всегда на 0,10,20,30,40
+        function computeLedgers(relativeY) {
+            const ledgers = [];
+            for (let l = 50; relativeY >= l; l += 10) ledgers.push(l);
+            for (let l = -10; relativeY <= l; l -= 10) ledgers.push(l);
+            return ledgers;
+        }
+
         function drawStaff(svgId, note, octave, isComposer = false, composerNotesList = []) {
             const svg = document.getElementById(svgId);
-            const isFolkInstrument = ['guitar', 'domra', 'balalaika'].includes(instrMode);
+            // singleClef: 'treble' | 'alto' | 'tenor' | 'bass' — только один стан; null — дуальный режим (пианино и т.п.), как в composer
+            let singleClef = isComposer ? null : (CLEF_ONLY[instrMode] || null);
+            if (!isComposer && (instrMode === 'cello' || instrMode === 'contrabass') && clefMode !== 'auto') {
+                singleClef = clefMode;
+            }
             const staffWidth = isComposer ? Math.max(300, 120 + composerNotesList.length * 70) : 300;
             // Treble staff starts at y=120, bass at y=220 — gives 120px headroom for high notes
             svg.setAttribute('viewBox', `0 0 ${staffWidth} 300`);
@@ -1928,18 +2116,28 @@
             const colors = getStaffColors();
             let html = '';
 
-            html += '<g transform="translate(0, 120)">';
-            for (let i = 0; i < 5; i++) {
-                html += `<line x1="20" y1="${i * 10}" x2="${staffWidth - 20}" y2="${i * 10}" stroke="${colors.staffLine}" stroke-width="1.5"/>`;
-            }
-            html += `<text x="30" y="38" font-size="58" fill="${colors.clef}" font-family="serif">𝄞</text>`;
-            html += '</g>';
-
-            if (!isFolkInstrument || isComposer) {
-                html += '<g transform="translate(0, 220)">';
+            function staffLines() {
+                let h = '';
                 for (let i = 0; i < 5; i++) {
-                    html += `<line x1="20" y1="${i * 10}" x2="${staffWidth - 20}" y2="${i * 10}" stroke="${colors.staffLine}" stroke-width="1.5"/>`;
+                    h += `<line x1="20" y1="${i * 10}" x2="${staffWidth - 20}" y2="${i * 10}" stroke="${colors.staffLine}" stroke-width="1.5"/>`;
                 }
+                return h;
+            }
+
+            if (singleClef && CLEF_SYMBOLS[singleClef]) {
+                const c = CLEF_SYMBOLS[singleClef];
+                html += '<g transform="translate(0, 120)">';
+                html += staffLines();
+                html += `<text x="${c.x}" y="${c.y}" font-size="${c.size}" fill="${colors.clef}" font-family="serif">${c.symbol}</text>`;
+                html += '</g>';
+            } else {
+                html += '<g transform="translate(0, 120)">';
+                html += staffLines();
+                html += `<text x="30" y="38" font-size="58" fill="${colors.clef}" font-family="serif">𝄞</text>`;
+                html += '</g>';
+
+                html += '<g transform="translate(0, 220)">';
+                html += staffLines();
                 html += `<text x="30" y="38" font-size="52" fill="${colors.clef}" font-family="serif">𝄢</text>`;
                 html += '</g>';
                 html += `<path d="M 25 120 Q 10 175 25 260" fill="none" stroke="${colors.staffLine}" stroke-width="2"/>`;
@@ -1948,9 +2146,9 @@
             function renderNote(noteObj, xOffset) {
                 const { note: noteName, octave: noteOct, type } = noteObj;
                 const color = colors.note;
-                const activeKey = isComposer ? (noteOct < 4 ? 'bass' : 'treble') : (isFolkInstrument ? 'treble' : (noteOct < 4 ? 'bass' : 'treble'));
-                const isBass = activeKey === 'bass';
-                const staffY = isBass ? 220 : 120;
+                const clefUsed = singleClef || (noteOct < 4 ? 'bass' : 'treble');
+                const isBass = clefUsed === 'bass';
+                const staffY = (isBass && singleClef !== 'bass') ? 220 : 120;
 
                 if (noteObj.isPause) {
                     const pauseY = staffY + 20;
@@ -1962,34 +2160,9 @@
                 }
 
                 const cleanN = noteName.replace('#', '');
-                let relativeY = 30;
-                let ledgerLines = [];
-
-                if (isBass) {
-                    const bassMap = {
-                        2: { 'C': 60, 'D': 55, 'E': 50, 'F': 45, 'G': 40, 'A': 35, 'B': 30 },
-                        3: { 'C': 25, 'D': 20, 'E': 15, 'F': 10, 'G': 5, 'A': 0, 'B': -5 },
-                        4: { 'C': -10 }
-                    };
-                    // FIX: use !== undefined to correctly handle relativeY = 0
-                    relativeY = (bassMap[noteOct] && bassMap[noteOct][cleanN] !== undefined) ? bassMap[noteOct][cleanN] : 30;
-                    if (relativeY >= 50) ledgerLines.push(50);
-                    if (relativeY >= 60) ledgerLines.push(60);
-                    if (relativeY <= -10) ledgerLines.push(-10);
-                } else {
-                    const trebleMap = {
-                        2: { 'C': 120, 'D': 115, 'E': 110, 'F': 105, 'G': 100, 'A': 95, 'B': 90 },
-                        3: { 'C': 85, 'D': 80, 'E': 75, 'F': 70, 'G': 65, 'A': 60, 'B': 55 },
-                        4: { 'C': 50, 'D': 45, 'E': 40, 'F': 35, 'G': 30, 'A': 25, 'B': 20 },
-                        5: { 'C': 15, 'D': 10, 'E': 5, 'F': 0, 'G': -5, 'A': -10, 'B': -15 },
-                        6: { 'C': -20, 'D': -25, 'E': -30, 'F': -35, 'G': -40, 'A': -45, 'B': -50 }
-                    };
-                    // FIX: use !== undefined to correctly handle relativeY = 0 (Fa/F in 2nd octave = octave 5 in code)
-                    relativeY = (trebleMap[noteOct] && trebleMap[noteOct][cleanN] !== undefined) ? trebleMap[noteOct][cleanN] : 30;
-                    [50, 60, 70, 80, 90, 100, 110, 120, -10, -20, -30, -40, -50].forEach(l => {
-                        if ((l > 0 && relativeY >= l) || (l < 0 && relativeY <= l)) ledgerLines.push(l);
-                    });
-                }
+                const map = NOTE_MAPS[clefUsed];
+                const relativeY = (map[noteOct] && map[noteOct][cleanN] !== undefined) ? map[noteOct][cleanN] : 30;
+                const ledgerLines = computeLedgers(relativeY);
 
                 const absY = staffY + relativeY;
                 const stemUp = isBass ? (relativeY > 15) : (relativeY > 20);
@@ -2088,14 +2261,22 @@
             });
         }
 
+        const FRETBOARD_CONFIG = {
+            guitar:     { strings: [{ note: 'E', octave: 5 }, { note: 'B', octave: 4 }, { note: 'G', octave: 4 }, { note: 'D', octave: 4 }, { note: 'A', octave: 3 }, { note: 'E', octave: 3 }], frets: 19, markers: [3,5,7,9,12,15,17,19] },
+            balalaika:  { strings: [{ note: 'A', octave: 4 }, { note: 'E', octave: 4 }, { note: 'E', octave: 4 }], frets: 24, markers: [3,5,7,9,12,15,17,19,21] },
+            domra:      { strings: [{ note: 'D', octave: 5 }, { note: 'A', octave: 4 }, { note: 'E', octave: 4 }], frets: 14, markers: [3,5,7,9,12] },
+            ukulele:    { strings: [{ note: 'G', octave: 4 }, { note: 'C', octave: 4 }, { note: 'E', octave: 4 }, { note: 'A', octave: 4 }], frets: 15, markers: [3,5,7,9,12,15] },
+            violin:     { strings: [{ note: 'E', octave: 5 }, { note: 'A', octave: 4 }, { note: 'D', octave: 4 }, { note: 'G', octave: 3 }], frets: 15, markers: [3,5,7,9,12,15] },
+            viola:      { strings: [{ note: 'A', octave: 4 }, { note: 'D', octave: 4 }, { note: 'G', octave: 3 }, { note: 'C', octave: 3 }], frets: 19, markers: [3,5,7,9,12,15,17,19] },
+            cello:      { strings: [{ note: 'A', octave: 3 }, { note: 'D', octave: 3 }, { note: 'G', octave: 2 }, { note: 'C', octave: 2 }], frets: 12, markers: [3,5,7,9,12] },
+            contrabass: { strings: [{ note: 'G', octave: 3 }, { note: 'D', octave: 3 }, { note: 'A', octave: 2 }, { note: 'E', octave: 2 }], frets: 16, markers: [3,5,7,9,12,15] }
+        };
+
         function createFretboard() {
             const container = document.getElementById('fretboard');
-            const strings = instrMode === 'guitar' ?
-                [{ note: 'E', octave: 5 }, { note: 'B', octave: 4 }, { note: 'G', octave: 4 }, { note: 'D', octave: 4 }, { note: 'A', octave: 3 }, { note: 'E', octave: 3 }] :
-                instrMode === 'balalaika' ?
-                [{ note: 'A', octave: 4 }, { note: 'E', octave: 4 }, { note: 'E', octave: 4 }] :
-                [{ note: 'D', octave: 5 }, { note: 'A', octave: 4 }, { note: 'E', octave: 4 }];
-            const fretsCount = instrMode === 'balalaika' ? 24 : (instrMode === 'domra' ? 14 : 19);
+            const cfg = FRETBOARD_CONFIG[instrMode] || FRETBOARD_CONFIG.guitar;
+            const strings = cfg.strings;
+            const fretsCount = cfg.frets;
             const fretWidth = 70;
 
             container.style.width = (fretsCount + 1) * fretWidth + 100 + 'px';
@@ -2109,8 +2290,7 @@
             }
 
             // Метки на ладах
-            const markerFrets = instrMode === 'balalaika' ? [3,5,7,9,12,15,17,19,21] :
-                                 instrMode === 'domra'     ? [3,5,7,9,12] : [3,5,7,9,12,15,17,19];
+            const markerFrets = cfg.markers;
             const totalStrH = strings.length * 40;
             const centerY  = totalStrH / 2 + 30;
             const thirdY   = totalStrH / 3 + 30;
@@ -2205,6 +2385,18 @@
             return (octave + 1) * 12 + NOTES.indexOf(note);
         }
 
+        // Нижняя открытая струна для инструментов, использующих гриф без ладов + укулеле
+        const STRING_TEST_RANGE = {
+            violin:     { note: 'G', octave: 3 },
+            viola:      { note: 'C', octave: 3 },
+            ukulele:    { note: 'C', octave: 4 },
+        };
+        // Явный "потолок" для продвинутого уровня, когда формула +24 п/т не подходит
+        // (верхняя нота альта — ми 3-й октавы, реальный практический предел)
+        const ADVANCED_CAP_OVERRIDE = {
+            viola: { note: 'E', octave: 6 },
+        };
+
         function getInstrTestRange() {
             if (instrMode === 'balalaika' || instrMode === 'domra') {
                 // Lowest open string: E4; cap per level
@@ -2214,6 +2406,31 @@
                 // Lowest open string: E3; cap per level
                 const maxMidis = [noteToMidi('B', 3), noteToMidi('B', 4), noteToMidi('B', 5)];
                 return { minMidi: noteToMidi('E', 3), maxMidi: maxMidis[testLevel] };
+            } else if (instrMode === 'contrabass') {
+                // Реальный диапазон контрабаса — около 4 октав, E1-h1 звучания = E2-B5 написано
+                // (контрабас звучит на октаву ниже написанного)
+                const ranges = [
+                    { minMidi: noteToMidi('E', 2), maxMidi: noteToMidi('B', 2) },  // начальный
+                    { minMidi: noteToMidi('E', 2), maxMidi: noteToMidi('E', 4) },  // средний
+                    { minMidi: noteToMidi('E', 2), maxMidi: noteToMidi('B', 4) },  // продвинутый — до си 1-й октавы (конец грифа)
+                ];
+                return ranges[testLevel];
+            } else if (instrMode === 'cello') {
+                // Реальный практический диапазон виолончели — до большой октавы до ля первой (C2-A4)
+                const ranges = [
+                    { minMidi: noteToMidi('C', 2), maxMidi: noteToMidi('G', 2) },  // начальный
+                    { minMidi: noteToMidi('C', 2), maxMidi: noteToMidi('C', 4) },  // средний
+                    { minMidi: noteToMidi('C', 2), maxMidi: noteToMidi('A', 4) },  // продвинутый (весь диапазон)
+                ];
+                return ranges[testLevel];
+            } else if (STRING_TEST_RANGE[instrMode]) {
+                // Смычковые и укулеле: диапазон от нижней открытой струны, +7/+12 п/т по уровню
+                const { note, octave } = STRING_TEST_RANGE[instrMode];
+                const minMidi = noteToMidi(note, octave);
+                const override = ADVANCED_CAP_OVERRIDE[instrMode];
+                const advancedMax = override ? noteToMidi(override.note, override.octave) : minMidi + 24;
+                const maxMidis = [minMidi + 7, minMidi + 12, advancedMax];
+                return { minMidi, maxMidi: maxMidis[testLevel] };
             } else {
                 // Piano: диапазон по уровню
                 const ranges = [
@@ -2487,6 +2704,14 @@
             document.getElementById('guitarBtn').textContent = t.guitar;
             document.getElementById('balalaika').textContent = t.balalaika;
             document.getElementById('domraBtn').textContent = t.domra;
+            document.getElementById('violinBtn').textContent = t.violin;
+            document.getElementById('violaBtn').textContent = t.viola;
+            document.getElementById('celloBtn').textContent = t.cello;
+            document.getElementById('contrabassBtn').textContent = t.contrabass;
+            document.getElementById('ukuleleBtn').textContent = t.ukulele;
+            document.getElementById('catKeysBtn').textContent = t.catKeys;
+            document.getElementById('catBowedBtn').textContent = t.catBowed;
+            document.getElementById('catPluckedBtn').textContent = t.catPlucked;
             document.getElementById('testModeText').textContent = isTestMode ? t.exit : t.testMode;
             document.getElementById('hintBtnText').textContent = t.hint;
             document.getElementById('labelsBtnText').textContent = t.noteLabels;
@@ -2535,6 +2760,21 @@
                 document.getElementById('fretboardContainer').classList.remove('hidden');
                 createFretboard();
             }
+
+            const clefModeRow = document.getElementById('clefModeRow');
+            const clefModeApplies = instrMode === 'cello' || instrMode === 'contrabass';
+            if (clefModeRow) clefModeRow.classList.toggle('hidden', !clefModeApplies);
+            if (!clefModeApplies) clefMode = 'auto';
+            else if (instrMode === 'cello' && clefMode === 'tenor') clefMode = 'auto'; // тенор недоступен виолончели в UI
+            const tenorBtn = document.getElementById('clefTenorBtn');
+            if (tenorBtn) tenorBtn.classList.toggle('hidden', instrMode !== 'contrabass');
+            document.getElementById('clefAutoBtn').textContent = t.clefAuto;
+            document.getElementById('clefBassBtn').textContent = t.clefBass;
+            document.getElementById('clefTenorBtn').textContent = t.clefTenor;
+            document.getElementById('clefTrebleBtn').textContent = t.clefTreble;
+            document.querySelectorAll('#clefModeRow .cello-clef-btn').forEach(b => {
+                b.classList.toggle('active', b.dataset.clef === clefMode);
+            });
         }
 
         function createWavBlob(notes, sampleRate = 44100) {
@@ -2739,6 +2979,28 @@
                 });
             });
 
+            const INSTR_CATEGORIES = {
+                keys: ['piano'],
+                bowed: ['violin', 'viola', 'cello', 'contrabass'],
+                plucked: ['guitar', 'balalaika', 'domra', 'ukulele']
+            };
+            document.querySelectorAll('.instr-cat-tab').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const cat = btn.dataset.cat;
+                    document.querySelectorAll('.instr-cat-tab').forEach(b => b.classList.toggle('active', b === btn));
+                    document.getElementById('instrSelKeys').classList.toggle('hidden', cat !== 'keys');
+                    document.getElementById('instrSelBowed').classList.toggle('hidden', cat !== 'bowed');
+                    document.getElementById('instrSelPlucked').classList.toggle('hidden', cat !== 'plucked');
+                    if (!INSTR_CATEGORIES[cat].includes(instrMode)) {
+                        instrMode = INSTR_CATEGORIES[cat][0];
+                        document.querySelectorAll('.instrument-btn').forEach(b =>
+                            b.classList.toggle('active', b.dataset.instr === instrMode)
+                        );
+                    }
+                    updateUI();
+                });
+            });
+
             document.getElementById('testModeBtn').addEventListener('click', () => {
                 isTestMode = !isTestMode;
                 if (isTestMode) generateNewTestNote();
@@ -2756,6 +3018,13 @@
 
             document.getElementById('micToggleBtn').addEventListener('click', toggleMic);
 
+            document.querySelectorAll('#clefModeRow .cello-clef-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    clefMode = btn.dataset.clef;
+                    updateUI();
+                });
+            });
+
             document.getElementById('hintBtn').addEventListener('click', () => {
                 showHint = !showHint;
                 updateUI();
@@ -2767,7 +3036,7 @@
             });
 
             document.getElementById('pianoScroll').addEventListener('input', (e) => {
-                if (['guitar', 'balalaika', 'domra'].includes(instrMode)) {
+                if (instrMode !== 'piano') {
                     const fb = document.getElementById('fretboardContainer');
                     const maxScroll = fb.scrollWidth - fb.clientWidth;
                     fb.scrollLeft = (e.target.value / 100) * maxScroll;
