@@ -18,6 +18,7 @@
 <title>Музыкальное приложение</title>
 <meta name="theme-color" content="#1c3a8e">
 <script>(function(){var t=localStorage.getItem('musicapp_theme');var dark=t==='dark';document.documentElement.setAttribute('data-theme',dark?'dark':'light');})()</script>
+<script>(function(){try{var SK='musicapp_streak';var td=new Date();td.setHours(0,0,0,0);var ts=td.getFullYear()+'-'+(td.getMonth()+1)+'-'+td.getDate();var s=JSON.parse(localStorage.getItem(SK)||'{"count":0,"longest":0,"last":null}');if(s.last!==ts){var dd=null;if(s.last){var pp=s.last.split('-').map(Number);var ld=new Date(pp[0],pp[1]-1,pp[2]);dd=Math.round((td-ld)/86400000);}s.count=(dd===1)?s.count+1:1;s.last=ts;if(s.count>s.longest)s.longest=s.count;localStorage.setItem(SK,JSON.stringify(s));}}catch(e){}})();</script>
 <style>
 :root{--bg:#f8fafc;--card:#fff;--text:#0f172a;--muted:#94a3b8;--border:#e2e8f0;
   --sl100:#f1f5f9;--sl200:#e2e8f0;--blue:#2563eb;--shadow:0 1px 4px rgba(0,0,0,.07);}
@@ -48,6 +49,12 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
 .progress-track{width:100%;height:8px;background:var(--sl100);border-radius:6px;overflow:hidden;}
 .progress-fill{height:100%;background:var(--blue);border-radius:6px;width:0%;
   transition:width .5s ease;}
+.streak-row{display:flex;align-items:baseline;gap:7px;margin-top:12px;padding-top:12px;
+  border-top:1px solid var(--border);}
+.streak-flame{font-size:17px;line-height:1;filter:grayscale(1);opacity:.45;}
+.streak-flame.on{filter:none;opacity:1;}
+.streak-text{font-size:12px;font-weight:800;color:var(--text);}
+.streak-best{font-size:10px;font-weight:700;color:var(--muted);}
 .data-card{background:var(--card);border:1.5px solid var(--border);border-radius:20px;
   padding:16px 20px;margin-bottom:24px;box-shadow:var(--shadow);}
 .data-card-title{font-size:12px;font-weight:800;color:var(--text);margin-bottom:4px;}
@@ -129,7 +136,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
     <div class="logo">🎵</div>
     <div>
       <div class="hdr-title" id="hdrTitle">Музыкальное приложение</div>
-      <div class="hdr-sub" id="hdrSub">Музыкальная школа · 14 модулей</div>
+      <div class="hdr-sub" id="hdrSub">Музыкальная школа · 15 модулей</div>
     </div>
   </div>
   <div class="hdr-btns">
@@ -152,9 +159,14 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
 <div class="progress-card">
   <div class="progress-top">
     <span class="progress-label" id="progLabel">Ваш прогресс</span>
-    <span class="progress-count" id="progCount">0 из 13</span>
+    <span class="progress-count" id="progCount">0 из 15</span>
   </div>
   <div class="progress-track"><div class="progress-fill" id="progFill"></div></div>
+  <div class="streak-row" id="streakRow">
+    <span class="streak-flame" id="streakFlame">🔥</span>
+    <span class="streak-text" id="streakText">0 дней подряд</span>
+    <span class="streak-best" id="streakBest"></span>
+  </div>
 </div>
 
 <div class="data-card">
@@ -190,6 +202,12 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
 <div class="section">
   <div class="section-title" id="sec1Title">🎼 Сольфеджио и теория</div>
   <div class="grid">
+    <a class="mcard cat-solfege" href="./сольфеджио/index.html">
+      <div class="mcard-ico">🎤</div>
+      <div class="mcard-name" id="m17">Сольфеджио</div>
+      <div class="mcard-desc" id="m17d">Пение по нотам с проверкой через микрофон — ноты, гаммы, мелодии</div>
+      <span class="mcard-tag" id="m17t">Сольфеджио</span>
+    </a>
     <a class="mcard cat-solfege" href="./Нотная грамота/index.html">
       <div class="mcard-ico">🎼</div>
       <div class="mcard-name" id="m1">Нотная грамота</div>
@@ -319,7 +337,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
 let lang=localStorage.getItem('musicapp_lang')||'ru';
 const T={
   ru:{
-    title:'Музыкальное приложение',sub:'Музыкальная школа · 14 модулей',
+    title:'Музыкальное приложение',sub:'Музыкальная школа · 15 модулей',
     dark:'Тёмная',light:'Светлая',progress:'Ваш прогресс',progressOf:'из',
     sec1:'🎼 Сольфеджио и теория',sec2:'📖 Теория',sec3:'🎭 История и культура',sec4:'🎸 Инструменты',sec5:'🤝 Сотрудничество',
     mFav:'Избранное',mFavD:'Сохранённые композиторы, инструменты, термины и цитаты',mFavT:'Моё',
@@ -336,6 +354,7 @@ const T={
     m5:'Цифровка',m5d:'Ступени, аккорды, кадансы — тренажёр',m5t:'Сольфеджио',
     m6:'Тональности',m6d:'Квинтовый круг, знаки, гаммы, параллельные тональности',m6t:'Сольфеджио',
     m7:'Транспозиция',m7d:'Перенос нот и гамм на интервал, викторина',m7t:'Сольфеджио',
+    m17:'Сольфеджио',m17d:'Пение по нотам с проверкой через микрофон — ноты, гаммы, мелодии',m17t:'Сольфеджио',
     m8:'Словарик терминов',m8d:'300+ музыкальных терминов с определениями и примерами',m8t:'Теория',
     m9:'Муз. литература',m9d:'Великие композиторы, произведения, хронология, викторина',m9t:'История',
     m10:'Цитатник',m10d:'Мысли великих композиторов о музыке и творчестве',m10t:'История',
@@ -345,7 +364,7 @@ const T={
     m16:'Инструменты оркестра',m16d:'Симфонический, народный, джазовый — состав и звучание',m16t:'Инструменты',
   },
   en:{
-    title:'Music App',sub:'Music School · 14 modules',
+    title:'Music App',sub:'Music School · 15 modules',
     dark:'Dark',light:'Light',progress:'Your Progress',progressOf:'of',
     sec1:'🎼 Solfège & Theory',sec2:'📖 Theory',sec3:'🎭 History & Culture',sec4:'🎸 Instruments',sec5:'🤝 Collaboration',
     mFav:'Favorites',mFavD:'Saved composers, instruments, terms and quotes',mFavT:'Mine',
@@ -362,6 +381,7 @@ const T={
     m5:'Figured Bass',m5d:'Scale degrees, chords, cadences — trainer',m5t:'Solfège',
     m6:'Key Signatures',m6d:'Circle of fifths, signs, scales, relative keys',m6t:'Solfège',
     m7:'Transposition',m7d:'Transpose notes and scales by interval, quiz',m7t:'Solfège',
+    m17:'Solfège Singing',m17d:'Sing from notation with real-time mic pitch checking — notes, scales, melodies',m17t:'Solfège',
     m8:'Glossary',m8d:'300+ musical terms with definitions and examples',m8t:'Theory',
     m9:'Music History',m9d:'Great composers, works, timeline, quiz',m9t:'History',
     m10:'Quotes',m10d:'Thoughts of great composers on music and creativity',m10t:'History',
@@ -375,13 +395,13 @@ function applyLang(){
   const L=T[lang];
   const ids=['hdrTitle','hdrSub','sec1Title','sec2Title','sec3Title','sec4Title','sec5Title',
     'mFav','mFavD','mFavT','dataTitle','dataDesc','exportBtnText','importBtnText',
-    'm1','m1d','m1t','m2','m2d','m2t','m3','m3d','m3t','m4','m4d','m4t',
+    'm17','m17d','m17t','m1','m1d','m1t','m2','m2d','m2t','m3','m3d','m3t','m4','m4d','m4t',
     'm5','m5d','m5t','m6','m6d','m6t','m7','m7d','m7t','m8','m8d','m8t',
     'm9','m9d','m9t','m10','m10d','m10t','m11','m11d','m11t',
     'm12','m12d','m12t','m15','m15d','m15t','m16','m16d','m16t','m13','m13d','m13t','m14','m14d','m14t'];
   const keys=['title','sub','sec1','sec2','sec3','sec4','sec5',
     'mFav','mFavD','mFavT','dataTitle','dataDesc','exportBtnText','importBtnText',
-    'm1','m1d','m1t','m2','m2d','m2t','m3','m3d','m3t','m4','m4d','m4t',
+    'm17','m17d','m17t','m1','m1d','m1t','m2','m2d','m2t','m3','m3d','m3t','m4','m4d','m4t',
     'm5','m5d','m5t','m6','m6d','m6t','m7','m7d','m7t','m8','m8d','m8t',
     'm9','m9d','m9t','m10','m10d','m10t','m11','m11d','m11t',
     'm12','m12d','m12t','m15','m15d','m15t','m16','m16d','m16t','m13','m13d','m13t','m14','m14d','m14t'];
@@ -396,8 +416,9 @@ function applyLang(){
   document.getElementById('achTitle').textContent=L.achTitle;
   updateProgress();
   renderAchievements();
+  renderStreak();
 }
-const ALL_MODULES=['notation','rhythm','ear','dictation','figured-bass','keys','transposition','glossary','history','quotes','jazz','tuner','metronome','orchestra'];
+const ALL_MODULES=['notation','rhythm','ear','dictation','figured-bass','keys','transposition','glossary','history','quotes','jazz','tuner','metronome','orchestra','solfege'];
 function updateProgress(){
   let visited=[];
   try{visited=JSON.parse(localStorage.getItem('musicapp_visited')||'[]');}catch(e){visited=[];}
@@ -408,6 +429,27 @@ function updateProgress(){
   document.getElementById('progFill').style.width=pct+'%';
 }
 
+function ruPluralDays(n){
+  const n10=n%10,n100=n%100;
+  if(n10===1&&n100!==11)return 'день';
+  if(n10>=2&&n10<=4&&(n100<12||n100>14))return 'дня';
+  return 'дней';
+}
+function renderStreak(){
+  let s={count:0,longest:0,last:null};
+  try{s=JSON.parse(localStorage.getItem('musicapp_streak')||'{}');}catch(e){}
+  const count=s.count||0, longest=s.longest||0;
+  const flame=document.getElementById('streakFlame');
+  const txt=document.getElementById('streakText');
+  const best=document.getElementById('streakBest');
+  if(flame)flame.classList.toggle('on',count>0);
+  if(txt)txt.textContent=lang==='ru'
+    ? count+' '+ruPluralDays(count)+' подряд'
+    : count+' day'+(count===1?'':'s')+' streak';
+  if(best)best.textContent=longest>count
+    ? (lang==='ru'?('рекорд: '+longest):('best: '+longest))
+    : '';
+}
 function getFavIndexEntries(){
   try{return Object.values(JSON.parse(localStorage.getItem('musicapp_fav_index')||'{}'));}catch(e){return [];}
 }
@@ -424,7 +466,7 @@ const ACHIEVEMENTS=[
     descRu:'Открыть 7+ разделов',descEn:'Open 7+ sections',
     check:()=>getVisitedCount()>=7},
   {id:'all-sections',icon:'🏆',ru:'Все разделы',en:'All sections',
-    descRu:'Открыть все 14 разделов',descEn:'Open all 14 sections',
+    descRu:'Открыть все 15 разделов',descEn:'Open all 15 sections',
     check:()=>getVisitedCount()>=ALL_MODULES.length},
   {id:'first-fav',icon:'⭐',ru:'Первое избранное',en:'First favorite',
     descRu:'Сохранить первый элемент',descEn:'Save your first item',
@@ -446,6 +488,12 @@ const ACHIEVEMENTS=[
   {id:'backed-up',icon:'💾',ru:'Резервная копия',en:'Backed up',
     descRu:'Экспортировать данные приложения',descEn:'Export your app data',
     check:()=>localStorage.getItem('musicapp_has_exported')==='1'},
+  {id:'streak-week',icon:'🔥',ru:'Неделя подряд',en:'Week streak',
+    descRu:'Заниматься 7 дней подряд',descEn:'Practice 7 days in a row',
+    check:()=>{try{return (JSON.parse(localStorage.getItem('musicapp_streak')||'{}').longest||0)>=7;}catch(e){return false;}}},
+  {id:'streak-month',icon:'🌋',ru:'Месяц подряд',en:'Month streak',
+    descRu:'Заниматься 30 дней подряд',descEn:'Practice 30 days in a row',
+    check:()=>{try{return (JSON.parse(localStorage.getItem('musicapp_streak')||'{}').longest||0)>=30;}catch(e){return false;}}},
 ];
 function renderAchievements(){
   const unlocked=ACHIEVEMENTS.filter(a=>a.check());

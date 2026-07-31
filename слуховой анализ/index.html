@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-<script>(function(){try{var k='musicapp_visited',id='ear';var v=JSON.parse(localStorage.getItem(k)||'[]');if(v.indexOf(id)===-1){v.push(id);localStorage.setItem(k,JSON.stringify(v));}}catch(e){}})();</script>
+<script>(function(){try{var k='musicapp_visited',id='ear';var v=JSON.parse(localStorage.getItem(k)||'[]');if(v.indexOf(id)===-1){v.push(id);localStorage.setItem(k,JSON.stringify(v));}}catch(e){}try{var SK='musicapp_streak';var td=new Date();td.setHours(0,0,0,0);var ts=td.getFullYear()+'-'+(td.getMonth()+1)+'-'+td.getDate();var s=JSON.parse(localStorage.getItem(SK)||'{"count":0,"longest":0,"last":null}');if(s.last!==ts){var dd=null;if(s.last){var pp=s.last.split('-').map(Number);var ld=new Date(pp[0],pp[1]-1,pp[2]);dd=Math.round((td-ld)/86400000);}s.count=(dd===1)?s.count+1:1;s.last=ts;if(s.count>s.longest)s.longest=s.count;localStorage.setItem(SK,JSON.stringify(s));}}catch(e){}})();</script>
 <!-- Yandex.Metrika counter -->
 <script type="text/javascript">
     (function(m,e,t,r,i,k,a){
@@ -1346,7 +1346,7 @@ function mSelectAnswer(id){
 
 // ── SCALES TAB ──────────────────────────────────
 const NOTE_NAMES=['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
-const ROOT_MIDI={C:60,D:62,E:64,F:65,G:67,A:69,B:71,Cs:61,Ds:63,Fs:66,Gs:68,As:70};
+const ROOT_MIDI_MAP={C:60,D:62,E:64,F:65,G:67,A:69,B:71,Cs:61,Ds:63,Fs:66,Gs:68,As:70};
 const ROOT_LABELS={C:'C',D:'D',E:'E',F:'F',G:'G',A:'A',B:'B',Cs:'C#',Ds:'D#',Fs:'F#',Gs:'G#',As:'A#'};
 
 // ─ Scales Ear ─
@@ -1445,7 +1445,7 @@ function sbGetScaleNotes(rootMidi, steps){
 
 function sbBuildPiano(){
     const piano=document.getElementById('sbPiano');
-    const rootMidi=ROOT_MIDI[sbRootKey];
+    const rootMidi=ROOT_MIDI_MAP[sbRootKey];
     const rootPc=rootMidi%12; // pitch class of root
 
     // Build 1 octave piano: 8 white keys (C to C), with black keys
@@ -1497,7 +1497,7 @@ function sbBuildPiano(){
 
 function sbClickKey(el,pc,isBlack){
     if(sbChecked) return;
-    const rootPc=ROOT_MIDI[sbRootKey]%12;
+    const rootPc=ROOT_MIDI_MAP[sbRootKey]%12;
     if(pc===rootPc) return; // root always selected
     if(sbSelected.has(pc)){
         sbSelected.delete(pc);
@@ -1510,7 +1510,7 @@ function sbClickKey(el,pc,isBlack){
 }
 
 function sbUpdateChips(){
-    const rootPc=ROOT_MIDI[sbRootKey]%12;
+    const rootPc=ROOT_MIDI_MAP[sbRootKey]%12;
     const ordered=[...sbSelected].sort((a,b)=>{
         const da=(a-rootPc+12)%12, db=(b-rootPc+12)%12;
         return da-db;
@@ -1555,7 +1555,7 @@ function sbShowHint(){
 
 function sbNewExercise(){
     const rootVal=document.getElementById('sbRoot').value;
-    sbRootKey=(rootVal==='rnd')?Object.keys(ROOT_MIDI)[Math.floor(Math.random()*Object.keys(ROOT_MIDI).length)]:rootVal;
+    sbRootKey=(rootVal==='rnd')?Object.keys(ROOT_MIDI_MAP)[Math.floor(Math.random()*Object.keys(ROOT_MIDI_MAP).length)]:rootVal;
     sbTypeId=document.getElementById('sbType').value;
     const scaleObj=SCALES.find(s=>s.id===sbTypeId)||SCALES[0];
     const rootLabel=ROOT_LABELS[sbRootKey]||sbRootKey;
