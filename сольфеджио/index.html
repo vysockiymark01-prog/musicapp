@@ -281,7 +281,14 @@ function midiToNoteOct(midi){
 function midiToFreq(midi){ return 440*Math.pow(2,(midi-69)/12); }
 function freqToMidi(freq){ return Math.round(12*Math.log2(freq/440))+69; }
 
-const REG_OCTAVE = { low:3, mid:4, high:5 };
+// Комфортные для пения границы (в MIDI) — каждый регистр укладывается ровно
+// в одну октаву, без "вылетов" вверх даже на краю диапазона. "Средний" — это
+// классическое до1–до2, самый безопасный вариант для голоса без подготовки.
+const REG_RANGE = {
+  low:  { min: noteOctToMidi('G',3), max: noteOctToMidi('G',4) },  // соль малой — соль 1-й
+  mid:  { min: noteOctToMidi('C',4), max: noteOctToMidi('C',5) },  // до 1-й — до 2-й
+  high: { min: noteOctToMidi('F',4), max: noteOctToMidi('F',5) },  // фа 1-й — фа 2-й
+};
 let register = 'mid';
 
 // TREBLE CLEF STAFF POSITION MAP (relativeY, staff lines at 0/10/20/30/40)
@@ -344,23 +351,41 @@ let hintShown = false;
 const NATURALS = ['C','D','E','F','G','A','B'];
 const MAJOR_STEPS = [0,2,4,5,7,9,11,12];
 
+// Возвращает MIDI-номера всех натуральных нот, попадающих в диапазон [min,max].
+function naturalCandidatesInRange(min, max){
+  const out = [];
+  for(let oct=2; oct<=6; oct++){
+    NATURALS.forEach(n=>{
+      const m = noteOctToMidi(n, oct);
+      if(m>=min && m<=max) out.push(m);
+    });
+  }
+  return out;
+}
+
 function generateNoteExercise(){
-  const oct = REG_OCTAVE[register];
-  const note = NATURALS[Math.floor(Math.random()*NATURALS.length)];
-  targetMidis = [ noteOctToMidi(note, oct) ];
+  const {min,max} = REG_RANGE[register];
+  const candidates = naturalCandidatesInRange(min, max);
+  targetMidis = [ candidates[Math.floor(Math.random()*candidates.length)] ];
   curIdx = 0;
 }
+// Гамма/мелодия занимают целую октаву от тоники, поэтому если тонику искать
+// в том же окне, что и одиночную ноту, вариант остаётся только один (тоника
+// = нижняя граница) — упражнение перестаёт меняться. Даём тонике чуть больше
+// свободы (до малой терции вверх), не теряя комфортный диапазон: верх гаммы
+// в худшем случае поднимется всего на несколько полутонов.
+const SEQ_TONIC_HEADROOM = 4;
 function generateScaleExercise(){
-  const oct = REG_OCTAVE[register];
-  const tonic = NATURALS[Math.floor(Math.random()*NATURALS.length)];
-  const tonicMidi = noteOctToMidi(tonic, oct);
+  const {min,max} = REG_RANGE[register];
+  const tonicCandidates = naturalCandidatesInRange(min, max+SEQ_TONIC_HEADROOM-12);
+  const tonicMidi = tonicCandidates[Math.floor(Math.random()*tonicCandidates.length)];
   targetMidis = MAJOR_STEPS.map(s=>tonicMidi+s);
   curIdx = 0;
 }
 function generatePhraseExercise(){
-  const oct = REG_OCTAVE[register];
-  const tonic = NATURALS[Math.floor(Math.random()*NATURALS.length)];
-  const tonicMidi = noteOctToMidi(tonic, oct);
+  const {min,max} = REG_RANGE[register];
+  const tonicCandidates = naturalCandidatesInRange(min, max+SEQ_TONIC_HEADROOM-12);
+  const tonicMidi = tonicCandidates[Math.floor(Math.random()*tonicCandidates.length)];
   const scale = MAJOR_STEPS.map(s=>tonicMidi+s); // 8 scale degrees, index 0..7
   const len = 4 + Math.floor(Math.random()*3); // 4-6 notes
   const degrees = [Math.floor(Math.random()*5)]; // start somewhere in lower half
