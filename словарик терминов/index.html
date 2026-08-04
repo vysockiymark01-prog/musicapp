@@ -61,6 +61,8 @@
   .filter-row{display:flex;gap:6px;flex-wrap:wrap;align-items:center;}
   .filter-label{font-size:9px;font-weight:900;text-transform:uppercase;color:var(--muted);margin-right:2px;letter-spacing:.5px;white-space:nowrap;}
   .fbtn{padding:5px 11px;border-radius:20px;border:1px solid var(--border);background:transparent;color:var(--muted);cursor:pointer;font-size:10px;font-weight:700;text-transform:uppercase;transition:all .2s;}
+  .filter-toggle{width:100%;padding:8px;margin-bottom:8px;border-radius:var(--radius);border:1px dashed var(--border);background:var(--card);color:var(--muted);cursor:pointer;font-size:10px;font-weight:800;text-transform:uppercase;text-align:center;}
+  .filter-toggle:hover{border-color:var(--accent);color:var(--accent);}
   .fbtn:hover{border-color:var(--accent);color:var(--text);}
   .fbtn.active{color:#fff;border-color:transparent;}
   .fbtn[data-topic="all"].active,.fbtn[data-cls="all"].active{background:var(--accent);}
@@ -262,7 +264,7 @@
     <button class="hbtn" style="margin-top:16px" onclick="location.href=location.pathname">↩ <span id="rvBackText">Назад к тренажёру</span></button>
   </div>
 
-  <div class="filter-panel">
+  <div class="filter-panel" id="filterPanelTopic">
     <div class="filter-row">
       <span class="filter-label" id="fl1"></span>
       <button class="fbtn active" data-topic="all" onclick="setTopic('all')" id="ft_all"></button>
@@ -274,7 +276,7 @@
     </div>
   </div>
 
-  <div class="filter-panel">
+  <div class="filter-panel" id="filterPanelCls">
     <div class="filter-row">
       <span class="filter-label" id="fl2"></span>
       <button class="fbtn active" data-cls="all" onclick="setCls('all')" id="fc_all"></button>
@@ -285,10 +287,12 @@
     </div>
   </div>
 
-  <div class="progress-section">
+  <div class="progress-section" id="progressSection">
     <div class="progress-title" id="progTitle"></div>
     <div class="progress-row" id="progressRow"></div>
   </div>
+
+  <button class="filter-toggle" id="filterToggle" onclick="toggleFilters()" style="display:none"></button>
 
   <div id="mainContent"></div>
 </div>
@@ -378,6 +382,7 @@ const UI = {
     amGenBtn:"🔗 Создать ссылку и QR",amCopyBtn:"Копировать",amCloseBtn:"Закрыть",
     resultModalTitle:"📤 Показать результат учителю",rmCopyBtn:"Копировать",rmCloseBtn:"Закрыть",
     assignBannerPrefix:"📋 Задание от учителя: ",
+    showFilters:"⚙ Тема / класс / прогресс",hideFilters:"✕ Скрыть фильтры",
     rvTitle:"Результат ученика",rvBackText:"Назад к тренажёру",
     resultDesc:(topic,cls,c,t)=>`Тест: ${topic}, ${cls}. Результат: ${c} из ${t} верно.`,
     qrTooLong:'⚠️ Ссылка слишком длинная для QR-кода (это ограничение проявляется только при локальном тестировании файла — на опубликованном сайте адрес короче, и QR создастся нормально). Пока просто скопируйте ссылку и отправьте её вручную.'
@@ -413,6 +418,7 @@ const UI = {
     amGenBtn:"🔗 Create link & QR",amCopyBtn:"Copy",amCloseBtn:"Close",
     resultModalTitle:"📤 Show result to teacher",rmCopyBtn:"Copy",rmCloseBtn:"Close",
     assignBannerPrefix:"📋 Assignment from teacher: ",
+    showFilters:"⚙ Topic / grade / progress",hideFilters:"✕ Hide filters",
     rvTitle:"Student's result",rvBackText:"Back to trainer",
     resultDesc:(topic,cls,c,t)=>`Quiz: ${topic}, ${cls}. Result: ${c} of ${t} correct.`,
     qrTooLong:"⚠️ This link is too long for a QR code (only happens when testing the local file — once published, the address is shorter and the QR will generate fine). For now, just copy the link and send it manually."
@@ -761,10 +767,27 @@ function toggleLang() {
   renderAll();
 }
 
+let filtersExpanded = false;
 function switchMode(m) {
   mode = m;
   ['cards','quiz','match','review'].forEach((x,i)=>document.getElementById('tab'+i).classList.toggle('active',x===m));
+  const compact = (m==='quiz' || m==='match');
+  filtersExpanded = false;
+  document.getElementById('filterPanelTopic').style.display = compact ? 'none' : '';
+  document.getElementById('filterPanelCls').style.display = compact ? 'none' : '';
+  document.getElementById('progressSection').style.display = compact ? 'none' : '';
+  const toggle=document.getElementById('filterToggle');
+  toggle.style.display = compact ? 'block' : 'none';
+  toggle.textContent = t('showFilters');
   renderAll();
+}
+function toggleFilters() {
+  filtersExpanded = !filtersExpanded;
+  const disp = filtersExpanded ? '' : 'none';
+  document.getElementById('filterPanelTopic').style.display = disp;
+  document.getElementById('filterPanelCls').style.display = disp;
+  document.getElementById('progressSection').style.display = disp;
+  document.getElementById('filterToggle').textContent = filtersExpanded ? t('hideFilters') : t('showFilters');
 }
 
 // ── SPACED REPETITION (Leitner-style adaptive difficulty) ──────
