@@ -348,6 +348,17 @@ let curIdx = 0;         // index of current target within targetMidis
 let score = { ok:0, err:0 };
 let hintShown = false;
 
+// ── Persisted practice stats (для достижений на главной) ─────────
+const SOLFEGE_STATS_KEY = 'musicapp_solfege_stats';
+function loadSolfegeStats(){
+  try{ return Object.assign({ totalOk:0, bestStreak:0, curStreak:0 }, JSON.parse(localStorage.getItem(SOLFEGE_STATS_KEY)||'{}')); }
+  catch(e){ return { totalOk:0, bestStreak:0, curStreak:0 }; }
+}
+let solfegeStats = loadSolfegeStats();
+function saveSolfegeStats(){
+  try{ localStorage.setItem(SOLFEGE_STATS_KEY, JSON.stringify(solfegeStats)); }catch(e){}
+}
+
 const NATURALS = ['C','D','E','F','G','A','B'];
 const MAJOR_STEPS = [0,2,4,5,7,9,11,12];
 
@@ -529,7 +540,7 @@ function registerSuccess(){
   if(targetMidis.length>1){
     curIdx++;
     if(curIdx>=targetMidis.length){
-      score.ok++; updateScoreUI();
+      score.ok++; updateScoreUI(); onExerciseCompleted();
       showFeedback(t('correctSeq'),'ok');
       setTimeout(()=>{ cooldown=false; newExercise(); }, 1200);
     } else {
@@ -538,7 +549,7 @@ function registerSuccess(){
       setTimeout(()=>{ cooldown=false; }, 500);
     }
   } else {
-    score.ok++; updateScoreUI();
+    score.ok++; updateScoreUI(); onExerciseCompleted();
     showFeedback(t('correctNote'),'ok');
     setTimeout(()=>{ cooldown=false; newExercise(); }, 1000);
   }
@@ -546,6 +557,14 @@ function registerSuccess(){
 function registerError(){
   score.err++; updateScoreUI();
   showFeedback(t('wrongNote'),'err');
+  solfegeStats.curStreak = 0;
+  saveSolfegeStats();
+}
+function onExerciseCompleted(){
+  solfegeStats.totalOk++;
+  solfegeStats.curStreak++;
+  if(solfegeStats.curStreak > solfegeStats.bestStreak) solfegeStats.bestStreak = solfegeStats.curStreak;
+  saveSolfegeStats();
 }
 function updateScoreUI(){
   document.getElementById('scoreOk').textContent=score.ok;
@@ -658,5 +677,44 @@ function applyUI(){
 applyUI();
 newExercise();
 </script>
+<script>
+/* Клавиатурная доступность: элементы с onclick (не <button>/<a>/полям форм)
+   становятся фокусируемыми и активируются Enter/Space — включая те,
+   что добавляются в DOM динамически (пианино, варианты викторин и т.п.). */
+(function(){
+  function tagEl(el){
+    if(!el || !el.hasAttribute || !el.hasAttribute('onclick')) return;
+    var tag=el.tagName;
+    if(tag==='BUTTON'||tag==='A'||tag==='INPUT'||tag==='SELECT'||tag==='TEXTAREA'||tag==='LABEL') return;
+    if(el.hasAttribute('data-a11y-kb')) return;
+    el.setAttribute('data-a11y-kb','1');
+    if(!el.hasAttribute('tabindex')) el.setAttribute('tabindex','0');
+    if(!el.hasAttribute('role')) el.setAttribute('role','button');
+  }
+  function scan(root){
+    if(!root||!root.querySelectorAll) return;
+    tagEl(root);
+    root.querySelectorAll('[onclick]').forEach(tagEl);
+  }
+  document.addEventListener('keydown', function(e){
+    if(e.key!=='Enter' && e.key!==' ' && e.key!=='Spacebar') return;
+    var el=document.activeElement;
+    if(el && el.getAttribute && el.hasAttribute('onclick') && el.getAttribute('role')==='button'){
+      e.preventDefault();
+      el.click();
+    }
+  });
+  if(document.body) scan(document.body);
+  else document.addEventListener('DOMContentLoaded', function(){ scan(document.body); });
+  var mo=new MutationObserver(function(muts){
+    muts.forEach(function(m){
+      m.addedNodes.forEach(function(n){ if(n.nodeType===1) scan(n); });
+    });
+  });
+  if(document.body) mo.observe(document.body,{childList:true,subtree:true});
+  else document.addEventListener('DOMContentLoaded', function(){ mo.observe(document.body,{childList:true,subtree:true}); });
+})();
+</script>
+
 </body>
 </html>

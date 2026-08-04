@@ -55,6 +55,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
 .sel{width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:12px;
   background:var(--sl100);color:var(--text);font-size:13px;font-weight:700;
   outline:none;cursor:pointer;}
+.sel:focus-visible{box-shadow:0 0 0 3px rgba(37,99,235,.3);}
 .sel:focus{border-color:var(--blue);}
 .row{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;}
 @media(max-width:480px){.row{grid-template-columns:1fr;}}
@@ -681,5 +682,44 @@ applyLang();
 const __dk0=document.documentElement.getAttribute('data-theme')==='dark';
 document.getElementById('themeText').textContent=__dk0?(lang==='ru'?'Светлая':'Light'):(lang==='ru'?'Тёмная':'Dark');
 if(__dk0)document.getElementById('themeIco').innerHTML='<circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>';
-</script></body>
+</script><script>
+/* Клавиатурная доступность: элементы с onclick (не <button>/<a>/полям форм)
+   становятся фокусируемыми и активируются Enter/Space — включая те,
+   что добавляются в DOM динамически (пианино, варианты викторин и т.п.). */
+(function(){
+  function tagEl(el){
+    if(!el || !el.hasAttribute || !el.hasAttribute('onclick')) return;
+    var tag=el.tagName;
+    if(tag==='BUTTON'||tag==='A'||tag==='INPUT'||tag==='SELECT'||tag==='TEXTAREA'||tag==='LABEL') return;
+    if(el.hasAttribute('data-a11y-kb')) return;
+    el.setAttribute('data-a11y-kb','1');
+    if(!el.hasAttribute('tabindex')) el.setAttribute('tabindex','0');
+    if(!el.hasAttribute('role')) el.setAttribute('role','button');
+  }
+  function scan(root){
+    if(!root||!root.querySelectorAll) return;
+    tagEl(root);
+    root.querySelectorAll('[onclick]').forEach(tagEl);
+  }
+  document.addEventListener('keydown', function(e){
+    if(e.key!=='Enter' && e.key!==' ' && e.key!=='Spacebar') return;
+    var el=document.activeElement;
+    if(el && el.getAttribute && el.hasAttribute('onclick') && el.getAttribute('role')==='button'){
+      e.preventDefault();
+      el.click();
+    }
+  });
+  if(document.body) scan(document.body);
+  else document.addEventListener('DOMContentLoaded', function(){ scan(document.body); });
+  var mo=new MutationObserver(function(muts){
+    muts.forEach(function(m){
+      m.addedNodes.forEach(function(n){ if(n.nodeType===1) scan(n); });
+    });
+  });
+  if(document.body) mo.observe(document.body,{childList:true,subtree:true});
+  else document.addEventListener('DOMContentLoaded', function(){ mo.observe(document.body,{childList:true,subtree:true}); });
+})();
+</script>
+
+</body>
 </html>

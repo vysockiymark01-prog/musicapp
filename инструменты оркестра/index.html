@@ -700,5 +700,44 @@ if(lang!=='ru'){
 })();
 renderAll();
 </script>
+<script>
+/* Клавиатурная доступность: элементы с onclick (не <button>/<a>/полям форм)
+   становятся фокусируемыми и активируются Enter/Space — включая те,
+   что добавляются в DOM динамически (пианино, варианты викторин и т.п.). */
+(function(){
+  function tagEl(el){
+    if(!el || !el.hasAttribute || !el.hasAttribute('onclick')) return;
+    var tag=el.tagName;
+    if(tag==='BUTTON'||tag==='A'||tag==='INPUT'||tag==='SELECT'||tag==='TEXTAREA'||tag==='LABEL') return;
+    if(el.hasAttribute('data-a11y-kb')) return;
+    el.setAttribute('data-a11y-kb','1');
+    if(!el.hasAttribute('tabindex')) el.setAttribute('tabindex','0');
+    if(!el.hasAttribute('role')) el.setAttribute('role','button');
+  }
+  function scan(root){
+    if(!root||!root.querySelectorAll) return;
+    tagEl(root);
+    root.querySelectorAll('[onclick]').forEach(tagEl);
+  }
+  document.addEventListener('keydown', function(e){
+    if(e.key!=='Enter' && e.key!==' ' && e.key!=='Spacebar') return;
+    var el=document.activeElement;
+    if(el && el.getAttribute && el.hasAttribute('onclick') && el.getAttribute('role')==='button'){
+      e.preventDefault();
+      el.click();
+    }
+  });
+  if(document.body) scan(document.body);
+  else document.addEventListener('DOMContentLoaded', function(){ scan(document.body); });
+  var mo=new MutationObserver(function(muts){
+    muts.forEach(function(m){
+      m.addedNodes.forEach(function(n){ if(n.nodeType===1) scan(n); });
+    });
+  });
+  if(document.body) mo.observe(document.body,{childList:true,subtree:true});
+  else document.addEventListener('DOMContentLoaded', function(){ mo.observe(document.body,{childList:true,subtree:true}); });
+})();
+</script>
+
 </body>
 </html>

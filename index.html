@@ -55,6 +55,16 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
 .streak-flame.on{filter:none;opacity:1;}
 .streak-text{font-size:12px;font-weight:800;color:var(--text);}
 .streak-best{font-size:10px;font-weight:700;color:var(--muted);}
+.review-card{background:var(--card);border:1.5px solid var(--border);border-radius:20px;
+  padding:16px 20px;margin-bottom:24px;box-shadow:var(--shadow);}
+.review-title{font-size:12px;font-weight:800;color:var(--text);margin-bottom:10px;}
+.review-list{display:flex;flex-direction:column;gap:8px;}
+.review-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:12px;
+  background:var(--sl100);border:1.5px solid var(--border);text-decoration:none;color:inherit;}
+.review-item:hover{border-color:var(--blue);}
+.review-ico{font-size:16px;flex-shrink:0;}
+.review-text{font-size:11.5px;line-height:1.4;color:var(--text);}
+.review-text b{font-weight:800;}
 .data-card{background:var(--card);border:1.5px solid var(--border);border-radius:20px;
   padding:16px 20px;margin-bottom:24px;box-shadow:var(--shadow);}
 .data-card-title{font-size:12px;font-weight:800;color:var(--text);margin-bottom:4px;}
@@ -167,6 +177,11 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
     <span class="streak-text" id="streakText">0 дней подряд</span>
     <span class="streak-best" id="streakBest"></span>
   </div>
+</div>
+
+<div class="review-card" id="reviewCard" style="display:none">
+  <div class="review-title" id="reviewTitle">🧠 Что подтянуть</div>
+  <div class="review-list" id="reviewList"></div>
 </div>
 
 <div class="data-card">
@@ -345,6 +360,7 @@ const T={
     exportBtnText:'Экспорт в файл',importBtnText:'Импорт из файла',
     exportedMsg:'Сохранено: ',importedMsg:'Импортировано ключей: ',importedSuffix:'. Обновляю страницу…',importErrMsg:'Не удалось прочитать файл. Проверьте, что это резервная копия этого приложения.',
     achTitle:'🏅 Достижения',
+    reviewTitle:'🧠 Что подтянуть',
     m13:'ВКонтакте',m13d:'Написать автору во ВКонтакте — предложения, вопросы, отзывы',m13t:'Связь',
     m14:'Email',m14d:'vysockiy.mark98@mail.ru',m14t:'Связь',
     m1:'Нотная грамота',m1d:'Ноты, ключи, интервалы, построение на нотном стане',m1t:'Сольфеджио',
@@ -372,6 +388,7 @@ const T={
     exportBtnText:'Export to file',importBtnText:'Import from file',
     exportedMsg:'Saved: ',importedMsg:'Imported keys: ',importedSuffix:'. Reloading the page…',importErrMsg:'Could not read the file. Make sure it\'s a backup from this app.',
     achTitle:'🏅 Achievements',
+    reviewTitle:'🧠 What to review',
     m13:'VKontakte',m13d:'Message the author on VKontakte — ideas, questions, feedback',m13t:'Contact',
     m14:'Email',m14d:'vysockiy.mark98@mail.ru',m14t:'Contact',
     m1:'Music Notation',m1d:'Notes, clefs, intervals, staff construction',m1t:'Solfège',
@@ -394,13 +411,13 @@ const T={
 function applyLang(){
   const L=T[lang];
   const ids=['hdrTitle','hdrSub','sec1Title','sec2Title','sec3Title','sec4Title','sec5Title',
-    'mFav','mFavD','mFavT','dataTitle','dataDesc','exportBtnText','importBtnText',
+    'mFav','mFavD','mFavT','dataTitle','dataDesc','exportBtnText','importBtnText','reviewTitle',
     'm17','m17d','m17t','m1','m1d','m1t','m2','m2d','m2t','m3','m3d','m3t','m4','m4d','m4t',
     'm5','m5d','m5t','m6','m6d','m6t','m7','m7d','m7t','m8','m8d','m8t',
     'm9','m9d','m9t','m10','m10d','m10t','m11','m11d','m11t',
     'm12','m12d','m12t','m15','m15d','m15t','m16','m16d','m16t','m13','m13d','m13t','m14','m14d','m14t'];
   const keys=['title','sub','sec1','sec2','sec3','sec4','sec5',
-    'mFav','mFavD','mFavT','dataTitle','dataDesc','exportBtnText','importBtnText',
+    'mFav','mFavD','mFavT','dataTitle','dataDesc','exportBtnText','importBtnText','reviewTitle',
     'm17','m17d','m17t','m1','m1d','m1t','m2','m2d','m2t','m3','m3d','m3t','m4','m4d','m4t',
     'm5','m5d','m5t','m6','m6d','m6t','m7','m7d','m7t','m8','m8d','m8t',
     'm9','m9d','m9t','m10','m10d','m10t','m11','m11d','m11t',
@@ -417,6 +434,7 @@ function applyLang(){
   updateProgress();
   renderAchievements();
   renderStreak();
+  renderReview();
 }
 const ALL_MODULES=['notation','rhythm','ear','dictation','figured-bass','keys','transposition','glossary','history','quotes','jazz','tuner','metronome','orchestra','solfege'];
 function updateProgress(){
@@ -449,6 +467,41 @@ function renderStreak(){
   if(best)best.textContent=longest>count
     ? (lang==='ru'?('рекорд: '+longest):('best: '+longest))
     : '';
+}
+function renderReview(){
+  const card=document.getElementById('reviewCard');
+  const list=document.getElementById('reviewList');
+  if(!card||!list)return;
+  const items=[];
+
+  // Термины словарика, недавно отвеченные неверно (box 0 в SRS).
+  try{
+    const srs=JSON.parse(localStorage.getItem('musicapp_glossary_srs')||'{}');
+    const weak=Object.keys(srs).filter(term=>srs[term] && srs[term].box===0).slice(0,3);
+    if(weak.length){
+      const names='<b>'+weak.join('</b>, <b>')+'</b>';
+      const txt=lang==='ru'
+        ? (weak.length>1?'Термины '+names+' — стоит повторить в разделе «Словарик терминов»':'Термин '+names+' — стоит повторить в разделе «Словарик терминов»')
+        : 'Term'+(weak.length>1?'s ':' ')+names+' — worth reviewing in Glossary';
+      items.push({href:'./словарик терминов/index.html',ico:'📖',html:txt});
+    }
+  }catch(e){}
+
+  // Композиторы из муз-литературы, где ошибок в викторине больше, чем верных.
+  try{
+    const qs=JSON.parse(localStorage.getItem('musicapp_ml_quiz_stats')||'{}');
+    const weakCount=Object.keys(qs).filter(id=>{const s=qs[id]||{}; return (s.wrong||0)>(s.right||0) && (s.wrong||0)>0;}).length;
+    if(weakCount>0){
+      const txt=lang==='ru'
+        ? 'Есть композиторы (' + weakCount + '), которых стоит повторить в викторине «Муз. литература»'
+        : weakCount+' composer'+(weakCount===1?'':'s')+' worth reviewing in the Music History quiz';
+      items.push({href:'./муз-литература/index.html',ico:'🎭',html:txt});
+    }
+  }catch(e){}
+
+  if(!items.length){ card.style.display='none'; return; }
+  card.style.display='';
+  list.innerHTML=items.map(it=>`<a class="review-item" href="${it.href}"><span class="review-ico">${it.ico}</span><span class="review-text">${it.html}</span></a>`).join('');
 }
 function getFavIndexEntries(){
   try{return Object.values(JSON.parse(localStorage.getItem('musicapp_fav_index')||'{}'));}catch(e){return [];}
@@ -494,6 +547,12 @@ const ACHIEVEMENTS=[
   {id:'streak-month',icon:'🌋',ru:'Месяц подряд',en:'Month streak',
     descRu:'Заниматься 30 дней подряд',descEn:'Practice 30 days in a row',
     check:()=>{try{return (JSON.parse(localStorage.getItem('musicapp_streak')||'{}').longest||0)>=30;}catch(e){return false;}}},
+  {id:'solfege-singer',icon:'🎤',ru:'Певец',en:'Singer',
+    descRu:'Спеть 50 упражнений верно в сольфеджио',descEn:'Sing 50 exercises correctly in solfeggio',
+    check:()=>{try{return (JSON.parse(localStorage.getItem('musicapp_solfege_stats')||'{}').totalOk||0)>=50;}catch(e){return false;}}},
+  {id:'solfege-streak',icon:'🎶',ru:'Чистый слух',en:'Perfect pitch streak',
+    descRu:'20 упражнений подряд без ошибок в сольфеджио',descEn:'20 exercises in a row without mistakes in solfeggio',
+    check:()=>{try{return (JSON.parse(localStorage.getItem('musicapp_solfege_stats')||'{}').bestStreak||0)>=20;}catch(e){return false;}}},
 ];
 function renderAchievements(){
   const unlocked=ACHIEVEMENTS.filter(a=>a.check());
@@ -585,5 +644,44 @@ if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('/musicapp/sw.js');
 }
 </script>
+<script>
+/* Клавиатурная доступность: элементы с onclick (не <button>/<a>/полям форм)
+   становятся фокусируемыми и активируются Enter/Space — включая те,
+   что добавляются в DOM динамически (пианино, варианты викторин и т.п.). */
+(function(){
+  function tagEl(el){
+    if(!el || !el.hasAttribute || !el.hasAttribute('onclick')) return;
+    var tag=el.tagName;
+    if(tag==='BUTTON'||tag==='A'||tag==='INPUT'||tag==='SELECT'||tag==='TEXTAREA'||tag==='LABEL') return;
+    if(el.hasAttribute('data-a11y-kb')) return;
+    el.setAttribute('data-a11y-kb','1');
+    if(!el.hasAttribute('tabindex')) el.setAttribute('tabindex','0');
+    if(!el.hasAttribute('role')) el.setAttribute('role','button');
+  }
+  function scan(root){
+    if(!root||!root.querySelectorAll) return;
+    tagEl(root);
+    root.querySelectorAll('[onclick]').forEach(tagEl);
+  }
+  document.addEventListener('keydown', function(e){
+    if(e.key!=='Enter' && e.key!==' ' && e.key!=='Spacebar') return;
+    var el=document.activeElement;
+    if(el && el.getAttribute && el.hasAttribute('onclick') && el.getAttribute('role')==='button'){
+      e.preventDefault();
+      el.click();
+    }
+  });
+  if(document.body) scan(document.body);
+  else document.addEventListener('DOMContentLoaded', function(){ scan(document.body); });
+  var mo=new MutationObserver(function(muts){
+    muts.forEach(function(m){
+      m.addedNodes.forEach(function(n){ if(n.nodeType===1) scan(n); });
+    });
+  });
+  if(document.body) mo.observe(document.body,{childList:true,subtree:true});
+  else document.addEventListener('DOMContentLoaded', function(){ mo.observe(document.body,{childList:true,subtree:true}); });
+})();
+</script>
+
 </body>
 </html>

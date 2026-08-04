@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="ru" data-theme="light">
 <head>
-<script>(function(){try{var k='musicapp_visited',id='history';var v=JSON.parse(localStorage.getItem(k)||'[]');if(v.indexOf(id)===-1){v.push(id);localStorage.setItem(k,JSON.stringify(v));}}catch(e){}})();</script>
+<script>(function(){try{var k='musicapp_visited',id='history';var v=JSON.parse(localStorage.getItem(k)||'[]');if(v.indexOf(id)===-1){v.push(id);localStorage.setItem(k,JSON.stringify(v));}}catch(e){}try{var SK='musicapp_streak';var td=new Date();td.setHours(0,0,0,0);var ts=td.getFullYear()+'-'+(td.getMonth()+1)+'-'+td.getDate();var s=JSON.parse(localStorage.getItem(SK)||'{"count":0,"longest":0,"last":null}');if(s.last!==ts){var dd=null;if(s.last){var pp=s.last.split('-').map(Number);var ld=new Date(pp[0],pp[1]-1,pp[2]);dd=Math.round((td-ld)/86400000);}s.count=(dd===1)?s.count+1:1;s.last=ts;if(s.count>s.longest)s.longest=s.count;localStorage.setItem(SK,JSON.stringify(s));}}catch(e){}})();</script>
 <!-- Yandex.Metrika counter -->
 <script type="text/javascript">
     (function(m,e,t,r,i,k,a){
@@ -55,6 +55,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
 .chip.active{background:var(--blue);border-color:var(--blue);color:#fff;}
 /* SEARCH */
 .search-wrap{margin-bottom:10px;}
+.search-inp:focus-visible{border-color:var(--blue);box-shadow:0 0 0 3px rgba(37,99,235,.25);}
 .search-inp{width:100%;padding:8px 14px;border:1.5px solid var(--border);border-radius:12px;
   background:var(--card);color:var(--text);font-size:12px;font-weight:600;outline:none;
   transition:border-color .15s;}
@@ -165,14 +166,33 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
 .expand-btn{font-size:10px;font-weight:800;color:var(--blue);cursor:pointer;
   text-transform:uppercase;letter-spacing:.4px;}
 /* TIMELINE */
-.timeline{position:relative;padding-left:30px;}
+.era-strip{display:flex;gap:6px;overflow-x:auto;padding:2px 2px 10px;margin-bottom:12px;-webkit-overflow-scrolling:touch;}
+.era-chip{flex:0 0 auto;padding:8px 12px;border-radius:12px;border:1.5px solid var(--border);
+  background:var(--card);font-size:10px;font-weight:900;text-transform:uppercase;letter-spacing:.3px;
+  cursor:pointer;white-space:nowrap;text-align:center;color:var(--text);transition:transform .15s;}
+.era-chip:active{transform:scale(.95);}
+.era-chip .ec-range{display:block;font-size:9px;font-weight:700;color:var(--muted);
+  text-transform:none;letter-spacing:0;margin-top:2px;}
+.era-section{margin-bottom:26px;}
+.era-head{display:flex;align-items:baseline;gap:8px;margin-bottom:6px;padding-bottom:8px;
+  border-bottom:2px solid var(--border);}
+.era-head-dot{width:12px;height:12px;border-radius:50%;flex-shrink:0;position:relative;top:1px;}
+.era-head-title{font-size:14px;font-weight:900;}
+.era-head-range{font-size:10px;font-weight:800;color:var(--muted);margin-left:auto;white-space:nowrap;}
+.era-desc{font-size:11px;color:var(--muted);line-height:1.55;margin-bottom:14px;font-style:italic;}
+.timeline{position:relative;}
+.tl-track{position:relative;padding-left:30px;}
 .tl-line{position:absolute;left:12px;top:0;bottom:0;width:2px;background:var(--border);}
-.tl-item{position:relative;margin-bottom:16px;}
-.tl-dot{position:absolute;left:-22px;top:6px;width:12px;height:12px;border-radius:50%;
+.tl-item{position:relative;margin-bottom:14px;cursor:pointer;padding:6px 8px;margin-left:-8px;
+  border-radius:10px;transition:background .15s;}
+.tl-item:hover{background:var(--sl100);}
+.tl-dot{position:absolute;left:-30px;top:12px;width:12px;height:12px;border-radius:50%;
   border:2px solid var(--card);}
 .tl-year{font-size:10px;font-weight:900;color:var(--muted);margin-bottom:2px;}
 .tl-name{font-size:13px;font-weight:800;}
 .tl-info{font-size:11px;color:var(--muted);margin-top:2px;}
+.tl-arrow{font-size:10px;color:var(--muted);opacity:0;transition:opacity .15s;float:right;}
+.tl-item:hover .tl-arrow{opacity:1;}
 /* QUIZ */
 .quiz-wrap{background:var(--card);border:1px solid var(--border);border-radius:20px;
   padding:22px;box-shadow:var(--shadow);}
@@ -923,7 +943,7 @@ const ERA_LABELS={
 };
 const ERA_COLORS={medieval:'#92400e',renaissance:'#166534',baroque:'#d97706',classicism:'#059669',romanticism:'#7c3aed',modern:'#0891b2'};
 
-let lang=localStorage.getItem('musicapp_lang')||'ru', eraFilter='all', originFilter='all', searchQ='', expandedId=null, quizScore={c:0,w:0}, quizCorrect=null;
+let lang=localStorage.getItem('musicapp_lang')||'ru', eraFilter='all', originFilter='all', searchQ='', expandedId=null, quizScore={c:0,w:0}, quizCorrect=null, quizCurrentComposer=null;
 let favComposers=[], favWorks=[], favOnly=false;
 function loadFavorites(){
   try{
@@ -1487,27 +1507,98 @@ function onSearch(val){
 }
 
 /* ─── TIMELINE ──────────────────────────────── */
+const ERA_ORDER=['medieval','renaissance','baroque','classicism','romanticism','modern'];
+const ERA_DESC={
+  medieval:{ru:'Одноголосное церковное пение постепенно уступает место первым опытам многоголосия.',
+    en:'Monophonic chant gradually gives way to the earliest experiments in polyphony.'},
+  renaissance:{ru:'Расцвет многоголосия a cappella и имитационной полифонии — выросло из средневекового church-письма.',
+    en:'The flowering of a cappella polyphony and imitative counterpoint — grown out of medieval church music.'},
+  baroque:{ru:'Контраст, орнаментика и basso continuo пришли как реакция на строгую полифонию Возрождения.',
+    en:'Contrast, ornamentation and basso continuo emerged as a reaction to Renaissance polyphonic strictness.'},
+  classicism:{ru:'Ясность, симметрия и сонатная форма сложились как противовес пышной сложности барокко.',
+    en:'Clarity, symmetry and sonata form emerged as a counterweight to Baroque complexity.'},
+  romanticism:{ru:'Личное чувство, расширенная гармония и масштаб — романтики довели классические формы до эмоциональной крайности.',
+    en:'Personal feeling, expanded harmony and scale — Romantics pushed Classical forms to emotional extremes.'},
+  modern:{ru:'Поиск новых языков — от импрессионизма до додекафонии — стал ответом на исчерпание романтической гармонии.',
+    en:'A search for new musical languages — from impressionism to serialism — answered the exhaustion of Romantic harmony.'},
+};
+function eraRange(era){
+  const list=COMPOSERS.filter(c=>c.era===era);
+  if(!list.length)return '';
+  return Math.min(...list.map(c=>c.birth))+'–'+Math.max(...list.map(c=>c.death));
+}
+function jumpToComposerCard(id){
+  showTab(0);
+  expandedId=id;
+  renderCards();
+  setTimeout(()=>{
+    const el=document.getElementById('ccard-'+id);
+    if(el&&el.scrollIntoView)el.scrollIntoView({behavior:'smooth',block:'center'});
+  },60);
+}
+function scrollToEra(era){
+  const el=document.getElementById('era-'+era);
+  if(el&&el.scrollIntoView)el.scrollIntoView({behavior:'smooth',block:'start'});
+}
 function renderTimeline(){
-  const sorted=[...COMPOSERS].sort((a,b)=>a.birth-b.birth);
-  const tl=document.getElementById('timeline');
-  tl.innerHTML='<div class="tl-line"></div>'+sorted.map(c=>
-    `<div class="tl-item">
-      <div class="tl-dot" style="background:${ERA_COLORS[c.era]};left:-22px;"></div>
-      <div class="tl-year">${c.birth}–${c.death}</div>
-      <div class="tl-name">${c.name[lang]||c.name.ru}</div>
-      <div class="tl-info">${c.country[lang]||c.country.ru} · ${(ERA_LABELS[c.era]||{})[lang]}</div>
-    </div>`
+  const strip=ERA_ORDER.map(era=>
+    `<button class="era-chip" style="border-color:${ERA_COLORS[era]}" onclick="scrollToEra('${era}')">
+      ${(ERA_LABELS[era]||{})[lang]}<span class="ec-range">${eraRange(era)}</span>
+    </button>`
   ).join('');
+
+  const sections=ERA_ORDER.map(era=>{
+    const list=COMPOSERS.filter(c=>c.era===era).sort((a,b)=>a.birth-b.birth);
+    if(!list.length)return '';
+    const desc=(ERA_DESC[era]||{})[lang]||'';
+    const items=list.map(c=>
+      `<div class="tl-item" onclick="jumpToComposerCard('${c.id}')">
+        <div class="tl-dot" style="background:${ERA_COLORS[c.era]}"></div>
+        <div class="tl-year">${c.birth}–${c.death}</div>
+        <div class="tl-name">${c.name[lang]||c.name.ru}<span class="tl-arrow">${lang==='ru'?'Подробнее →':'Details →'}</span></div>
+        <div class="tl-info">${c.country[lang]||c.country.ru} · ${(ERA_LABELS[c.era]||{})[lang]}</div>
+      </div>`
+    ).join('');
+    return `<div class="era-section" id="era-${era}">
+      <div class="era-head">
+        <span class="era-head-dot" style="background:${ERA_COLORS[era]}"></span>
+        <span class="era-head-title">${(ERA_LABELS[era]||{})[lang]}</span>
+        <span class="era-head-range">${eraRange(era)}</span>
+      </div>
+      <div class="era-desc">${desc}</div>
+      <div class="tl-track"><div class="tl-line"></div>${items}</div>
+    </div>`;
+  }).join('');
+
+  const tl=document.getElementById('timeline');
+  tl.innerHTML=`<div class="era-strip">${strip}</div>${sections}`;
 }
 
-/* ─── QUIZ ──────────────────────────────────── */
+/* ─── QUIZ (adaptive: composers missed more often come up more often) ─── */
+const QSTATS_KEY='musicapp_ml_quiz_stats';
+let qStats={};
+try{qStats=JSON.parse(localStorage.getItem(QSTATS_KEY)||'{}');}catch(e){qStats={};}
+function saveQStats(){localStorage.setItem(QSTATS_KEY,JSON.stringify(qStats));}
+function pickWeightedComposer(){
+  const weights=COMPOSERS.map(c=>{
+    const s=qStats[c.id]||{wrong:0,right:0};
+    return 1+s.wrong*2; // missed composers are up to several times more likely
+  });
+  const total=weights.reduce((a,b)=>a+b,0);
+  let r=Math.random()*total;
+  for(let i=0;i<COMPOSERS.length;i++){
+    r-=weights[i];
+    if(r<=0)return COMPOSERS[i];
+  }
+  return COMPOSERS[COMPOSERS.length-1];
+}
 function nextQuiz(){
   document.getElementById('quizNext').classList.remove('show');
   const types=['work_to_comp','comp_to_work','birth_year'];
   const type=types[Math.floor(Math.random()*types.length)];
-  const idx=Math.floor(Math.random()*COMPOSERS.length);
-  const c=COMPOSERS[idx];
+  const c=pickWeightedComposer();
   quizCorrect=null;
+  quizCurrentComposer=c.id;
   let qText='',qSub='',correct='',wrongPool=[];
 
   if(type==='work_to_comp'){
@@ -1554,6 +1645,13 @@ function answerQuiz(btn,chosen,correct){
     else if(b===btn&&chosen!==correct)b.classList.add('wrong');
   });
   if(chosen===correct){quizScore.c++;}else{quizScore.w++;}
+  if(quizCurrentComposer){
+    const s=qStats[quizCurrentComposer]||{wrong:0,right:0};
+    if(chosen===correct){s.right++;s.wrong=Math.max(0,s.wrong-1);}
+    else{s.wrong++;}
+    qStats[quizCurrentComposer]=s;
+    saveQStats();
+  }
   document.getElementById('qsc').textContent=quizScore.c;
   document.getElementById('qsw').textContent=quizScore.w;
   document.getElementById('quizNext').classList.add('show');
@@ -1628,5 +1726,44 @@ renderCards();
     if(el&&el.scrollIntoView)el.scrollIntoView({behavior:'smooth',block:'center'});
   },100);
 })();
-</script></body>
+</script><script>
+/* Клавиатурная доступность: элементы с onclick (не <button>/<a>/полям форм)
+   становятся фокусируемыми и активируются Enter/Space — включая те,
+   что добавляются в DOM динамически (пианино, варианты викторин и т.п.). */
+(function(){
+  function tagEl(el){
+    if(!el || !el.hasAttribute || !el.hasAttribute('onclick')) return;
+    var tag=el.tagName;
+    if(tag==='BUTTON'||tag==='A'||tag==='INPUT'||tag==='SELECT'||tag==='TEXTAREA'||tag==='LABEL') return;
+    if(el.hasAttribute('data-a11y-kb')) return;
+    el.setAttribute('data-a11y-kb','1');
+    if(!el.hasAttribute('tabindex')) el.setAttribute('tabindex','0');
+    if(!el.hasAttribute('role')) el.setAttribute('role','button');
+  }
+  function scan(root){
+    if(!root||!root.querySelectorAll) return;
+    tagEl(root);
+    root.querySelectorAll('[onclick]').forEach(tagEl);
+  }
+  document.addEventListener('keydown', function(e){
+    if(e.key!=='Enter' && e.key!==' ' && e.key!=='Spacebar') return;
+    var el=document.activeElement;
+    if(el && el.getAttribute && el.hasAttribute('onclick') && el.getAttribute('role')==='button'){
+      e.preventDefault();
+      el.click();
+    }
+  });
+  if(document.body) scan(document.body);
+  else document.addEventListener('DOMContentLoaded', function(){ scan(document.body); });
+  var mo=new MutationObserver(function(muts){
+    muts.forEach(function(m){
+      m.addedNodes.forEach(function(n){ if(n.nodeType===1) scan(n); });
+    });
+  });
+  if(document.body) mo.observe(document.body,{childList:true,subtree:true});
+  else document.addEventListener('DOMContentLoaded', function(){ mo.observe(document.body,{childList:true,subtree:true}); });
+})();
+</script>
+
+</body>
 </html>
