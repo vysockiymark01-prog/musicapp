@@ -140,6 +140,8 @@
     padding:12px 16px calc(12px + env(safe-area-inset-bottom));background:var(--bg);
     border-top:1px solid var(--border);z-index:50;}
   .quiz-next-bar.show{display:flex;}
+  /* когда планка "Далее" видна, освобождаем место снизу карточки, чтобы она не перекрывала варианты ответа */
+  body.has-next-bar .quiz-wrap{padding-bottom:76px;}
   .quiz-next-bar .btn{width:100%;max-width:700px;justify-content:center;}
   .quiz-result-box{background:var(--card);border:1px solid var(--border);border-radius:var(--radius-lg);padding:48px 24px;text-align:center;box-shadow:var(--shadow-md);}
   .score-big{font-size:64px;font-weight:900;color:var(--accent);line-height:1;}
@@ -333,6 +335,8 @@
       <div class="modal-qr-wrap"><canvas id="amQrCanvas"></canvas></div>
       <p id="amQrError" style="display:none;font-size:11px;color:var(--muted);margin:-4px 0 14px;line-height:1.5;"></p>
     </div>
+    <button type="button" onclick="toggleAssignHistory()" style="background:none;border:none;text-decoration:underline;cursor:pointer;font-size:12px;color:var(--muted);margin-bottom:10px;" id="amHistoryToggleBtn">🕘 <span id="amHistoryToggleText">История заданий и результатов</span></button>
+    <div id="amHistoryList" style="display:none;max-height:180px;overflow:auto;font-size:12px;line-height:1.7;text-align:left;margin-bottom:10px;"></div>
     <button class="modal-close" onclick="closeAssignModal()"><span id="amCloseBtnText">Закрыть</span></button>
   </div>
 </div>
@@ -377,8 +381,8 @@ const UI = {
     matchOf:"пар",
     matchStatus:(m,t)=>`Совпадений: ${m} / ${t}`,
     cardOf:"/",
-    assignBtn:"Создать задание",shareResultBtn:"Результат",
-    assignModalTitle:"📋 Создать задание для ученика",amTopicLabel:"Тема",amClsLabel:"Класс",
+    assignBtn:"Создать задание",shareResultBtn:"Результат",quizNotFinished:"Сначала пройдите тест до конца — тогда появится результат для отправки учителю.",
+    assignModalTitle:"📋 Создать задание для ученика",amTopicLabel:"Тема",amClsLabel:"Класс",amHistoryToggleText:"История заданий и результатов",
     amGenBtn:"🔗 Создать ссылку и QR",amCopyBtn:"Копировать",amCloseBtn:"Закрыть",
     resultModalTitle:"📤 Показать результат учителю",rmCopyBtn:"Копировать",rmCloseBtn:"Закрыть",
     assignBannerPrefix:"📋 Задание от учителя: ",
@@ -413,8 +417,8 @@ const UI = {
     matchOf:"pairs",
     matchStatus:(m,t)=>`Matched: ${m} / ${t}`,
     cardOf:"/",
-    assignBtn:"Create assignment",shareResultBtn:"Result",
-    assignModalTitle:"📋 Create an assignment for a student",amTopicLabel:"Topic",amClsLabel:"Grade",
+    assignBtn:"Create assignment",shareResultBtn:"Result",quizNotFinished:"Finish the quiz first — then you'll be able to send the result to your teacher.",
+    assignModalTitle:"📋 Create an assignment for a student",amTopicLabel:"Topic",amClsLabel:"Grade",amHistoryToggleText:"Assignment & result history",
     amGenBtn:"🔗 Create link & QR",amCopyBtn:"Copy",amCloseBtn:"Close",
     resultModalTitle:"📤 Show result to teacher",rmCopyBtn:"Copy",rmCloseBtn:"Close",
     assignBannerPrefix:"📋 Assignment from teacher: ",
@@ -738,6 +742,7 @@ function applyUI() {
   document.getElementById('assignModalTitle').textContent=t('assignModalTitle');
   document.getElementById('amTopicLabel').textContent=t('amTopicLabel');
   document.getElementById('amClsLabel').textContent=t('amClsLabel');
+  document.getElementById('amHistoryToggleText').textContent=t('amHistoryToggleText');
   document.getElementById('amGenBtnText').textContent=t('amGenBtn');
   document.getElementById('amCopyBtn').textContent=t('amCopyBtn');
   document.getElementById('amCloseBtnText').textContent=t('amCloseBtn');
@@ -954,10 +959,11 @@ function cardAns(knew) {
 }
 
 // ── QUIZ ─────────────────────────────────────────────────────
-let qDeck=[], qIdx=0, qScore=0, qAnswered=false;
+let qDeck=[], qIdx=0, qScore=0, qAnswered=false, quizFinished=false;
 
 function initQuiz() {
   const f=filtered();
+  quizFinished=false;
   if(f.length<4){document.getElementById('mainContent').innerHTML=`<div class="empty-state">${t('emptyQuiz')}</div>`;return;}
   qDeck=shuffle(f); qIdx=0; qScore=0; showQ();
 }
@@ -965,6 +971,8 @@ function initQuiz() {
 function showQ() {
   const mc=document.getElementById('mainContent');
   if(qIdx>=qDeck.length){
+    document.body.classList.remove('has-next-bar');
+    quizFinished=true;
     const pct=Math.round(qScore/qDeck.length*100);
     mc.innerHTML=`<div class="quiz-wrap"><div class="quiz-result-box">
       <div class="score-big">${pct}%</div>
@@ -972,6 +980,7 @@ function showQ() {
       <button class="btn btn-primary" onclick="initQuiz()">${t('restart')}</button>
     </div></div>`;return;
   }
+  document.body.classList.remove('has-next-bar');
   const q=qDeck[qIdx];
   // Wrong options from ALL terms (same language)
   const wrong=shuffle(TERMS.filter(x=>x.term!==q.term)).slice(0,3);
@@ -1014,6 +1023,7 @@ function qAns(btn,chosen,correct) {
     save();
     const bar=document.getElementById('qnextBar');
     if(bar)bar.classList.add('show');
+    document.body.classList.add('has-next-bar');
   }
 }
 
@@ -1410,10 +1420,38 @@ function generateAssignLink(){
   document.getElementById('amLinkInput').value=link;
   document.getElementById('amResultBlock').style.display='block';
   renderQRSafe(link, document.getElementById('amQrCanvas'), document.getElementById('amQrError'));
+  logAssignment({topic:tp,cls:cls});
 }
 function copyAssignLink(){
   const inp=document.getElementById('amLinkInput'); inp.select(); inp.setSelectionRange(0,99999);
   try{ navigator.clipboard.writeText(inp.value); }catch(e){ try{document.execCommand('copy');}catch(e2){} }
+}
+// ── История заданий и результатов (локально, на этом устройстве) ──────
+const HISTORY_MODULE='glossary';
+function logAssignment(e){ try{ const l=JSON.parse(localStorage.getItem('musicapp_assignment_history')||'[]'); l.unshift(Object.assign({module:HISTORY_MODULE,ts:Date.now()},e)); localStorage.setItem('musicapp_assignment_history',JSON.stringify(l.slice(0,100))); }catch(err){} }
+function logResult(e){ try{ const l=JSON.parse(localStorage.getItem('musicapp_result_history')||'[]'); l.unshift(Object.assign({module:HISTORY_MODULE,ts:Date.now()},e)); localStorage.setItem('musicapp_result_history',JSON.stringify(l.slice(0,100))); }catch(err){} }
+function toggleAssignHistory(){
+  const el=document.getElementById('amHistoryList'); if(!el)return;
+  if(el.style.display!=='none'){ el.style.display='none'; return; }
+  el.style.display='block'; renderAssignHistory();
+}
+function renderAssignHistory(){
+  const el=document.getElementById('amHistoryList'); if(!el)return;
+  let assigns=[],results=[];
+  try{ assigns=JSON.parse(localStorage.getItem('musicapp_assignment_history')||'[]').filter(x=>x.module===HISTORY_MODULE); }catch(e){}
+  try{ results=JSON.parse(localStorage.getItem('musicapp_result_history')||'[]').filter(x=>x.module===HISTORY_MODULE); }catch(e){}
+  const fmt=ts=>new Date(ts).toLocaleString(lang==='ru'?'ru-RU':'en-US',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'});
+  if(!assigns.length && !results.length){ el.innerHTML='<i>'+(lang==='ru'?'Пока пусто':'Nothing yet')+'</i>'; return; }
+  let html='';
+  if(results.length){
+    html+='<b>'+(lang==='ru'?'Результаты учеников':'Student results')+':</b><br>'+
+      results.slice(0,10).map(r=>fmt(r.ts)+' — '+r.cls+': '+r.correct+'/'+r.total).join('<br>')+'<br><br>';
+  }
+  if(assigns.length){
+    html+='<b>'+(lang==='ru'?'Созданные задания':'Created assignments')+':</b><br>'+
+      assigns.slice(0,10).map(a=>fmt(a.ts)+' — '+a.cls).join('<br>');
+  }
+  el.innerHTML=html;
 }
 function dismissAssignBanner(){ const b=document.getElementById('assignBanner'); if(b)b.classList.remove('show'); }
 function showAssignBanner(info){
@@ -1424,6 +1462,11 @@ function showAssignBanner(info){
 }
 function openShareResultModal(){
   if(!activeAssignment)return;
+  if(!quizFinished){
+    // Ученик ещё не прошёл тест до конца — отправлять нечего.
+    alert(t('quizNotFinished'));
+    return;
+  }
   const total=qDeck.length||0, correct=qScore||0;
   const link=buildResultLink(activeAssignment.topic, activeAssignment.cls, correct, total);
   document.getElementById('rmLinkInput').value=link;
@@ -1438,6 +1481,7 @@ function copyResultLink(){
 }
 function showTeacherResultView(res){
   teacherResultInfo=res;
+  logResult({topic:res.topic,cls:res.cls,correct:res.correct,total:res.total});
   document.getElementById('rvTitle').textContent=t('rvTitle');
   document.getElementById('rvScore').textContent=res.correct+' / '+res.total;
   document.getElementById('rvSub').textContent=topicDisplay(res.topic)+', '+clsDisplay(res.cls)+' · '+res.ts;
@@ -1467,6 +1511,12 @@ function showTeacherResultView(res){
       showAssignBanner(info);
       const btn=document.getElementById('shareResultBtn'); if(btn)btn.style.display='flex';
     }
+  } else {
+    // Нет активного задания — подставляем класс из профиля ученика (главная страница), если он задан.
+    try{
+      const profileGrade=localStorage.getItem('musicapp_profile_grade');
+      if(profileGrade && CLS_LIST.indexOf(profileGrade)!==-1) setCls(profileGrade);
+    }catch(e){}
   }
 })();
 </script>

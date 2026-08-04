@@ -353,9 +353,10 @@ function scheduler(){
   schedulerTimer=setTimeout(scheduler,LOOKAHEAD);
 }
 
+let uiTimers=[];
 function scheduleBeatUI(beat,time){
   const delay=(time-audioCtx.currentTime)*1000;
-  setTimeout(()=>{
+  const tid=setTimeout(()=>{
     // dots
     document.querySelectorAll('.beat-dot').forEach((d,i)=>{
       d.classList.remove('active','accent');
@@ -364,10 +365,12 @@ function scheduleBeatUI(beat,time){
     // BPM pulse
     const disp=document.getElementById('bpmDisplay');
     disp.classList.add('pulse');
-    setTimeout(()=>disp.classList.remove('pulse'),80);
+    const tid2=setTimeout(()=>disp.classList.remove('pulse'),80);
+    uiTimers.push(tid2);
     // Pendulum
     animatePendulum(beat);
   },Math.max(0,delay));
+  uiTimers.push(tid);
 }
 
 let pendulumDir=1;
@@ -394,6 +397,8 @@ function startMetronome(){
 function stopMetronome(){
   isPlaying=false;
   clearTimeout(schedulerTimer);
+  uiTimers.forEach(id=>clearTimeout(id));
+  uiTimers=[];
   const btn=document.getElementById('playBtn');
   btn.className='play-btn start';
   document.getElementById('playIco').innerHTML='<polygon points="5,3 19,12 5,21"/>';

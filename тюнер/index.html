@@ -748,7 +748,13 @@ function playTone(str) {
   // Звучит непрерывно, пока пользователь не нажмёт «Стоп»
   playing = true;
   setPlayBtn(true);
-  oscNode.onended = () => { playing = false; setPlayBtn(false); };
+  const thisOsc = oscNode;
+  oscNode.onended = () => {
+    // Игнорируем, если к этому моменту уже играет другая (более новая) нота —
+    // иначе onended устаревшего осциллятора сбросит playing/кнопку не вовремя.
+    if (oscNode !== thisOsc) return;
+    playing = false; setPlayBtn(false);
+  };
 }
 
 function stopTone() {

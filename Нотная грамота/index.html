@@ -2604,6 +2604,8 @@
             if (micSource) { micSource.disconnect(); micSource = null; }
             if (micStream) { micStream.getTracks().forEach(t => t.stop()); micStream = null; }
             micAnalyser = null;
+            // приостанавливаем контекст в фоне; ensureCtx()/воспроизведение звука сами разбудят его через resume()
+            if (audioCtx && audioCtx.state === 'running') { try { audioCtx.suspend(); } catch(_) {} }
             const btn = document.getElementById('micToggleBtn');
             if (btn) btn.className = 'mic-toggle';
             const txt = document.getElementById('micToggleText');

@@ -163,6 +163,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
       </svg>
       <span id="langText">RU</span>
     </button>
+    <button class="hbtn" id="installBtn" style="display:none">
+      <span>⬇️</span> <span id="installBtnText">Установить</span>
+    </button>
   </div>
 </div>
 
@@ -179,9 +182,25 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
   </div>
 </div>
 
+<div class="data-card">
+  <div class="data-card-title" id="profileTitle">🎓 Мой класс</div>
+  <div class="data-card-desc" id="profileDesc">Выберите класс — модули с заданиями будут сразу открываться на нужном уровне.</div>
+  <select id="profileGradeSelect" class="hbtn" style="width:100%;max-width:260px;">
+    <option value="">—</option>
+    <option value="1-2">1–2 класс</option>
+    <option value="3-4">3–4 класс</option>
+    <option value="5-6">5–6 класс</option>
+    <option value="7-8">7–8 класс</option>
+  </select>
+</div>
+
 <div class="review-card" id="reviewCard" style="display:none">
   <div class="review-title" id="reviewTitle">🧠 Что подтянуть</div>
   <div class="review-list" id="reviewList"></div>
+</div>
+
+<div class="data-card" id="exportReminder" style="display:none">
+  <div class="data-card-desc" id="exportReminderText"></div>
 </div>
 
 <div class="data-card">
@@ -353,11 +372,14 @@ let lang=localStorage.getItem('musicapp_lang')||'ru';
 const T={
   ru:{
     title:'Музыкальное приложение',sub:'Музыкальная школа · 15 модулей',
-    dark:'Тёмная',light:'Светлая',progress:'Ваш прогресс',progressOf:'из',
+    dark:'Тёмная',light:'Светлая',progress:'Ваш прогресс',progressOf:'из',installBtnText:'Установить',
     sec1:'🎼 Сольфеджио и теория',sec2:'📖 Теория',sec3:'🎭 История и культура',sec4:'🎸 Инструменты',sec5:'🤝 Сотрудничество',
     mFav:'Избранное',mFavD:'Сохранённые композиторы, инструменты, термины и цитаты',mFavT:'Моё',
     dataTitle:'💾 Данные приложения',dataDesc:'Прогресс и избранное хранятся локально на этом устройстве. Сохраните файл, чтобы не потерять их при смене устройства или очистке данных.',
     exportBtnText:'Экспорт в файл',importBtnText:'Импорт из файла',
+    exportReminder:'⏰ Давно не сохраняли резервную копию прогресса — если сменится устройство или очистится память браузера, всё пропадёт. ',
+    exportReminderBtn:'Сохранить сейчас',exportReminderDismiss:'Позже',
+    profileTitle:'🎓 Мой класс',profileDesc:'Выберите класс — модули с заданиями будут сразу открываться на нужном уровне.',
     exportedMsg:'Сохранено: ',importedMsg:'Импортировано ключей: ',importedSuffix:'. Обновляю страницу…',importErrMsg:'Не удалось прочитать файл. Проверьте, что это резервная копия этого приложения.',
     achTitle:'🏅 Достижения',
     reviewTitle:'🧠 Что подтянуть',
@@ -381,11 +403,14 @@ const T={
   },
   en:{
     title:'Music App',sub:'Music School · 15 modules',
-    dark:'Dark',light:'Light',progress:'Your Progress',progressOf:'of',
+    dark:'Dark',light:'Light',progress:'Your Progress',progressOf:'of',installBtnText:'Install',
     sec1:'🎼 Solfège & Theory',sec2:'📖 Theory',sec3:'🎭 History & Culture',sec4:'🎸 Instruments',sec5:'🤝 Collaboration',
     mFav:'Favorites',mFavD:'Saved composers, instruments, terms and quotes',mFavT:'Mine',
     dataTitle:'💾 App data',dataDesc:'Progress and favorites are stored locally on this device. Save a file so you don\'t lose them if you switch devices or clear your data.',
     exportBtnText:'Export to file',importBtnText:'Import from file',
+    exportReminder:"⏰ You haven't backed up your progress in a while — if you switch devices or clear browser data, it'll be gone. ",
+    exportReminderBtn:'Save now',exportReminderDismiss:'Later',
+    profileTitle:'🎓 My grade',profileDesc:'Pick your grade — assignment-based modules will open at the right level right away.',
     exportedMsg:'Saved: ',importedMsg:'Imported keys: ',importedSuffix:'. Reloading the page…',importErrMsg:'Could not read the file. Make sure it\'s a backup from this app.',
     achTitle:'🏅 Achievements',
     reviewTitle:'🧠 What to review',
@@ -409,15 +434,16 @@ const T={
   }
 };
 function applyLang(){
+  document.documentElement.lang=lang;
   const L=T[lang];
   const ids=['hdrTitle','hdrSub','sec1Title','sec2Title','sec3Title','sec4Title','sec5Title',
-    'mFav','mFavD','mFavT','dataTitle','dataDesc','exportBtnText','importBtnText','reviewTitle',
+    'mFav','mFavD','mFavT','dataTitle','dataDesc','exportBtnText','importBtnText','reviewTitle','profileTitle','profileDesc',
     'm17','m17d','m17t','m1','m1d','m1t','m2','m2d','m2t','m3','m3d','m3t','m4','m4d','m4t',
     'm5','m5d','m5t','m6','m6d','m6t','m7','m7d','m7t','m8','m8d','m8t',
     'm9','m9d','m9t','m10','m10d','m10t','m11','m11d','m11t',
     'm12','m12d','m12t','m15','m15d','m15t','m16','m16d','m16t','m13','m13d','m13t','m14','m14d','m14t'];
   const keys=['title','sub','sec1','sec2','sec3','sec4','sec5',
-    'mFav','mFavD','mFavT','dataTitle','dataDesc','exportBtnText','importBtnText','reviewTitle',
+    'mFav','mFavD','mFavT','dataTitle','dataDesc','exportBtnText','importBtnText','reviewTitle','profileTitle','profileDesc',
     'm17','m17d','m17t','m1','m1d','m1t','m2','m2d','m2t','m3','m3d','m3t','m4','m4d','m4t',
     'm5','m5d','m5t','m6','m6d','m6t','m7','m7d','m7t','m8','m8d','m8t',
     'm9','m9d','m9t','m10','m10d','m10t','m11','m11d','m11t',
@@ -429,12 +455,14 @@ function applyLang(){
   const dk=document.documentElement.getAttribute('data-theme')==='dark';
   document.getElementById('themeText').textContent=dk?L.light:L.dark;
   document.getElementById('langText').textContent=lang==='ru'?'RU':'EN';
+  document.getElementById('installBtnText').textContent=L.installBtnText;
   document.getElementById('progLabel').textContent=L.progress;
   document.getElementById('achTitle').textContent=L.achTitle;
   updateProgress();
   renderAchievements();
   renderStreak();
   renderReview();
+  renderExportReminder();
 }
 const ALL_MODULES=['notation','rhythm','ear','dictation','figured-bass','keys','transposition','glossary','history','quotes','jazz','tuner','metronome','orchestra','solfege'];
 function updateProgress(){
@@ -474,10 +502,21 @@ function renderReview(){
   if(!card||!list)return;
   const items=[];
 
-  // Термины словарика, недавно отвеченные неверно (box 0 в SRS).
+  // Термины словарика, у которых наступил или прошёл срок повторения (SRS due-дата),
+  // отсортированные по тому, насколько повторение просрочено (сначала самые старые).
   try{
     const srs=JSON.parse(localStorage.getItem('musicapp_glossary_srs')||'{}');
-    const weak=Object.keys(srs).filter(term=>srs[term] && srs[term].box===0).slice(0,3);
+    const today=new Date();
+    const todayStr=today.getFullYear()+'-'+(today.getMonth()+1)+'-'+today.getDate();
+    const daysBetween=(a,b)=>{
+      const pa=a.split('-').map(Number), pb=b.split('-').map(Number);
+      const da=new Date(pa[0],pa[1]-1,pa[2]), db=new Date(pb[0],pb[1]-1,pb[2]);
+      return Math.round((db-da)/86400000);
+    };
+    const weak=Object.keys(srs)
+      .filter(term=>srs[term] && srs[term].due && daysBetween(srs[term].due, todayStr)>=0)
+      .sort((a,b)=>daysBetween(srs[b].due, todayStr)-daysBetween(srs[a].due, todayStr))
+      .slice(0,3);
     if(weak.length){
       const names='<b>'+weak.join('</b>, <b>')+'</b>';
       const txt=lang==='ru'
@@ -571,6 +610,37 @@ function renderAchievements(){
 document.getElementById('langBtn').addEventListener('click',()=>{
   lang=lang==='ru'?'en':'ru';localStorage.setItem('musicapp_lang',lang);applyLang();
 });
+// Кнопка установки PWA — показываем только если браузер реально предлагает установку
+// (Safari/iOS не поддерживает beforeinstallprompt — там кнопка просто не появится).
+let deferredInstallPrompt=null;
+window.addEventListener('beforeinstallprompt',(e)=>{
+  e.preventDefault();
+  deferredInstallPrompt=e;
+  const btn=document.getElementById('installBtn');
+  if(btn)btn.style.display='';
+});
+document.getElementById('installBtn').addEventListener('click',async()=>{
+  if(!deferredInstallPrompt)return;
+  deferredInstallPrompt.prompt();
+  await deferredInstallPrompt.userChoice;
+  deferredInstallPrompt=null;
+  document.getElementById('installBtn').style.display='none';
+});
+window.addEventListener('appinstalled',()=>{
+  const btn=document.getElementById('installBtn');
+  if(btn)btn.style.display='none';
+});
+// Профиль ученика: класс по умолчанию для модулей с заданиями (тональности, диктанты,
+// словарик терминов, слуховой анализ, цифровка) — просто подставляется при открытии модуля.
+(function initProfileGrade(){
+  const sel=document.getElementById('profileGradeSelect');
+  if(!sel)return;
+  sel.value=localStorage.getItem('musicapp_profile_grade')||'';
+  sel.addEventListener('change',()=>{
+    if(sel.value)localStorage.setItem('musicapp_profile_grade',sel.value);
+    else localStorage.removeItem('musicapp_profile_grade');
+  });
+})();
 document.getElementById('themeBtn').addEventListener('click',()=>{
   const dk=document.documentElement.getAttribute('data-theme')==='dark';
   document.documentElement.setAttribute('data-theme',dk?'light':'dark');
@@ -590,6 +660,36 @@ function collectAppData(){
   }
   return data;
 }
+function hideExportReminder(){
+  const el=document.getElementById('exportReminder');
+  if(el)el.style.display='none';
+}
+function renderExportReminder(){
+  const el=document.getElementById('exportReminder');
+  if(!el)return;
+  // Не показываем, если пользователь уже отложил на этой неделе.
+  const snoozedAt=Number(localStorage.getItem('musicapp_export_reminder_snoozed')||0);
+  if(snoozedAt && (Date.now()-snoozedAt)<7*86400000){el.style.display='none';return;}
+  // Показываем только если есть реальный прогресс — иначе напоминать нечего.
+  const visited=getVisitedCount();
+  if(visited<2){el.style.display='none';return;}
+  const lastExportTs=Number(localStorage.getItem('musicapp_last_export_ts')||0);
+  const daysSince=lastExportTs?(Date.now()-lastExportTs)/86400000:Infinity;
+  if(daysSince<14){el.style.display='none';return;}
+  const L=T[lang];
+  el.style.display='';
+  document.getElementById('exportReminderText').innerHTML=
+    L.exportReminder+
+    `<button class="hbtn data-btn-primary" id="exportReminderBtn" style="margin-right:6px">${L.exportReminderBtn}</button>`+
+    `<button class="hbtn" id="exportReminderDismissBtn">${L.exportReminderDismiss}</button>`;
+  document.getElementById('exportReminderBtn').addEventListener('click',()=>{
+    document.getElementById('exportBtn').click();
+  });
+  document.getElementById('exportReminderDismissBtn').addEventListener('click',()=>{
+    localStorage.setItem('musicapp_export_reminder_snoozed',String(Date.now()));
+    hideExportReminder();
+  });
+}
 function showDataStatus(ok,msg){
   const el=document.getElementById('dataStatus');
   el.style.display='block';
@@ -607,6 +707,8 @@ document.getElementById('exportBtn').addEventListener('click',()=>{
   document.body.appendChild(a);a.click();document.body.removeChild(a);
   URL.revokeObjectURL(url);
   localStorage.setItem('musicapp_has_exported','1');
+  localStorage.setItem('musicapp_last_export_ts',String(Date.now()));
+  hideExportReminder();
   renderAchievements();
   showDataStatus(true,T[lang].exportedMsg+filename);
 });

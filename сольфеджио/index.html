@@ -605,6 +605,9 @@ function stopMic(){
   if(micSource){ micSource.disconnect(); micSource=null; }
   if(micStream){ micStream.getTracks().forEach(tr=>tr.stop()); micStream=null; }
   micAnalyser=null;
+  // приостанавливаем контекст, чтобы он не работал вхолостую в фоне;
+  // playTone()/ensureCtx() сами разбудят его через resume() при следующем звуке
+  if(audioCtx && audioCtx.state==='running'){ try{ audioCtx.suspend(); }catch(_){} }
   document.getElementById('micToggleBtn').className='mic-toggle';
   document.getElementById('micToggleText').textContent=t('micOff');
   document.getElementById('micBar').style.width='0%';
