@@ -134,6 +134,11 @@
   .quiz-opt.correct{border-color:var(--green);background:rgba(16,185,129,.08);color:var(--green);font-weight:700;}
   .quiz-opt.wrong{border-color:var(--red);background:rgba(239,68,68,.08);color:var(--red);}
   .quiz-opt:disabled{cursor:default;}
+  .quiz-next-bar{position:fixed;left:0;right:0;bottom:0;display:none;justify-content:center;
+    padding:12px 16px calc(12px + env(safe-area-inset-bottom));background:var(--bg);
+    border-top:1px solid var(--border);z-index:50;}
+  .quiz-next-bar.show{display:flex;}
+  .quiz-next-bar .btn{width:100%;max-width:700px;justify-content:center;}
   .quiz-result-box{background:var(--card);border:1px solid var(--border);border-radius:var(--radius-lg);padding:48px 24px;text-align:center;box-shadow:var(--shadow-md);}
   .score-big{font-size:64px;font-weight:900;color:var(--accent);line-height:1;}
   .score-sub{color:var(--text2);margin:8px 0 28px;font-size:15px;}
@@ -964,7 +969,9 @@ function showQ() {
         ${opts.map(o=>`<button class="quiz-opt" onclick="qAns(this,'${o.term}','${q.term}')">${def(o)}</button>`).join('')}
       </div>
     </div>
-    <button class="btn btn-primary" id="qnext" style="display:none" onclick="nextQ()">${t('nextQ')}</button>
+  </div>
+  <div class="quiz-next-bar" id="qnextBar">
+    <button class="btn btn-primary" id="qnext" onclick="nextQ()">${t('nextQ')}</button>
   </div>`;
 }
 
@@ -973,15 +980,18 @@ function qAns(btn,chosen,correct) {
   document.querySelectorAll('.quiz-opt').forEach(b=>b.disabled=true);
   if(chosen===correct){
     btn.classList.add('correct'); qScore++; progress[correct]='known';
+    save();
+    setTimeout(nextQ,900);
   } else {
     btn.classList.add('wrong');
     // highlight correct
     const correctCard = TERMS.find(x=>x.term===correct);
     const correctDef = def(correctCard);
     document.querySelectorAll('.quiz-opt').forEach(b=>{if(b.textContent===correctDef)b.classList.add('correct');});
+    save();
+    const bar=document.getElementById('qnextBar');
+    if(bar)bar.classList.add('show');
   }
-  save();
-  document.getElementById('qnext').style.display='inline-flex';
 }
 
 function nextQ(){qIdx++;showQ();}
