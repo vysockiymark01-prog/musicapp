@@ -896,6 +896,8 @@ function buildGrid() {
       selectedStr = s;
       setStrInfo(s);
       document.getElementById('playBtn').disabled = false;
+      // Если звук уже играет — сразу переключаемся на новую струну без ручного "Стоп".
+      if (playing) playTone(s);
     });
     grid.appendChild(btn);
   });
