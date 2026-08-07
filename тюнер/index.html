@@ -154,6 +154,11 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
   display:flex;align-items:center;justify-content:center;transition:all .15s;}
 .fav-btn:hover{border-color:#f59e0b;transform:scale(1.08);}
 .fav-btn.on{color:#f59e0b;border-color:#f59e0b;background:rgba(245,158,11,.12);}
+
+/* Плавное движение стрелки тюнера: вместо мгновенного скачка к новому значению
+   каждый кадр браузер сам анимирует переход между позициями. */
+#needleLine{transition:x2 .15s ease-out,y2 .15s ease-out,stroke .2s ease,opacity .2s ease;}
+#needlePivot{transition:fill .2s ease,opacity .2s ease;}
 </style>
 </head>
 <body>
@@ -539,7 +544,9 @@ function detectPitch(buf, sr) {
   let rms = 0;
   for (let i = 0; i < N; i++) rms += buf[i]*buf[i];
   rms = Math.sqrt(rms / N);
-  if (rms < 0.008) return -1;
+  // Порог поднят с 0.008: слишком низкий порог ловил фоновый шум (вентилятор
+  // компьютера и т.п.) как валидный сигнал и выдавал случайную ноту.
+  if (rms < 0.02) return -1;
 
   // Search range: 60 – 1500 Hz
   const minL = Math.floor(sr / 1500);
@@ -563,8 +570,10 @@ function detectPitch(buf, sr) {
     if (c[i] > best) { best = c[i]; bestL = i; }
   }
 
-  // Reject weak or unclear peaks
-  if (bestL < 0 || best < rms * rms * 0.25) return -1;
+  // Reject weak or unclear peaks. Порог строгости поднят с 0.25 до 0.4 — шум
+  // (например, вентилятор компьютера) даёт слабый, "размытый" пик автокорреляции,
+  // а настоящая нота — чёткий и сильный; так шум надёжнее не принимается за сигнал.
+  if (bestL < 0 || best < rms * rms * 0.4) return -1;
 
   // Parabolic interpolation for sub-sample precision
   let T = bestL;
