@@ -360,9 +360,9 @@ const INSTR = {
     {midi:64,strNum:3,ru:'Ми₄',  en:'E4'},
   ]},
   domra:     { strings:[
-    {midi:69,strNum:1,ru:'Ля₄',  en:'A4'},
-    {midi:62,strNum:2,ru:'Ре₄',  en:'D4'},
-    {midi:55,strNum:3,ru:'Соль₃',en:'G3'},
+    {midi:74,strNum:1,ru:'Ре₅',  en:'D5'},
+    {midi:69,strNum:2,ru:'Ля₄',  en:'A4'},
+    {midi:64,strNum:3,ru:'Ми₄',  en:'E4'},
   ]},
   ukulele:   { strings:[
     {midi:67,strNum:1,ru:'Соль₄',en:'G4'},
@@ -493,12 +493,21 @@ let rafId      = null;
 let listening  = false;
 
 // Pitch smoothing (ring buffer)
-const SMOOTH = 7;
+const SMOOTH = 10;
 const pitchBuf = [];
+
+// Устойчивость отображаемой ноты: автокорреляция иногда даёт единичные выбросы
+// (октавные ошибки, шум), из-за которых название ноты дёргается каждую доли секунды.
+// Показанная нота меняется только после нескольких подряд согласованных кадров —
+// частота/центы при этом обновляются каждый кадр, так что стрелка двигается плавно.
+const NOTE_LOCK_FRAMES = 6;
+let heldMidi = null, pendingMidi = null, pendingCount = 0;
 
 // Audio – manual mode
 let oscNode  = null;
 let gainNode = null;
+let octNode  = null; // тихий октавный обертон для очень низких нот (см. playTone)
+let octGain  = null;
 let playing  = false;
 
 /* ───────── MATH HELPERS ───────── */
@@ -687,11 +696,30 @@ async function startListening() {
         pitchBuf.push(f);
         if (pitchBuf.length > SMOOTH) pitchBuf.shift();
         silenceCount = 0;
-        updateAutoDisplay(freqToNote(medianOf(pitchBuf)));
+        const medFreq = medianOf(pitchBuf);
+        const mRound = Math.round(freqToMidi(medFreq));
+        if (heldMidi === null) {
+          heldMidi = mRound;
+        } else if (mRound !== heldMidi) {
+          if (pendingMidi === mRound) pendingCount++;
+          else { pendingMidi = mRound; pendingCount = 1; }
+          if (pendingCount >= NOTE_LOCK_FRAMES) {
+            heldMidi = mRound; pendingMidi = null; pendingCount = 0;
+          }
+        } else {
+          pendingMidi = null; pendingCount = 0;
+        }
+        // Центы и частоту показываем живьём (относительно закреплённой ноты),
+        // а само название ноты меняется только после подтверждения выше.
+        const idx = ((heldMidi % 12) + 12) % 12;
+        const oct = Math.floor(heldMidi / 12) - 1;
+        const ref = midiToFreq(heldMidi);
+        updateAutoDisplay({ idx, oct, cents: cents(medFreq, ref), freq: medFreq, ref });
       } else {
         silenceCount++;
         if (silenceCount > 12) {          // ~200 ms of silence
           pitchBuf.length = 0;
+          heldMidi = null; pendingMidi = null; pendingCount = 0;
           updateAutoDisplay(null);
         }
       }
@@ -712,6 +740,7 @@ function stopListening() {
   if (audioCtx)  { audioCtx.close(); audioCtx = null; }
   analyser = null;
   pitchBuf.length = 0;
+  heldMidi = null; pendingMidi = null; pendingCount = 0;
   setStartBtn(false);
   updateAutoDisplay(null);
 }
@@ -735,16 +764,42 @@ function playTone(str) {
   stopTone();
   ensureCtx();
   const t = audioCtx.currentTime;
+  // Низкие ноты (например, Ми₂/Ля₂ у гитары) на маленьких динамиках звучат заметно тише
+  // при равной амплитуде — компенсируем это усилением громкости для басовых частот.
+  const freq = str.freq;
+  const gainTarget = freq < 200 ? Math.min(0.9, 0.5 * Math.sqrt(200 / freq)) : 0.5;
   gainNode = audioCtx.createGain();
   gainNode.gain.setValueAtTime(0, t);
-  gainNode.gain.linearRampToValueAtTime(0.5, t + 0.01);
+  gainNode.gain.linearRampToValueAtTime(gainTarget, t + 0.01);
   gainNode.connect(audioCtx.destination);
 
   oscNode = audioCtx.createOscillator();
-  oscNode.type = 'sine';
-  oscNode.frequency.value = str.freq;
+  // Пила богаче гармониками, чем треугольник — это важно для очень низких нот
+  // (виолончель, контрабас), где сама основная частота попадает ниже диапазона,
+  // который вообще способен воспроизвести маленький динамик телефона/ноутбука.
+  oscNode.type = freq < 110 ? 'sawtooth' : 'triangle';
+  oscNode.frequency.value = freq;
   oscNode.connect(gainNode);
   oscNode.start(t);
+
+  // Для совсем басовых нот (контрабас/виолончель, ниже ~110 Гц) основная частота
+  // часто физически не воспроизводится маленькими динамиками — человек слышит высоту
+  // тона по гармоникам. Подмешиваем тихий осциллятор на октаву выше: он и так есть
+  // в обертонах струны, зато лежит в диапазоне, который динамик реально проигрывает,
+  // и помогает распознать ноту на слух (эффект "отсутствующей основной частоты").
+  octNode = null; octGain = null;
+  if (freq < 110) {
+    octGain = audioCtx.createGain();
+    octGain.gain.setValueAtTime(0, t);
+    octGain.gain.linearRampToValueAtTime(gainTarget * 0.5, t + 0.01);
+    octGain.connect(audioCtx.destination);
+    octNode = audioCtx.createOscillator();
+    octNode.type = 'triangle';
+    octNode.frequency.value = freq * 2;
+    octNode.connect(octGain);
+    octNode.start(t);
+  }
+
   // Звучит непрерывно, пока пользователь не нажмёт «Стоп»
   playing = true;
   setPlayBtn(true);
@@ -767,6 +822,16 @@ function stopTone() {
       oscNode.stop(t + 0.06);
     } catch(_) {}
     oscNode = null; gainNode = null;
+  }
+  if (octNode) {
+    try {
+      const t = audioCtx.currentTime;
+      octGain.gain.cancelScheduledValues(t);
+      octGain.gain.setValueAtTime(octGain.gain.value, t);
+      octGain.gain.linearRampToValueAtTime(0, t + 0.05);
+      octNode.stop(t + 0.06);
+    } catch(_) {}
+    octNode = null; octGain = null;
   }
   playing = false;
   setPlayBtn(false);
