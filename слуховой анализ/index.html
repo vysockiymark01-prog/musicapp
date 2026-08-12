@@ -21,6 +21,9 @@
     
 <script>(function(){var t=localStorage.getItem('musicapp_theme');var dark=t==='dark';document.documentElement.setAttribute('data-theme',dark?'dark':'light');})()</script>
     <style>
+/* Отключаем системный жест pull-to-refresh (стрелка/спиннер при потягивании вниз) — приложение уже показывает свой интерфейс, обновление страницы через этот жест не нужно и мешает свайпам внутри модулей. */
+html,body{overscroll-behavior-y:contain;}
+
         :root {
             --bg:#f8fafc;--card:#fff;--text:#0f172a;--muted:#94a3b8;--border:#e2e8f0;
             --sl100:#f1f5f9;--sl200:#e2e8f0;--sl300:#cbd5e1;--sl400:#94a3b8;--sl500:#64748b;

@@ -8,6 +8,9 @@
 <meta name="theme-color" content="#1c3a8e">
 <script>(function(){var t=localStorage.getItem('musicapp_theme');document.documentElement.setAttribute('data-theme',t==='dark'?'dark':'light');})()</script>
 <style>
+/* Отключаем системный жест pull-to-refresh (стрелка/спиннер при потягивании вниз) — приложение уже показывает свой интерфейс, обновление страницы через этот жест не нужно и мешает свайпам внутри модулей. */
+html,body{overscroll-behavior-y:contain;}
+
 :root{--bg:#f8fafc;--card:#fff;--text:#0f172a;--muted:#94a3b8;--border:#e2e8f0;
   --sl100:#f1f5f9;--sl200:#e2e8f0;--blue:#2563eb;--shadow:0 1px 4px rgba(0,0,0,.07);}
 [data-theme="dark"]{--bg:#0f172a;--card:#1e293b;--text:#f1f5f9;--muted:#64748b;

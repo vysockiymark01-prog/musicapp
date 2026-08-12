@@ -20,6 +20,9 @@
 <meta name="theme-color" content="#1c3a8e">
 <script>(function(){var t=localStorage.getItem('musicapp_theme');var dark=t==='dark';document.documentElement.setAttribute('data-theme',dark?'dark':'light');})()</script>
 <style>
+/* Отключаем системный жест pull-to-refresh (стрелка/спиннер при потягивании вниз) — приложение уже показывает свой интерфейс, обновление страницы через этот жест не нужно и мешает свайпам внутри модулей. */
+html,body{overscroll-behavior-y:contain;}
+
   :root {
     --bg:#f8fafc; --bg2:#ffffff; --card:#ffffff;
     --border:#e2e8f0; --border-light:#f1f5f9;
