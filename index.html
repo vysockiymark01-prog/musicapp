@@ -17,7 +17,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>Музыкальное приложение</title>
 <meta name="theme-color" content="#1c3a8e">
-<script>(function(){var t=localStorage.getItem('musicapp_theme');var dark=t==='dark';document.documentElement.setAttribute('data-theme',dark?'dark':'light');})()</script>
+<script>(function(){var t=localStorage.getItem('musicapp_theme');var dark=t?t==='dark':window.matchMedia('(prefers-color-scheme: dark)').matches;document.documentElement.setAttribute('data-theme',dark?'dark':'light');})()</script>
 <script>(function(){try{var SK='musicapp_streak';var td=new Date();td.setHours(0,0,0,0);var ts=td.getFullYear()+'-'+(td.getMonth()+1)+'-'+td.getDate();var s=JSON.parse(localStorage.getItem(SK)||'{"count":0,"longest":0,"last":null}');if(s.last!==ts){var dd=null;if(s.last){var pp=s.last.split('-').map(Number);var ld=new Date(pp[0],pp[1]-1,pp[2]);dd=Math.round((td-ld)/86400000);}s.count=(dd===1)?s.count+1:1;s.last=ts;if(s.count>s.longest)s.longest=s.count;localStorage.setItem(SK,JSON.stringify(s));}}catch(e){}})();</script>
 <style>
 /* Отключаем системный жест pull-to-refresh (стрелка/спиннер при потягивании вниз) — приложение уже показывает свой интерфейс, обновление страницы через этот жест не нужно и мешает свайпам внутри модулей. */
@@ -139,6 +139,29 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
 .cat-fav{--accent:#f59e0b;}
 .cat-fav .mcard-tag{background:rgba(245,158,11,.12);color:#b45309;}
 [data-theme="dark"] .cat-fav .mcard-tag{background:rgba(245,158,11,.25);}
+
+/* Онбординг-тур для новых пользователей */
+.tour-backdrop{position:fixed;inset:0;z-index:9998;background:transparent;}
+.tour-highlight{position:fixed;border-radius:14px;box-shadow:0 0 0 9999px rgba(15,23,42,.6);
+  pointer-events:none;z-index:9999;transition:top .25s ease,left .25s ease,width .25s ease,height .25s ease;}
+[data-theme="dark"] .tour-highlight{box-shadow:0 0 0 9999px rgba(0,0,0,.72);}
+.tour-tip{position:fixed;z-index:10000;max-width:300px;width:calc(100vw - 32px);
+  background:var(--card);border:1.5px solid var(--border);border-radius:16px;padding:16px;
+  box-shadow:0 12px 30px rgba(0,0,0,.3);transition:top .25s ease,left .25s ease;}
+.tour-tip-title{font-weight:900;font-size:14px;margin-bottom:6px;color:var(--text);}
+.tour-tip-body{font-size:12.5px;line-height:1.5;color:var(--text);margin-bottom:14px;}
+.tour-tip-foot{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;}
+.tour-dots{display:flex;gap:5px;}
+.tour-dot{width:6px;height:6px;border-radius:50%;background:var(--sl200);transition:all .2s;}
+.tour-dot.active{background:var(--blue);width:16px;border-radius:4px;}
+.tour-tip-btns{display:flex;gap:6px;}
+.tour-tip-btns button{padding:7px 12px;border:none;border-radius:10px;font-size:11px;font-weight:800;cursor:pointer;}
+.tour-btn-skip{background:transparent;color:var(--muted);}
+.tour-btn-skip:hover{color:var(--text);}
+.tour-btn-prev{background:var(--sl100);color:var(--text);}
+.tour-btn-prev:hover{background:var(--sl200);}
+.tour-btn-next{background:var(--blue);color:#fff;}
+.tour-btn-next:hover{opacity:.9;}
 </style>
 <link rel="manifest" href="/musicapp/manifest.json">
 </head>
@@ -166,6 +189,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
       </svg>
       <span id="langText">RU</span>
     </button>
+    <button class="hbtn" id="tourBtn" title="Тур" aria-label="Тур" style="padding:7px 10px;">❔</button>
     <button class="hbtn" id="installBtn" style="display:none">
       <span>⬇️</span> <span id="installBtnText">Установить</span>
     </button>
@@ -370,6 +394,21 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
 
 </div>
 
+<div class="tour-backdrop" id="tourBackdrop" style="display:none"></div>
+<div class="tour-highlight" id="tourHighlight" style="display:none"></div>
+<div class="tour-tip" id="tourTip" style="display:none">
+  <div class="tour-tip-title" id="tourTipTitle"></div>
+  <div class="tour-tip-body" id="tourTipBody"></div>
+  <div class="tour-tip-foot">
+    <div class="tour-dots" id="tourDots"></div>
+    <div class="tour-tip-btns">
+      <button class="tour-btn-skip" id="tourSkipBtn"></button>
+      <button class="tour-btn-prev" id="tourPrevBtn"></button>
+      <button class="tour-btn-next" id="tourNextBtn"></button>
+    </div>
+  </div>
+</div>
+
 <script>
 let lang=localStorage.getItem('musicapp_lang')||'ru';
 const T={
@@ -386,6 +425,13 @@ const T={
     exportedMsg:'Сохранено: ',importedMsg:'Импортировано ключей: ',importedSuffix:'. Обновляю страницу…',importErrMsg:'Не удалось прочитать файл. Проверьте, что это резервная копия этого приложения.',
     achTitle:'🏅 Достижения',
     reviewTitle:'🧠 Что подтянуть',
+    tourBtn:'Тур',tourSkip:'Пропустить',tourNext:'Далее',tourPrev:'Назад',tourDone:'Готово',
+    tourProgressTitle:'Прогресс и серия',tourProgressBody:'Здесь виден процент пройденных разделов и серия дней подряд — занимайтесь регулярно, чтобы её не прерывать.',
+    tourProfileTitle:'Мой класс',tourProfileBody:'Укажите класс — задания в модулях с уровнями (тональности, диктанты, цифровка и другие) сразу откроются на подходящей сложности.',
+    tourReviewTitle:'Что подтянуть',tourReviewBody:'Здесь появляются термины и темы, которые пора повторить — подборка собирается автоматически по вашим результатам.',
+    tourDataTitle:'Резервная копия',tourDataBody:'Весь прогресс хранится в этом браузере. Экспортируйте файл, чтобы не потерять его при смене устройства или очистке памяти.',
+    tourAchTitle:'Достижения',tourAchBody:'За регулярные занятия и успехи открываются значки — их можно собрать все.',
+    tourGridTitle:'Разделы курса',tourGridBody:'Каждая карточка — отдельный тренажёр: теория, слух, ритм, диктанты и многое другое. Нажмите на любую, чтобы начать.',
     m13:'ВКонтакте',m13d:'Написать автору во ВКонтакте — предложения, вопросы, отзывы',m13t:'Связь',
     m14:'Email',m14d:'vysockiy.mark98@mail.ru',m14t:'Связь',
     m1:'Нотная грамота',m1d:'Ноты, ключи, интервалы, построение на нотном стане',m1t:'Сольфеджио',
@@ -417,6 +463,13 @@ const T={
     exportedMsg:'Saved: ',importedMsg:'Imported keys: ',importedSuffix:'. Reloading the page…',importErrMsg:'Could not read the file. Make sure it\'s a backup from this app.',
     achTitle:'🏅 Achievements',
     reviewTitle:'🧠 What to review',
+    tourBtn:'Tour',tourSkip:'Skip',tourNext:'Next',tourPrev:'Back',tourDone:'Done',
+    tourProgressTitle:'Progress & streak',tourProgressBody:"Here you can see the share of sections you've completed and your daily streak — practice regularly to keep it going.",
+    tourProfileTitle:'My grade',tourProfileBody:'Pick your grade — modules with leveled assignments (key signatures, dictations, figured bass, and more) will open at the right difficulty right away.',
+    tourReviewTitle:'What to review',tourReviewBody:'Terms and topics that are due for review show up here — the list is built automatically from your results.',
+    tourDataTitle:'Backup',tourDataBody:'All your progress is stored in this browser. Export a file so you don\'t lose it if you switch devices or clear your data.',
+    tourAchTitle:'Achievements',tourAchBody:'Regular practice and good results unlock badges — try to collect them all.',
+    tourGridTitle:'Course sections',tourGridBody:'Each card is a separate trainer: theory, ear training, rhythm, dictations, and more. Tap any card to get started.',
     m13:'VKontakte',m13d:'Message the author on VKontakte — ideas, questions, feedback',m13t:'Contact',
     m14:'Email',m14d:'vysockiy.mark98@mail.ru',m14t:'Contact',
     m1:'Music Notation',m1d:'Notes, clefs, intervals, staff construction',m1t:'Solfège',
@@ -461,6 +514,8 @@ function applyLang(){
   document.getElementById('installBtnText').textContent=L.installBtnText;
   document.getElementById('progLabel').textContent=L.progress;
   document.getElementById('achTitle').textContent=L.achTitle;
+  const tourBtnEl=document.getElementById('tourBtn');
+  if(tourBtnEl){tourBtnEl.title=L.tourBtn;tourBtnEl.setAttribute('aria-label',L.tourBtn);}
   updateProgress();
   renderAchievements();
   renderStreak();
@@ -742,7 +797,112 @@ document.getElementById('importFile').addEventListener('change',(e)=>{
   e.target.value='';
 });
 
+// Онбординг-тур: короткая экскурсия по главной странице для новых пользователей.
+// Показывается один раз (флаг в localStorage), но её всегда можно повторить кнопкой "❔" в шапке.
+const TOUR_KEY='musicapp_onboarding_seen';
+let tourSteps=[];
+let tourIndex=0;
+function buildTourSteps(){
+  const steps=[];
+  const progressCard=document.querySelector('.progress-card');
+  if(progressCard)steps.push({el:progressCard,titleKey:'tourProgressTitle',bodyKey:'tourProgressBody'});
+  const profileSel=document.getElementById('profileGradeSelect');
+  if(profileSel)steps.push({el:profileSel.closest('.data-card')||profileSel,titleKey:'tourProfileTitle',bodyKey:'tourProfileBody'});
+  const reviewCard=document.getElementById('reviewCard');
+  if(reviewCard && getComputedStyle(reviewCard).display!=='none')
+    steps.push({el:reviewCard,titleKey:'tourReviewTitle',bodyKey:'tourReviewBody'});
+  const exportBtnEl=document.getElementById('exportBtn');
+  if(exportBtnEl)steps.push({el:exportBtnEl.closest('.data-card')||exportBtnEl,titleKey:'tourDataTitle',bodyKey:'tourDataBody'});
+  const achCard=document.querySelector('.ach-card');
+  if(achCard)steps.push({el:achCard,titleKey:'tourAchTitle',bodyKey:'tourAchBody'});
+  const grid=document.querySelector('.section .grid');
+  if(grid)steps.push({el:grid,titleKey:'tourGridTitle',bodyKey:'tourGridBody'});
+  return steps;
+}
+function setTourVisible(v){
+  const d=v?'block':'none';
+  document.getElementById('tourBackdrop').style.display=d;
+  document.getElementById('tourHighlight').style.display=d;
+  document.getElementById('tourTip').style.display=d;
+}
+function renderTourDots(i){
+  document.getElementById('tourDots').innerHTML=tourSteps.map((_,idx)=>
+    `<span class="tour-dot${idx===i?' active':''}"></span>`).join('');
+}
+function positionTourStep(){
+  const step=tourSteps[tourIndex];
+  if(!step)return;
+  const rect=step.el.getBoundingClientRect();
+  const pad=8;
+  const hl=document.getElementById('tourHighlight');
+  hl.style.top=Math.max(0,rect.top-pad)+'px';
+  hl.style.left=Math.max(0,rect.left-pad)+'px';
+  hl.style.width=(rect.width+pad*2)+'px';
+  hl.style.height=(rect.height+pad*2)+'px';
+  const L=T[lang];
+  document.getElementById('tourTipTitle').textContent=L[step.titleKey];
+  document.getElementById('tourTipBody').textContent=L[step.bodyKey];
+  document.getElementById('tourSkipBtn').textContent=L.tourSkip;
+  document.getElementById('tourPrevBtn').textContent=L.tourPrev;
+  document.getElementById('tourNextBtn').textContent=(tourIndex===tourSteps.length-1)?L.tourDone:L.tourNext;
+  document.getElementById('tourPrevBtn').style.visibility=tourIndex===0?'hidden':'visible';
+  const tip=document.getElementById('tourTip');
+  const tipRect=tip.getBoundingClientRect();
+  let top=rect.bottom+pad*2;
+  if(top+tipRect.height>window.innerHeight-8){
+    top=rect.top-tipRect.height-pad*2;
+    if(top<8)top=Math.max(8,window.innerHeight-tipRect.height-8);
+  }
+  let left=rect.left;
+  if(left+tipRect.width>window.innerWidth-8)left=window.innerWidth-tipRect.width-8;
+  if(left<8)left=8;
+  tip.style.top=top+'px';
+  tip.style.left=left+'px';
+  renderTourDots(tourIndex);
+}
+function onTourReposition(){positionTourStep();}
+function showTourStep(i){
+  tourIndex=i;
+  const step=tourSteps[i];
+  if(!step){endTour();return;}
+  step.el.scrollIntoView({block:'center',behavior:'smooth'});
+  setTimeout(positionTourStep,300);
+}
+function endTour(){
+  setTourVisible(false);
+  localStorage.setItem(TOUR_KEY,'1');
+  window.removeEventListener('scroll',onTourReposition);
+  window.removeEventListener('resize',onTourReposition);
+}
+function startTour(){
+  tourSteps=buildTourSteps();
+  if(!tourSteps.length)return;
+  setTourVisible(true);
+  window.addEventListener('scroll',onTourReposition,{passive:true});
+  window.addEventListener('resize',onTourReposition);
+  showTourStep(0);
+}
+function maybeAutoStartTour(){
+  if(localStorage.getItem(TOUR_KEY))return;
+  setTimeout(startTour,600);
+}
+document.getElementById('tourNextBtn').addEventListener('click',()=>{
+  if(tourIndex>=tourSteps.length-1){endTour();return;}
+  showTourStep(tourIndex+1);
+});
+document.getElementById('tourPrevBtn').addEventListener('click',()=>{
+  if(tourIndex>0)showTourStep(tourIndex-1);
+});
+document.getElementById('tourSkipBtn').addEventListener('click',endTour);
+document.getElementById('tourBackdrop').addEventListener('click',endTour);
+document.addEventListener('keydown',(e)=>{
+  if(document.getElementById('tourTip').style.display!=='block')return;
+  if(e.key==='Escape')endTour();
+});
+document.getElementById('tourBtn').addEventListener('click',startTour);
+
 applyLang();
+maybeAutoStartTour();
 </script>
 <script>
 if ('serviceWorker' in navigator) {
