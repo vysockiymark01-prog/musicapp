@@ -18,7 +18,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>Транспозиция</title>
 <meta name="theme-color" content="#1c3a8e">
-<script>(function(){var t=localStorage.getItem('musicapp_theme');var dark=t==='dark';document.documentElement.setAttribute('data-theme',dark?'dark':'light');})()</script>
+<script>(function(){var t=localStorage.getItem('musicapp_theme');var dark=t?t==='dark':window.matchMedia('(prefers-color-scheme: dark)').matches;document.documentElement.setAttribute('data-theme',dark?'dark':'light');})()</script>
 <style>
 /* Отключаем системный жест pull-to-refresh (стрелка/спиннер при потягивании вниз) — приложение уже показывает свой интерфейс, обновление страницы через этот жест не нужно и мешает свайпам внутри модулей. */
 html,body{overscroll-behavior-y:contain;}
@@ -113,6 +113,14 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
 .sc2-v.blue{color:var(--blue);}
 .sc2-v.gold{color:#d97706;}
 [data-theme="dark"] .sc2-v.gold{color:#f59e0b;}
+
+@keyframes musicappShake{
+  10%,90%{transform:translateX(-1px);}
+  20%,80%{transform:translateX(2px);}
+  30%,50%,70%{transform:translateX(-4px);}
+  40%,60%{transform:translateX(4px);}
+}
+.musicapp-shake{animation:musicappShake .4s;}
 </style>
 </head>
 <body>
@@ -124,6 +132,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
     <div class="hdr-sub" id="hdrSub">Перенос высоты</div>
   </div>
   <div class="hdr-btns">
+    <button class="hbtn" id="soundBtn" title="Звук"><span id="soundIco">🔊</span></button>
     <button class="hbtn" id="themeBtn">
       <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" id="themeIco">
         <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
@@ -319,6 +328,67 @@ const TRANS_INSTR = [
 ];
 
 let lang=localStorage.getItem('musicapp_lang')||'ru', quizScore2={c:0,w:0}, quizCorrect2=null;
+
+// ── Звук / вибрация / тряска на верный-неверный ответ ──
+function musicappSoundOn(){return localStorage.getItem('musicapp_sound_enabled')!=='0';}
+let _fbCtx=null;
+function _fbAudioCtx(){
+  if(!_fbCtx){try{_fbCtx=new (window.AudioContext||window.webkitAudioContext)();}catch(e){}}
+  return _fbCtx;
+}
+function playAnswerSound(ok){
+  if(!musicappSoundOn())return;
+  const ctx=_fbAudioCtx();
+  if(!ctx)return;
+  if(ctx.state==='suspended')ctx.resume();
+  const now=ctx.currentTime;
+  if(ok){
+    [523.25,659.25,783.99].forEach((f,i)=>{
+      const o=ctx.createOscillator(),g=ctx.createGain();
+      o.type='sine';o.frequency.value=f;
+      o.connect(g);g.connect(ctx.destination);
+      const t=now+i*0.07;
+      g.gain.setValueAtTime(0,t);
+      g.gain.linearRampToValueAtTime(0.18,t+0.02);
+      g.gain.exponentialRampToValueAtTime(0.001,t+0.35);
+      o.start(t);o.stop(t+0.36);
+    });
+  }else{
+    const o=ctx.createOscillator(),g=ctx.createGain();
+    o.type='sine';o.frequency.setValueAtTime(220,now);o.frequency.exponentialRampToValueAtTime(140,now+0.18);
+    o.connect(g);g.connect(ctx.destination);
+    g.gain.setValueAtTime(0.16,now);
+    g.gain.exponentialRampToValueAtTime(0.001,now+0.22);
+    o.start(now);o.stop(now+0.23);
+  }
+}
+function vibrateAnswer(ok){
+  if(!musicappSoundOn())return;
+  if(!('vibrate' in navigator))return;
+  try{navigator.vibrate(ok?20:[40,40,40]);}catch(e){}
+}
+function shakeEl(el){
+  if(!el)return;
+  el.classList.remove('musicapp-shake');
+  void el.offsetWidth;
+  el.classList.add('musicapp-shake');
+  setTimeout(()=>el.classList.remove('musicapp-shake'),400);
+}
+function answerFeedback(ok,el){
+  playAnswerSound(ok);
+  vibrateAnswer(ok);
+  if(!ok)shakeEl(el);
+}
+(function initSoundBtn(){
+  const b=document.getElementById('soundBtn');
+  if(!b)return;
+  const render=()=>{document.getElementById('soundIco').textContent=musicappSoundOn()?'🔊':'🔇';};
+  render();
+  b.addEventListener('click',()=>{
+    localStorage.setItem('musicapp_sound_enabled',musicappSoundOn()?'0':'1');
+    render();
+  });
+})();
 let quizStreak=0, quizBestStreak=parseInt(localStorage.getItem('musicapp_transposition_best_streak')||'0',10)||0;
 let quizChosenVal=null;
 let melScore={c:0,w:0}, melCorrectIdx=null, melAnswered=false, melChosenIdx=null;
@@ -461,7 +531,9 @@ function answerMelody(el){
   if(melAnswered)return;
   melAnswered=true;
   melChosenIdx=parseInt(el.dataset.idx);
-  if(melChosenIdx===melCorrectIdx)melScore.c++;else melScore.w++;
+  const melOk=melChosenIdx===melCorrectIdx;
+  if(melOk)melScore.c++;else melScore.w++;
+  answerFeedback(melOk,el);
   document.getElementById('mqsc').textContent=melScore.c;
   document.getElementById('mqsw').textContent=melScore.w;
   renderMelody();
@@ -519,7 +591,9 @@ function renderInstrument(){
 function answerInstrument(btn){
   if(instrChosenVal!==null)return;
   instrChosenVal=parseInt(btn.dataset.val);
-  if(instrChosenVal===instrCorrect){instrScore.c++;}else{instrScore.w++;}
+  const instrOk=instrChosenVal===instrCorrect;
+  if(instrOk){instrScore.c++;}else{instrScore.w++;}
+  answerFeedback(instrOk,btn);
   document.getElementById('iqsc').textContent=instrScore.c;
   document.getElementById('iqsw').textContent=instrScore.w;
   renderInstrument();
@@ -591,6 +665,7 @@ function answerQuiz2(btn){
   if(quizChosenVal!==null)return;
   quizChosenVal=parseInt(btn.dataset.val);
   const correct=quizChosenVal===quizCorrect2.val;
+  answerFeedback(correct,btn);
   if(correct){
     quizScore2.c++;
     quizStreak++;
@@ -627,6 +702,7 @@ function applyLang(){
   document.getElementById('backHomeLink').textContent=L?'← Главная':'← Home';
   document.getElementById('hdrTitle').textContent=L?'Транспозиция':'Transposition';
   document.getElementById('hdrSub').textContent=L?'Перенос высоты':'Pitch Transfer';
+  const sb=document.getElementById('soundBtn');if(sb)sb.title=L?'Звук':'Sound';
   document.getElementById('t0').textContent=L?'Нота':'Note';
   document.getElementById('t1').textContent=L?'Гамма':'Scale';
   document.getElementById('t2').textContent=L?'Мелодия':'Melody';

@@ -18,7 +18,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Цифровка</title>
 <meta name="theme-color" content="#1c3a8e">
-<script>(function(){var t=localStorage.getItem('musicapp_theme');var dark=t==='dark';document.documentElement.setAttribute('data-theme',dark?'dark':'light');})()</script>
+<script>(function(){var t=localStorage.getItem('musicapp_theme');var dark=t?t==='dark':window.matchMedia('(prefers-color-scheme: dark)').matches;document.documentElement.setAttribute('data-theme',dark?'dark':'light');})()</script>
 <style>
 /* Отключаем системный жест pull-to-refresh (стрелка/спиннер при потягивании вниз) — приложение уже показывает свой интерфейс, обновление страницы через этот жест не нужно и мешает свайпам внутри модулей. */
 html,body{overscroll-behavior-y:contain;}
@@ -269,6 +269,13 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
 .result-view .rv-score{font-size:42px;font-weight:900;margin-bottom:6px;}
 .result-view .rv-sub{font-size:12px;color:var(--muted);}
 
+@keyframes musicappShake{
+  10%,90%{transform:translateX(-1px);}
+  20%,80%{transform:translateX(2px);}
+  30%,50%,70%{transform:translateX(-4px);}
+  40%,60%{transform:translateX(4px);}
+}
+.musicapp-shake{animation:musicappShake .4s;}
 </style>
 </head>
 <body>
@@ -284,6 +291,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
   <div class="hdr-actions">
     <button class="hbtn" id="assignBtn" onclick="openAssignModal()">📋 <span id="assignBtnText">Создать задание</span></button>
     <button class="hbtn" id="shareResultBtn" style="display:none" onclick="openShareResultModal()">📤 <span id="shareResultBtnText">Результат</span></button>
+    <button class="hbtn" id="soundBtn" title="Звук"><span id="soundIco">🔊</span></button>
     <button class="hbtn" id="themeBtn">
       <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" id="themeIco">
         <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
@@ -586,6 +594,67 @@ let lang=localStorage.getItem('musicapp_lang')||'ru', grade='1-2', tab='theory';
 let idScore={c:0,w:0}, bdScore={c:0,w:0}, sqScore={c:0,w:0};
 let idEx=null, bdEx=null, sqEx=null;
 let bdSelected=[];
+
+// ── Звук / вибрация / тряска на верный-неверный ответ ──
+function musicappSoundOn(){return localStorage.getItem('musicapp_sound_enabled')!=='0';}
+let _fbCtx=null;
+function _fbAudioCtx(){
+  if(!_fbCtx){try{_fbCtx=new (window.AudioContext||window.webkitAudioContext)();}catch(e){}}
+  return _fbCtx;
+}
+function playAnswerSound(ok){
+  if(!musicappSoundOn())return;
+  const ctx=_fbAudioCtx();
+  if(!ctx)return;
+  if(ctx.state==='suspended')ctx.resume();
+  const now=ctx.currentTime;
+  if(ok){
+    [523.25,659.25,783.99].forEach((f,i)=>{
+      const o=ctx.createOscillator(),g=ctx.createGain();
+      o.type='sine';o.frequency.value=f;
+      o.connect(g);g.connect(ctx.destination);
+      const t=now+i*0.07;
+      g.gain.setValueAtTime(0,t);
+      g.gain.linearRampToValueAtTime(0.18,t+0.02);
+      g.gain.exponentialRampToValueAtTime(0.001,t+0.35);
+      o.start(t);o.stop(t+0.36);
+    });
+  }else{
+    const o=ctx.createOscillator(),g=ctx.createGain();
+    o.type='sine';o.frequency.setValueAtTime(220,now);o.frequency.exponentialRampToValueAtTime(140,now+0.18);
+    o.connect(g);g.connect(ctx.destination);
+    g.gain.setValueAtTime(0.16,now);
+    g.gain.exponentialRampToValueAtTime(0.001,now+0.22);
+    o.start(now);o.stop(now+0.23);
+  }
+}
+function vibrateAnswer(ok){
+  if(!musicappSoundOn())return;
+  if(!('vibrate' in navigator))return;
+  try{navigator.vibrate(ok?20:[40,40,40]);}catch(e){}
+}
+function shakeEl(el){
+  if(!el)return;
+  el.classList.remove('musicapp-shake');
+  void el.offsetWidth;
+  el.classList.add('musicapp-shake');
+  setTimeout(()=>el.classList.remove('musicapp-shake'),400);
+}
+function answerFeedback(ok,el){
+  playAnswerSound(ok);
+  vibrateAnswer(ok);
+  if(!ok)shakeEl(el);
+}
+(function initSoundBtn(){
+  const b=document.getElementById('soundBtn');
+  if(!b)return;
+  const render=()=>{document.getElementById('soundIco').textContent=musicappSoundOn()?'🔊':'🔇';};
+  render();
+  b.addEventListener('click',()=>{
+    localStorage.setItem('musicapp_sound_enabled',musicappSoundOn()?'0':'1');
+    render();
+  });
+})();
 
 /* ============================================================
    AUDIO
@@ -1190,6 +1259,7 @@ function checkIdentify(choice){
     if(lbl===getChordLabel(idEx.sym))b.classList.add('correct');
     else if(lbl===getChordLabel(choice)&&!correct)b.classList.add('wrong');
   });
+  answerFeedback(correct,document.getElementById('idAnswer'));
   if(correct){
     idScore.c++;
     document.getElementById('idCorrect').textContent=idScore.c;
@@ -1272,6 +1342,7 @@ function checkBuild(){
   const got=bdSelected.map(m=>((m%12)+12)%12).sort((a,b)=>a-b);
   const correct=expected.length===got.length&&expected.every((v,i)=>v===got[i]);
   document.getElementById('bdCheck').disabled=true;
+  answerFeedback(correct,document.getElementById('bdFeedback'));
   if(correct){
     bdScore.c++;
     document.getElementById('bdCorrect').textContent=bdScore.c;
@@ -1388,6 +1459,7 @@ function checkSeqComplete(){
     s.classList.remove('filled');
     s.classList.add(sqSlotFilled[i]===expected[i]?'correct':'wrong');
   });
+  answerFeedback(correct,document.getElementById('sqFeedback'));
   if(correct){
     sqScore.c++;
     document.getElementById('sqCorrect').textContent=sqScore.c;
@@ -1416,6 +1488,7 @@ function checkCadType(choice){
     if(txt===corTxt)b.classList.add('correct');
     else if(txt===choTxt&&!correct)b.classList.add('wrong');
   });
+  answerFeedback(correct,document.getElementById('sqFeedback'));
   if(correct){
     sqScore.c++;
     document.getElementById('sqCorrect').textContent=sqScore.c;
@@ -1539,6 +1612,7 @@ function applyLang(){
   set('sqUndoBtn',t.undo);set('sqClearBtn',t.clear);
   const dk=document.documentElement.getAttribute('data-theme')==='dark';
   set('themeText',dk?t.light:t.dark);
+  const sb=document.getElementById('soundBtn');if(sb)sb.title=lang==='ru'?'Звук':'Sound';
   set('backHomeLink', lang==='ru'?'← Главная':'← Home');
   set('assignBtnText',t.assignBtn);set('shareResultBtnText',t.shareResultBtn);
   set('assignModalTitle',t.assignModalTitle);set('amGradeLabel',t.amGradeLabel);set('amTypeLabel',t.amTypeLabel);set('amHistoryToggleText',t.amHistoryToggleText);

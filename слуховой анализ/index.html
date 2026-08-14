@@ -19,7 +19,7 @@
     <title>Слуховой анализ</title>
 <meta name="theme-color" content="#1c3a8e">
     
-<script>(function(){var t=localStorage.getItem('musicapp_theme');var dark=t==='dark';document.documentElement.setAttribute('data-theme',dark?'dark':'light');})()</script>
+<script>(function(){var t=localStorage.getItem('musicapp_theme');var dark=t?t==='dark':window.matchMedia('(prefers-color-scheme: dark)').matches;document.documentElement.setAttribute('data-theme',dark?'dark':'light');})()</script>
     <style>
 /* Отключаем системный жест pull-to-refresh (стрелка/спиннер при потягивании вниз) — приложение уже показывает свой интерфейс, обновление страницы через этот жест не нужно и мешает свайпам внутри модулей. */
 html,body{overscroll-behavior-y:contain;}
@@ -213,6 +213,13 @@ html,body{overscroll-behavior-y:contain;}
 .result-view .rv-score{font-size:42px;font-weight:900;margin-bottom:6px;}
 .result-view .rv-sub{font-size:12px;color:var(--muted);}
 
+@keyframes musicappShake{
+  10%,90%{transform:translateX(-1px);}
+  20%,80%{transform:translateX(2px);}
+  30%,50%,70%{transform:translateX(-4px);}
+  40%,60%{transform:translateX(4px);}
+}
+.musicapp-shake{animation:musicappShake .4s;}
 </style>
 </head>
 <body>
@@ -230,6 +237,7 @@ html,body{overscroll-behavior-y:contain;}
         <div class="header-actions">
             <button class="icon-btn" id="assignBtn" onclick="openAssignModal()">📋 <span id="assignBtnText">Создать задание</span></button>
             <button class="icon-btn" id="shareResultBtn" style="display:none" onclick="openShareResultModal()">📤 <span id="shareResultBtnText">Результат</span></button>
+            <button class="icon-btn" id="soundBtn" title="Звук"><span id="soundIco">🔊</span></button>
             <button class="icon-btn" id="themeBtn">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" id="themeIcon"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
                 <span id="themeText">Тёмная</span>
@@ -912,7 +920,68 @@ const CHORD_LEVELS = {
 };
 
 // ── STATE ────────────────────────────────────
-let lang=localStorage.getItem('musicapp_lang')||'ru', isDark=localStorage.getItem('musicapp_theme')==='dark', activeTab='intervals';
+let lang=localStorage.getItem('musicapp_lang')||'ru', isDark=document.documentElement.getAttribute('data-theme')==='dark', activeTab='intervals';
+
+// ── Звук / вибрация / тряска на верный-неверный ответ ──
+function musicappSoundOn(){return localStorage.getItem('musicapp_sound_enabled')!=='0';}
+let _fbCtx=null;
+function _fbAudioCtx(){
+  if(!_fbCtx){try{_fbCtx=new (window.AudioContext||window.webkitAudioContext)();}catch(e){}}
+  return _fbCtx;
+}
+function playAnswerSound(ok){
+  if(!musicappSoundOn())return;
+  const ctx=_fbAudioCtx();
+  if(!ctx)return;
+  if(ctx.state==='suspended')ctx.resume();
+  const now=ctx.currentTime;
+  if(ok){
+    [523.25,659.25,783.99].forEach((f,i)=>{
+      const o=ctx.createOscillator(),g=ctx.createGain();
+      o.type='sine';o.frequency.value=f;
+      o.connect(g);g.connect(ctx.destination);
+      const t=now+i*0.07;
+      g.gain.setValueAtTime(0,t);
+      g.gain.linearRampToValueAtTime(0.18,t+0.02);
+      g.gain.exponentialRampToValueAtTime(0.001,t+0.35);
+      o.start(t);o.stop(t+0.36);
+    });
+  }else{
+    const o=ctx.createOscillator(),g=ctx.createGain();
+    o.type='sine';o.frequency.setValueAtTime(220,now);o.frequency.exponentialRampToValueAtTime(140,now+0.18);
+    o.connect(g);g.connect(ctx.destination);
+    g.gain.setValueAtTime(0.16,now);
+    g.gain.exponentialRampToValueAtTime(0.001,now+0.22);
+    o.start(now);o.stop(now+0.23);
+  }
+}
+function vibrateAnswer(ok){
+  if(!musicappSoundOn())return;
+  if(!('vibrate' in navigator))return;
+  try{navigator.vibrate(ok?20:[40,40,40]);}catch(e){}
+}
+function shakeEl(el){
+  if(!el)return;
+  el.classList.remove('musicapp-shake');
+  void el.offsetWidth;
+  el.classList.add('musicapp-shake');
+  setTimeout(()=>el.classList.remove('musicapp-shake'),400);
+}
+function answerFeedback(ok,el){
+  playAnswerSound(ok);
+  vibrateAnswer(ok);
+  if(!ok)shakeEl(el);
+}
+(function initSoundBtn(){
+  const b=document.getElementById('soundBtn');
+  if(!b)return;
+  const render=()=>{document.getElementById('soundIco').textContent=musicappSoundOn()?'🔊':'🔇';};
+  render();
+  b.addEventListener('click',()=>{
+    localStorage.setItem('musicapp_sound_enabled',musicappSoundOn()?'0':'1');
+    render();
+  });
+})();
 let audioCtx=null;
 
 // Intervals state
@@ -1685,6 +1754,7 @@ function showFeedback(text,isOk){
     ftxt.className='feedback-text '+(isOk?'correct':'wrong');
     modal.classList.remove('hidden');
     setTimeout(()=>modal.classList.add('hidden'),isOk?1100:1500);
+    answerFeedback(isOk,modal);
 }
 
 // ── LANG & THEME ─────────────────────────────
@@ -1693,6 +1763,7 @@ function applyLang(){
     document.getElementById('appTitle').textContent=t.appTitle;
     document.getElementById('langText').textContent=lang==='ru'?'RU':'EN';
     document.getElementById('themeText').textContent=isDark?t.lightTheme:t.darkTheme;
+    const sb=document.getElementById('soundBtn');if(sb)sb.title=lang==='ru'?'Звук':'Sound';
     document.getElementById('tabIntervals').textContent=t.tabIntervals;
     document.getElementById('tabChords').textContent=t.tabChords;
     document.getElementById('tabChains').textContent=t.tabChains;
