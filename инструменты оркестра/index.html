@@ -6,7 +6,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>Инструменты оркестра</title>
 <meta name="theme-color" content="#1c3a8e">
-<script>(function(){var t=localStorage.getItem('musicapp_theme');document.documentElement.setAttribute('data-theme',t==='dark'?'dark':'light');})()</script>
+<script>(function(){var t=localStorage.getItem('musicapp_theme');var dark=t?t==='dark':window.matchMedia('(prefers-color-scheme: dark)').matches;document.documentElement.setAttribute('data-theme',dark?'dark':'light');})()</script>
 <style>
 /* Отключаем системный жест pull-to-refresh (стрелка/спиннер при потягивании вниз) — приложение уже показывает свой интерфейс, обновление страницы через этот жест не нужно и мешает свайпам внутри модулей. */
 html,body{overscroll-behavior-y:contain;}
@@ -26,6 +26,13 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
 .hdr-info{flex:1;}
 .hdr-title{font-weight:900;font-size:16px;}
 .hdr-sub{font-size:10px;color:var(--muted);font-weight:600;}
+.search-box{position:relative;margin-bottom:12px;}
+.search-box input{width:100%;padding:10px 34px 10px 14px;border-radius:12px;border:1px solid var(--border);
+  background:var(--card);color:var(--text);font-size:13px;box-shadow:var(--shadow);}
+.search-box input:focus{outline:none;border-color:var(--blue);}
+.search-box .search-clear{position:absolute;right:8px;top:50%;transform:translateY(-50%);
+  background:none;border:none;color:var(--muted);cursor:pointer;font-size:16px;padding:4px;display:none;}
+.search-box .search-clear.show{display:block;}
 .hbtn{padding:7px 12px;background:var(--sl100);border:none;border-radius:9px;
   font-size:10px;font-weight:800;cursor:pointer;color:var(--text);transition:background .15s;}
 .hbtn:hover{background:var(--sl200);}
@@ -106,6 +113,11 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
     <button class="hbtn" onclick="toggleLang()" id="langBtn">RU</button>
   </div>
 
+  <div class="search-box">
+    <input type="text" id="instrSearch" oninput="setSearch(this.value)" placeholder="Поиск инструмента…">
+    <button class="search-clear" id="searchClearBtn" onclick="clearSearch()">✕</button>
+  </div>
+
   <div class="tabs" id="tabsRow"></div>
   <div id="panels"></div>
 </div>
@@ -121,7 +133,8 @@ var T = {
     dark:'ТЁМНАЯ', light:'СВЕТЛАЯ',
     vkBtn:'♪ ВК Музыка', mrBtn:'🎵 Mail.ru', ymBtn:'🎵 Яндекс Музыка',
     listenLabel:'🎵 Послушать оркестр целиком',
-    favOn:'⭐ ИЗБРАННОЕ', favOff:'⭐', favEmpty:'В избранном пока пусто'
+    favOn:'⭐ ИЗБРАННОЕ', favOff:'⭐', favEmpty:'В избранном пока пусто',
+    searchPlaceholder:'Поиск инструмента…', searchEmpty:'Ничего не найдено в этой вкладке — попробуйте другую'
   },
   en:{
     title:'Orchestra Instruments',
@@ -129,13 +142,29 @@ var T = {
     dark:'DARK', light:'LIGHT',
     vkBtn:'♪ VK Music', mrBtn:'🎵 Mail.ru', ymBtn:'🎵 Yandex Music',
     listenLabel:'🎵 Listen to Full Orchestra',
-    favOn:'⭐ FAVORITES', favOff:'⭐', favEmpty:'No favorites yet'
+    favOn:'⭐ FAVORITES', favOff:'⭐', favEmpty:'No favorites yet',
+    searchPlaceholder:'Search instrument…', searchEmpty:'No matches in this tab — try another'
   }
 };
 
 /* ─── Favorites ─── */
 var favInstruments = [];
 var favOnly = false;
+var searchQuery = '';
+function setSearch(v){
+  searchQuery = v;
+  var btn=document.getElementById('searchClearBtn');
+  if(btn)btn.classList.toggle('show', !!v);
+  renderAll();
+}
+function clearSearch(){
+  searchQuery = '';
+  var inp=document.getElementById('instrSearch');
+  if(inp)inp.value='';
+  var btn=document.getElementById('searchClearBtn');
+  if(btn)btn.classList.remove('show');
+  renderAll();
+}
 function loadFavInstruments(){
   try{
     var raw = JSON.parse(localStorage.getItem('musicapp_orch_favorites') || '[]');
@@ -564,6 +593,7 @@ function applyLang(){
   document.getElementById('sub').textContent=t.sub;
   document.getElementById('langBtn').textContent=lang==='ru'?'RU':'EN';
   document.documentElement.lang=lang==='ru'?'ru':'en';
+  var is=document.getElementById('instrSearch');if(is)is.placeholder=t.searchPlaceholder;
   updateThemeBtn();
   renderAll();
 }
@@ -628,9 +658,12 @@ function renderAll(){
     // Groups
     var orchHasVisible=false;
     orch.groups.forEach(function(grp){
-      var items = favOnly
-        ? grp.items.filter(function(inst){ return isFavInstrument(orch.id+'::'+inst.en); })
-        : grp.items;
+      var q=searchQuery.trim().toLowerCase();
+      var items = grp.items.filter(function(inst){
+        if(favOnly && !isFavInstrument(orch.id+'::'+inst.en)) return false;
+        if(q && inst.ru.toLowerCase().indexOf(q)===-1 && inst.en.toLowerCase().indexOf(q)===-1) return false;
+        return true;
+      });
       if(!items.length) return;
       orchHasVisible=true;
 
@@ -679,10 +712,10 @@ function renderAll(){
       panel.appendChild(grid);
     });
 
-    if(favOnly && !orchHasVisible){
+    if((favOnly||searchQuery.trim()) && !orchHasVisible){
       var empty=document.createElement('div');
       empty.style.cssText='text-align:center;padding:30px 0;color:var(--muted);font-size:12px;font-weight:700;';
-      empty.textContent=t.favEmpty;
+      empty.textContent=searchQuery.trim() ? t.searchEmpty : t.favEmpty;
       panel.appendChild(empty);
     }
 
@@ -697,6 +730,7 @@ if(lang!=='ru'){
   document.getElementById('sub').textContent=T[lang].sub;
   document.getElementById('langBtn').textContent='EN';
 }
+document.getElementById('instrSearch').placeholder=T[lang].searchPlaceholder;
 (function(){
   var m=location.hash.match(/^#orch-(.+)$/);
   if(m)activeTab=decodeURIComponent(m[1]);

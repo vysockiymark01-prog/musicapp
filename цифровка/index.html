@@ -276,6 +276,14 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
   40%,60%{transform:translateX(4px);}
 }
 .musicapp-shake{animation:musicappShake .4s;}
+
+.rv-actions{display:flex;gap:8px;justify-content:center;margin-top:14px;flex-wrap:wrap;}
+@media print{
+  body *{visibility:hidden;}
+  .result-view, .result-view *{visibility:visible;}
+  .result-view{position:absolute;top:0;left:0;width:100%;box-shadow:none;border:2px solid #000;}
+  .result-view .rv-actions,.result-view button{display:none!important;}
+}
 </style>
 </head>
 <body>
@@ -317,7 +325,11 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
   <div class="rv-title" id="rvTitle">Результат ученика</div>
   <div class="rv-score" id="rvScore">–</div>
   <div class="rv-sub" id="rvSub"></div>
-  <button class="hbtn" style="margin-top:16px" onclick="location.href=location.pathname">↩ <span id="rvBackText">Назад к тренажёру</span></button>
+  <div class="rv-actions">
+    <button class="hbtn" onclick="exportResultImage()">📥 <span id="rvExportImgText">Скачать картинкой</span></button>
+    <button class="hbtn" onclick="printResult()">🖨 <span id="rvPrintText">Печать / PDF</span></button>
+  </div>
+  <button class="hbtn" style="margin-top:10px" onclick="location.href=location.pathname">↩ <span id="rvBackText">Назад к тренажёру</span></button>
 </div>
 
 <!-- GRADE TABS -->
@@ -1571,7 +1583,7 @@ const UI={
     amGenBtn:'🔗 Создать ссылку и QR',amCopyBtn:'Копировать',amCloseBtn:'Закрыть',
     resultModalTitle:'📤 Показать результат учителю',rmCopyBtn:'Копировать',rmCloseBtn:'Закрыть',
     assignBannerPrefix:'📋 Задание от учителя: ',classWord:'класс',
-    rvTitle:'Результат ученика',rvBackText:'Назад к тренажёру',
+    rvTitle:'Результат ученика',rvBackText:'Назад к тренажёру',rvExportImgText:'Скачать картинкой',rvPrintText:'Печать / PDF',
     resultDesc:(label,g,c,w)=>`Задание: ${label}, ${g} класс. Результат: ${c} верно, ${w} ошибок.`,
     qrTooLong:'⚠️ Ссылка слишком длинная для QR-кода (это ограничение проявляется только при локальном тестировании файла — на опубликованном сайте адрес короче, и QR создастся нормально). Пока просто скопируйте ссылку и отправьте её вручную.',
     tabLabels:{identify:'Определи',build:'Построй',sequence:'Последовательность'}},
@@ -1588,7 +1600,7 @@ const UI={
     amGenBtn:'🔗 Create link & QR',amCopyBtn:'Copy',amCloseBtn:'Close',
     resultModalTitle:'📤 Show result to teacher',rmCopyBtn:'Copy',rmCloseBtn:'Close',
     assignBannerPrefix:'📋 Assignment from teacher: ',classWord:'grade',
-    rvTitle:"Student's result",rvBackText:'Back to trainer',
+    rvTitle:"Student's result",rvBackText:'Back to trainer',rvExportImgText:'Save as image',rvPrintText:'Print / PDF',
     resultDesc:(label,g,c,w)=>`Assignment: ${label}, grade ${g}. Result: ${c} correct, ${w} wrong.`,
     qrTooLong:"⚠️ This link is too long for a QR code (only happens when testing the local file — once published, the address is shorter and the QR will generate fine). For now, just copy the link and send it manually.",
     tabLabels:{identify:'Identify',build:'Build',sequence:'Sequences'}},
@@ -1618,7 +1630,7 @@ function applyLang(){
   set('assignModalTitle',t.assignModalTitle);set('amGradeLabel',t.amGradeLabel);set('amTypeLabel',t.amTypeLabel);set('amHistoryToggleText',t.amHistoryToggleText);
   set('amGenBtnText',t.amGenBtn);set('amCopyBtn',t.amCopyBtn);set('amCloseBtnText',t.amCloseBtn);
   set('resultModalTitle',t.resultModalTitle);set('rmCopyBtn',t.rmCopyBtn);set('rmCloseBtnText',t.rmCloseBtn);
-  set('rvBackText',t.rvBackText);
+  set('rvBackText',t.rvBackText);set('rvExportImgText',t.rvExportImgText);set('rvPrintText',t.rvPrintText);
   if(typeof activeAssignment!=='undefined' && activeAssignment) showAssignBanner(activeAssignment);
   if(typeof teacherResultInfo!=='undefined' && teacherResultInfo) showTeacherResultView(teacherResultInfo);
 }
@@ -2051,6 +2063,56 @@ function showTeacherResultView(res){
   document.getElementById('rvSub').textContent=label+', '+res.grade+' '+t.classWord+' · '+res.ts;
   document.getElementById('teacherResultView').style.display='block';
 }
+
+// ── Экспорт результата для учителя: картинка (canvas→PNG) или печать/PDF ──
+function rvRoundRect(ctx,x,y,w,h,r){
+  ctx.beginPath();
+  ctx.moveTo(x+r,y);
+  ctx.arcTo(x+w,y,x+w,y+h,r);
+  ctx.arcTo(x+w,y+h,x,y+h,r);
+  ctx.arcTo(x,y+h,x,y,r);
+  ctx.arcTo(x,y,x+w,y,r);
+  ctx.closePath();
+}
+function exportResultImage(){
+  const title=document.getElementById('rvTitle').textContent;
+  const score=document.getElementById('rvScore').textContent;
+  const sub=document.getElementById('rvSub').textContent;
+  const dark=document.documentElement.getAttribute('data-theme')==='dark';
+  const W=640,H=360;
+  const cv=document.createElement('canvas');cv.width=W;cv.height=H;
+  const ctx=cv.getContext('2d');
+  ctx.fillStyle=dark?'#0f172a':'#f8fafc';
+  ctx.fillRect(0,0,W,H);
+  const pad=24;
+  ctx.fillStyle=dark?'#1e293b':'#ffffff';
+  rvRoundRect(ctx,pad,pad,W-pad*2,H-pad*2,24);ctx.fill();
+  ctx.strokeStyle='#2563eb';ctx.lineWidth=3;
+  rvRoundRect(ctx,pad,pad,W-pad*2,H-pad*2,24);ctx.stroke();
+  ctx.textAlign='center';
+  ctx.fillStyle='#2563eb';
+  ctx.font='900 13px sans-serif';
+  ctx.fillText('МУЗГРАМОТА',W/2,pad+34);
+  ctx.fillStyle=dark?'#f1f5f9':'#0f172a';
+  ctx.font='800 16px sans-serif';
+  ctx.fillText(title,W/2,pad+64);
+  ctx.fillStyle='#2563eb';
+  ctx.font='900 64px sans-serif';
+  ctx.fillText(score,W/2,H/2+20);
+  ctx.fillStyle=dark?'#94a3b8':'#64748b';
+  ctx.font='600 14px sans-serif';
+  ctx.fillText(sub,W/2,H-pad-40);
+  ctx.font='500 11px sans-serif';
+  ctx.fillText(new Date().toLocaleDateString(lang==='ru'?'ru-RU':'en-US'),W/2,H-pad-16);
+  cv.toBlob(blob=>{
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement('a');
+    a.href=url;a.download='rezultat-'+Date.now()+'.png';
+    document.body.appendChild(a);a.click();document.body.removeChild(a);
+    setTimeout(()=>URL.revokeObjectURL(url),1000);
+  });
+}
+function printResult(){ window.print(); }
 
 // ── Apply ?a= / ?r= from URL on load ─────────────────────────────
 (function initAssignmentFromUrl(){

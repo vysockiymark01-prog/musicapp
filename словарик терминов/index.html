@@ -61,6 +61,11 @@ html,body{overscroll-behavior-y:contain;}
 
   /* FILTER PANELS */
   .filter-panel{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:10px 16px;margin-bottom:8px;box-shadow:var(--shadow-sm);}
+  .search-box{position:relative;margin-bottom:8px;}
+  .search-box input{width:100%;padding:10px 34px 10px 14px;border-radius:var(--radius);border:1px solid var(--border);background:var(--card);color:var(--text);font-size:13px;box-shadow:var(--shadow-sm);}
+  .search-box input:focus{outline:none;border-color:var(--accent);}
+  .search-box .search-clear{position:absolute;right:8px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--muted);cursor:pointer;font-size:16px;padding:4px;display:none;}
+  .search-box .search-clear.show{display:block;}
   .filter-row{display:flex;gap:6px;flex-wrap:wrap;align-items:center;}
   .filter-label{font-size:9px;font-weight:900;text-transform:uppercase;color:var(--muted);margin-right:2px;letter-spacing:.5px;white-space:nowrap;}
   .fbtn{padding:5px 11px;border-radius:20px;border:1px solid var(--border);background:transparent;color:var(--muted);cursor:pointer;font-size:10px;font-weight:700;text-transform:uppercase;transition:all .2s;}
@@ -225,6 +230,14 @@ html,body{overscroll-behavior-y:contain;}
     40%,60%{transform:translateX(4px);}
   }
   .musicapp-shake{animation:musicappShake .4s;}
+
+  .rv-actions{display:flex;gap:8px;justify-content:center;margin-top:14px;flex-wrap:wrap;}
+  @media print{
+    body *{visibility:hidden;}
+    .result-view, .result-view *{visibility:visible;}
+    .result-view{position:absolute;top:0;left:0;width:100%;box-shadow:none;border:2px solid #000;}
+    .result-view .rv-actions,.result-view button{display:none!important;}
+  }
 </style>
 </head>
 <body>
@@ -275,7 +288,16 @@ html,body{overscroll-behavior-y:contain;}
     <div class="rv-title" id="rvTitle">Результат ученика</div>
     <div class="rv-score" id="rvScore">–</div>
     <div class="rv-sub" id="rvSub"></div>
-    <button class="hbtn" style="margin-top:16px" onclick="location.href=location.pathname">↩ <span id="rvBackText">Назад к тренажёру</span></button>
+    <div class="rv-actions">
+      <button class="hbtn" onclick="exportResultImage()">📥 <span id="rvExportImgText">Скачать картинкой</span></button>
+      <button class="hbtn" onclick="printResult()">🖨 <span id="rvPrintText">Печать / PDF</span></button>
+    </div>
+    <button class="hbtn" style="margin-top:10px" onclick="location.href=location.pathname">↩ <span id="rvBackText">Назад к тренажёру</span></button>
+  </div>
+
+  <div class="search-box">
+    <input type="text" id="termSearch" oninput="setSearch(this.value)" placeholder="Поиск термина…">
+    <button class="search-clear" id="searchClearBtn" onclick="clearSearch()">✕</button>
   </div>
 
   <div class="filter-panel" id="filterPanelTopic">
@@ -399,7 +421,8 @@ const UI = {
     resultModalTitle:"📤 Показать результат учителю",rmCopyBtn:"Копировать",rmCloseBtn:"Закрыть",
     assignBannerPrefix:"📋 Задание от учителя: ",
     showFilters:"⚙ Тема / класс / прогресс",hideFilters:"✕ Скрыть фильтры",
-    rvTitle:"Результат ученика",rvBackText:"Назад к тренажёру",
+    searchPlaceholder:"Поиск термина…",
+    rvTitle:"Результат ученика",rvBackText:"Назад к тренажёру",rvExportImgText:"Скачать картинкой",rvPrintText:"Печать / PDF",
     resultDesc:(topic,cls,c,t)=>`Тест: ${topic}, ${cls}. Результат: ${c} из ${t} верно.`,
     qrTooLong:'⚠️ Ссылка слишком длинная для QR-кода (это ограничение проявляется только при локальном тестировании файла — на опубликованном сайте адрес короче, и QR создастся нормально). Пока просто скопируйте ссылку и отправьте её вручную.'
   },
@@ -435,7 +458,8 @@ const UI = {
     resultModalTitle:"📤 Show result to teacher",rmCopyBtn:"Copy",rmCloseBtn:"Close",
     assignBannerPrefix:"📋 Assignment from teacher: ",
     showFilters:"⚙ Topic / grade / progress",hideFilters:"✕ Hide filters",
-    rvTitle:"Student's result",rvBackText:"Back to trainer",
+    searchPlaceholder:"Search term…",
+    rvTitle:"Student's result",rvBackText:"Back to trainer",rvExportImgText:"Save as image",rvPrintText:"Print / PDF",
     resultDesc:(topic,cls,c,t)=>`Quiz: ${topic}, ${cls}. Result: ${c} of ${t} correct.`,
     qrTooLong:"⚠️ This link is too long for a QR code (only happens when testing the local file — once published, the address is shorter and the QR will generate fine). For now, just copy the link and send it manually."
   }
@@ -710,6 +734,21 @@ let isDark = document.documentElement.getAttribute('data-theme')==='dark';
 let mode = 'cards';
 let filterTopic = 'all';
 let filterCls = 'all';
+let searchQuery = '';
+function setSearch(v){
+  searchQuery = v;
+  const btn=document.getElementById('searchClearBtn');
+  if(btn)btn.classList.toggle('show', !!v);
+  renderAll();
+}
+function clearSearch(){
+  searchQuery = '';
+  const inp=document.getElementById('termSearch');
+  if(inp)inp.value='';
+  const btn=document.getElementById('searchClearBtn');
+  if(btn)btn.classList.remove('show');
+  renderAll();
+}
 let progress = JSON.parse(localStorage.getItem('mvpro3') || '{}');
 let favOnly = false;
 let favTerms = [];
@@ -771,10 +810,12 @@ function t(key) { return UI[lang][key]; }
 function save() { localStorage.setItem('mvpro3', JSON.stringify(progress)); }
 
 function filtered() {
+  const q = searchQuery.trim().toLowerCase();
   return TERMS.filter(x =>
     (filterTopic === 'all' || x.topic === filterTopic) &&
     (filterCls === 'all' || x.cls === filterCls) &&
-    (!favOnly || isFavTerm(x.term))
+    (!favOnly || isFavTerm(x.term)) &&
+    (!q || x.term.toLowerCase().includes(q) || def(x).toLowerCase().includes(q))
   );
 }
 function shuffle(a) {
@@ -793,6 +834,7 @@ function applyUI() {
   document.getElementById('themeText').textContent = isDark ? t('themeLight') : t('themeDark');
   document.getElementById('langText').textContent = lang==='ru' ? 'RU' : 'EN';
   const sb=document.getElementById('soundBtn');if(sb)sb.title=lang==='ru'?'Звук':'Sound';
+  const ts=document.getElementById('termSearch');if(ts)ts.placeholder=t('searchPlaceholder');
   document.getElementById('fl1').textContent = t('topicLabel');
   document.getElementById('fl2').textContent = t('clsLabel');
   document.getElementById('progTitle').textContent = t('progTitle');
@@ -824,6 +866,8 @@ function applyUI() {
   document.getElementById('rmCopyBtn').textContent=t('rmCopyBtn');
   document.getElementById('rmCloseBtnText').textContent=t('rmCloseBtn');
   document.getElementById('rvBackText').textContent=t('rvBackText');
+  document.getElementById('rvExportImgText').textContent=t('rvExportImgText');
+  document.getElementById('rvPrintText').textContent=t('rvPrintText');
   if(typeof activeAssignment!=='undefined' && activeAssignment) showAssignBanner(activeAssignment);
   if(typeof teacherResultInfo!=='undefined' && teacherResultInfo) showTeacherResultView(teacherResultInfo);
 }
@@ -852,6 +896,7 @@ function switchMode(m) {
   ['cards','quiz','match','review'].forEach((x,i)=>document.getElementById('tab'+i).classList.toggle('active',x===m));
   const compact = (m==='quiz' || m==='match');
   filtersExpanded = false;
+  const sb=document.querySelector('.search-box');if(sb)sb.style.display=compact?'none':'';
   document.getElementById('filterPanelTopic').style.display = compact ? 'none' : '';
   document.getElementById('filterPanelCls').style.display = compact ? 'none' : '';
   document.getElementById('progressSection').style.display = compact ? 'none' : '';
@@ -1568,7 +1613,58 @@ function showTeacherResultView(res){
   document.querySelectorAll('.filter-panel').forEach(el=>el.style.display='none');
   const ps=document.querySelector('.progress-section'); if(ps)ps.style.display='none';
   const tabsEl=document.querySelector('.tabs'); if(tabsEl)tabsEl.style.display='none';
+  const sb=document.querySelector('.search-box'); if(sb)sb.style.display='none';
 }
+
+// ── Экспорт результата для учителя: картинка (canvas→PNG) или печать/PDF ──
+function rvRoundRect(ctx,x,y,w,h,r){
+  ctx.beginPath();
+  ctx.moveTo(x+r,y);
+  ctx.arcTo(x+w,y,x+w,y+h,r);
+  ctx.arcTo(x+w,y+h,x,y+h,r);
+  ctx.arcTo(x,y+h,x,y,r);
+  ctx.arcTo(x,y,x+w,y,r);
+  ctx.closePath();
+}
+function exportResultImage(){
+  const title=document.getElementById('rvTitle').textContent;
+  const score=document.getElementById('rvScore').textContent;
+  const sub=document.getElementById('rvSub').textContent;
+  const dark=document.documentElement.getAttribute('data-theme')==='dark';
+  const W=640,H=360;
+  const cv=document.createElement('canvas');cv.width=W;cv.height=H;
+  const ctx=cv.getContext('2d');
+  ctx.fillStyle=dark?'#0f172a':'#f8fafc';
+  ctx.fillRect(0,0,W,H);
+  const pad=24;
+  ctx.fillStyle=dark?'#1e293b':'#ffffff';
+  rvRoundRect(ctx,pad,pad,W-pad*2,H-pad*2,24);ctx.fill();
+  ctx.strokeStyle='#2563eb';ctx.lineWidth=3;
+  rvRoundRect(ctx,pad,pad,W-pad*2,H-pad*2,24);ctx.stroke();
+  ctx.textAlign='center';
+  ctx.fillStyle='#2563eb';
+  ctx.font='900 13px sans-serif';
+  ctx.fillText('МУЗГРАМОТА',W/2,pad+34);
+  ctx.fillStyle=dark?'#f1f5f9':'#0f172a';
+  ctx.font='800 16px sans-serif';
+  ctx.fillText(title,W/2,pad+64);
+  ctx.fillStyle='#2563eb';
+  ctx.font='900 64px sans-serif';
+  ctx.fillText(score,W/2,H/2+20);
+  ctx.fillStyle=dark?'#94a3b8':'#64748b';
+  ctx.font='600 14px sans-serif';
+  ctx.fillText(sub,W/2,H-pad-40);
+  ctx.font='500 11px sans-serif';
+  ctx.fillText(new Date().toLocaleDateString(lang==='ru'?'ru-RU':'en-US'),W/2,H-pad-16);
+  cv.toBlob(blob=>{
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement('a');
+    a.href=url;a.download='rezultat-'+Date.now()+'.png';
+    document.body.appendChild(a);a.click();document.body.removeChild(a);
+    setTimeout(()=>URL.revokeObjectURL(url),1000);
+  });
+}
+function printResult(){ window.print(); }
 
 // ── Apply ?a= / ?r= from URL on load ─────────────────────────────
 (function initAssignmentFromUrl(){
