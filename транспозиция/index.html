@@ -246,32 +246,79 @@ const CHROM_FLAT = ['C','D♭','D','E♭','E','F','G♭','G','A♭','A','B♭','
 const NOTE_RU = ['До','До♯','Ре','Ре♯','Ми','Фа','Фа♯','Соль','Соль♯','Ля','Ля♯','Си'];
 const NOTE_EN = ['C','C♯','D','D♯','E','F','F♯','G','G♯','A','A♯','B'];
 
-// Intervals
+// Intervals. letterSteps — сколько буквенных ступеней (до-ре-ми...) проходит
+// интервал независимо от направления; используется для правильного выбора
+// диез/бемоль при транспонировании (см. spellTransposedNote ниже).
 const INTERVALS = [
-  {semis:1, ru:'м.2 (полутон)', en:'m2 (semitone)'},
-  {semis:2, ru:'б.2 (тон)', en:'M2 (tone)'},
-  {semis:3, ru:'м.3', en:'m3'},
-  {semis:4, ru:'б.3', en:'M3'},
-  {semis:5, ru:'ч.4', en:'P4'},
-  {semis:6, ru:'ув.4 / ум.5', en:'A4 / d5'},
-  {semis:7, ru:'ч.5', en:'P5'},
-  {semis:8, ru:'м.6', en:'m6'},
-  {semis:9, ru:'б.6', en:'M6'},
-  {semis:10,ru:'м.7', en:'m7'},
-  {semis:11,ru:'б.7', en:'M7'},
-  {semis:12,ru:'Октава', en:'Octave'},
-  {semis:-1, ru:'м.2 вниз', en:'m2 down'},
-  {semis:-2, ru:'б.2 вниз', en:'M2 down'},
-  {semis:-3, ru:'м.3 вниз', en:'m3 down'},
-  {semis:-4, ru:'б.3 вниз', en:'M3 down'},
-  {semis:-5, ru:'ч.4 вниз', en:'P4 down'},
-  {semis:-7, ru:'ч.5 вниз', en:'P5 down'},
-  {semis:-8, ru:'м.6 вниз', en:'m6 down'},
-  {semis:-9, ru:'б.6 вниз', en:'M6 down'},
-  {semis:-10,ru:'м.7 вниз', en:'m7 down'},
-  {semis:-11,ru:'б.7 вниз', en:'M7 down'},
-  {semis:-12,ru:'Октава вниз', en:'Octave down'},
+  {semis:0, ru:'ч.1 (прима)', en:'P1 (unison)', letterSteps:0},
+  {semis:1, ru:'м.2 (полутон)', en:'m2 (semitone)', letterSteps:1},
+  {semis:2, ru:'б.2 (тон)', en:'M2 (tone)', letterSteps:1},
+  {semis:3, ru:'м.3', en:'m3', letterSteps:2},
+  {semis:4, ru:'б.3', en:'M3', letterSteps:2},
+  {semis:5, ru:'ч.4', en:'P4', letterSteps:3},
+  {semis:6, ru:'ув.4 / ум.5', en:'A4 / d5', letterSteps:3},
+  {semis:7, ru:'ч.5', en:'P5', letterSteps:4},
+  {semis:8, ru:'м.6', en:'m6', letterSteps:5},
+  {semis:9, ru:'б.6', en:'M6', letterSteps:5},
+  {semis:10,ru:'м.7', en:'m7', letterSteps:6},
+  {semis:11,ru:'б.7', en:'M7', letterSteps:6},
+  {semis:12,ru:'Октава', en:'Octave', letterSteps:7},
+  {semis:-1, ru:'м.2 вниз', en:'m2 down', letterSteps:1},
+  {semis:-2, ru:'б.2 вниз', en:'M2 down', letterSteps:1},
+  {semis:-3, ru:'м.3 вниз', en:'m3 down', letterSteps:2},
+  {semis:-4, ru:'б.3 вниз', en:'M3 down', letterSteps:2},
+  {semis:-5, ru:'ч.4 вниз', en:'P4 down', letterSteps:3},
+  {semis:-6, ru:'ув.4 / ум.5 вниз', en:'A4 / d5 down', letterSteps:3},
+  {semis:-7, ru:'ч.5 вниз', en:'P5 down', letterSteps:4},
+  {semis:-8, ru:'м.6 вниз', en:'m6 down', letterSteps:5},
+  {semis:-9, ru:'б.6 вниз', en:'M6 down', letterSteps:5},
+  {semis:-10,ru:'м.7 вниз', en:'m7 down', letterSteps:6},
+  {semis:-11,ru:'б.7 вниз', en:'M7 down', letterSteps:6},
+  {semis:-12,ru:'Октава вниз', en:'Octave down', letterSteps:7},
 ];
+
+// ── Правильное буквенное написание транспонированной ноты (диез/бемоль) ──
+// Раньше результат брался просто из хроматического списка с диезами (CHROMATIC),
+// поэтому "до - большая секунда вниз" показывало "ля♯" вместо правильного "си♭".
+// Теперь буква и знак вычисляются по интервалу: буква сдвигается на нужное число
+// ступеней (до-ре-ми...), а знак альтерации подбирается так, чтобы получить
+// нужное число полутонов — это и даёт бемоли при движении вниз, где это уместно.
+const LETTER_NAMES_RU=['До','Ре','Ми','Фа','Соль','Ля','Си'];
+const LETTER_NAMES_EN=['C','D','E','F','G','A','B'];
+const LETTER_SEMIS=[0,2,4,5,7,9,11];
+// Буква и знак исходных нот из выпадающего списка (только натуральные и диезные)
+const SRC_LETTER_IDX=[0,0,1,1,2,3,3,4,4,5,5,6];
+const SRC_ACCIDENTAL=[0,1,0,1,0,0,1,0,1,0,1,0];
+const NOTE_RU_FLAT=['До','Ре♭','Ре','Ми♭','Ми','Фа','Соль♭','Соль','Ля♭','Ля','Си♭','Си'];
+const NOTE_EN_FLAT=CHROM_FLAT;
+
+function accSymbol(n){ return n===1?'♯':n===-1?'♭':n===2?'♯♯':n===-2?'♭♭':''; }
+
+function spellTransposedNote(pcIdx, interval){
+  const resultPc=((pcIdx+interval.semis)%12+12)%12;
+  const srcLetterIdx=SRC_LETTER_IDX[pcIdx];
+  const srcAcc=SRC_ACCIDENTAL[pcIdx];
+  const srcAbs=LETTER_SEMIS[srcLetterIdx]+srcAcc;
+  const dirSign=interval.semis===0?1:Math.sign(interval.semis);
+  const rawIdx=srcLetterIdx+dirSign*interval.letterSteps;
+  const letterIdx=((rawIdx%7)+7)%7;
+  const octaveShift=Math.floor(rawIdx/7);
+  const naturalAbs=LETTER_SEMIS[letterIdx]+octaveShift*12;
+  const desiredAbs=srcAbs+interval.semis;
+  const acc=desiredAbs-naturalAbs;
+  if(Math.abs(acc)>=2){
+    // Редкий случай двойного знака (например, для некоторых интервалов от уже
+    // диезной исходной ноты) — не входит в программу, используем более простую
+    // и привычную запись: диез при движении вверх, бемоль при движении вниз.
+    return dirSign<0
+      ? {ru:NOTE_RU_FLAT[resultPc], en:NOTE_EN_FLAT[resultPc]}
+      : {ru:NOTE_RU[resultPc], en:NOTE_EN[resultPc]};
+  }
+  return {
+    ru: LETTER_NAMES_RU[letterIdx]+accSymbol(acc),
+    en: LETTER_NAMES_EN[letterIdx]+accSymbol(acc),
+  };
+}
 
 // Major scales: root index → array of 7 scale degrees (semitone indices)
 const MAJ_SCALE = [0,2,4,5,7,9,11]; // intervals from root
@@ -419,19 +466,17 @@ function populateSelects(){
 function calcNote(){
   const noteIdx=parseInt(document.getElementById('noteFrom').value);
   const ivIdx=parseInt(document.getElementById('intervalSel').value);
-  const semis=INTERVALS[ivIdx].semis;
-  const resultIdx=((noteIdx+semis)%12+12)%12;
-  const resultEN=NOTE_EN[resultIdx];
-  const resultRU=NOTE_RU[resultIdx];
-  document.getElementById('resultNote').textContent=lang==='ru'?resultRU:resultEN;
+  const interval=INTERVALS[ivIdx];
+  const spelled=spellTransposedNote(noteIdx,interval);
+  document.getElementById('resultNote').textContent=lang==='ru'?spelled.ru:spelled.en;
   const L=lang==='ru';
   document.getElementById('resultLabel').textContent=L?'результат':'result';
   // tip
   const srcNote=L?NOTE_RU[noteIdx]:NOTE_EN[noteIdx];
-  const ivName=INTERVALS[ivIdx][lang];
+  const ivName=interval[lang];
   document.getElementById('noteTip').textContent=
-    (L?`${srcNote} + ${ivName} = ${resultRU} (${resultEN})`
-      :`${NOTE_EN[noteIdx]} + ${ivName} = ${resultEN}`);
+    (L?`${srcNote} + ${ivName} = ${spelled.ru} (${spelled.en})`
+      :`${NOTE_EN[noteIdx]} + ${ivName} = ${spelled.en}`);
 }
 
 /* ─── TAB 1: SCALE TRANSPOSITION ────────────────── */
@@ -467,8 +512,18 @@ function calcScale(){
 function noteName(idx){ return lang==='ru'?NOTE_RU[idx]:NOTE_EN[idx]; }
 function transposeMelody(mel,semis){ return mel.map(n=>((n+semis)%12+12)%12); }
 function melodiesEqual(a,b){ return a.length===b.length && a.every((v,i)=>v===b[i]); }
+// Правильное написание (диез/бемоль) каждой ноты варианта мелодии, полученного
+// применением конкретного интервала (сохраняет ту же логику, что и в calcNote).
+function spellMelody(mel, interval){ return mel.map(n=>spellTransposedNote(n, interval)); }
+// Для вариантов-«обманок», не соответствующих реальному интервалу (перестановка,
+// чередование нот) — простая запись: диез вверх, бемоль вниз.
+function spellMelodyHeuristic(pcArr, dirSign){
+  return pcArr.map(pc=>dirSign<0
+    ? {ru:NOTE_RU_FLAT[pc], en:NOTE_EN_FLAT[pc]}
+    : {ru:NOTE_RU[pc], en:NOTE_EN[pc]});
+}
 
-let curMel=null; // {mel, iv, dir, options} — параметры вопроса, не зависят от языка
+let curMel=null; // {mel, iv, dir, options, optionsSpelled} — параметры вопроса, не зависят от языка
 
 function nextMelody(){
   melAnswered=false;
@@ -477,31 +532,40 @@ function nextMelody(){
   const magnitudes=INTERVALS.filter(iv=>iv.semis>0&&iv.semis<=12); // величина интервала, направление — отдельно
   const iv=magnitudes[Math.floor(Math.random()*magnitudes.length)];
   const dir=Math.random()<0.5?1:-1; // 1 = вверх, -1 = вниз
-  const correct=transposeMelody(mel,iv.semis*dir);
+  const appliedIv={semis:iv.semis*dir, letterSteps:iv.letterSteps};
+  const correct=transposeMelody(mel,appliedIv.semis);
 
   const options=[correct];
+  const optionsSpelled=[spellMelody(mel,appliedIv)];
   let guard=0;
   while(options.length<4&&guard<40){
     guard++;
-    let variant;
+    let variant, variantSpelled;
     const kind=Math.floor(Math.random()*4);
     if(kind===0){
       // неверная величина интервала, то же направление
       const wrongIv=magnitudes[Math.floor(Math.random()*magnitudes.length)];
-      variant=transposeMelody(mel,wrongIv.semis*dir);
+      const wrongApplied={semis:wrongIv.semis*dir, letterSteps:wrongIv.letterSteps};
+      variant=transposeMelody(mel,wrongApplied.semis);
+      variantSpelled=spellMelody(mel,wrongApplied);
     }else if(kind===1){
       variant=correct.map((n,i)=>i%2===0?n:((n+1)%12));
+      variantSpelled=spellMelodyHeuristic(variant,dir);
     }else if(kind===2){
       variant=[...correct].reverse();
+      variantSpelled=spellMelodyHeuristic(variant,dir);
     }else{
       // верная величина, но неверное направление — проверяет внимание к вверх/вниз
       variant=transposeMelody(mel,iv.semis*-dir);
+      variantSpelled=spellMelodyHeuristic(variant,-dir);
     }
-    if(!options.some(o=>melodiesEqual(o,variant)))options.push(variant);
+    if(!options.some(o=>melodiesEqual(o,variant))){options.push(variant);optionsSpelled.push(variantSpelled);}
   }
-  options.sort(()=>Math.random()-.5);
-  melCorrectIdx=options.findIndex(o=>melodiesEqual(o,correct));
-  curMel={mel,iv,dir,options};
+  const order=options.map((_,i)=>i).sort(()=>Math.random()-.5);
+  const shuffledOptions=order.map(i=>options[i]);
+  const shuffledSpelled=order.map(i=>optionsSpelled[i]);
+  melCorrectIdx=shuffledOptions.findIndex(o=>melodiesEqual(o,correct));
+  curMel={mel,iv,dir,options:shuffledOptions,optionsSpelled:shuffledSpelled};
   renderMelody();
 }
 
@@ -509,7 +573,7 @@ function nextMelody(){
 function renderMelody(){
   if(!curMel)return;
   const L=lang==='ru';
-  const {mel,iv,dir,options}=curMel;
+  const {mel,iv,dir,options,optionsSpelled}=curMel;
   document.getElementById('melQ').textContent=L
     ?`Транспонируйте мелодию ${dir>0?'вверх':'вниз'} на ${iv.ru}`
     :`Transpose the melody ${dir>0?'up':'down'} by ${iv.en}`;
@@ -519,7 +583,8 @@ function renderMelody(){
     let cls='mel-choice';
     if(melAnswered&&i===melCorrectIdx)cls+=' correct';
     else if(melAnswered&&i===melChosenIdx)cls+=' wrong';
-    return `<div class="${cls}" data-idx="${i}" onclick="answerMelody(this)">${opt.map(n=>`<span class="mel-note">${noteName(n)}</span>`).join('')}</div>`;
+    const spelledArr=optionsSpelled[i];
+    return `<div class="${cls}" data-idx="${i}" onclick="answerMelody(this)">${spelledArr.map(s=>`<span class="mel-note">${L?s.ru:s.en}</span>`).join('')}</div>`;
   }).join('');
   document.getElementById('melTip').textContent=L
     ?'Нажмите на вариант мелодии, который получится после транспонирования'
@@ -610,9 +675,10 @@ function nextQuiz2(){
     const usable=INTERVALS.filter(iv=>Math.abs(iv.semis)<=12);
     const iv=usable[Math.floor(Math.random()*usable.length)];
     const resultIdx=((noteIdx+iv.semis)%12+12)%12;
+    const spelled=spellTransposedNote(noteIdx,iv);
     const wrong=[...Array(12).keys()].filter(x=>x!==resultIdx).sort(()=>Math.random()-.5).slice(0,3);
     const choiceVals=[resultIdx,...wrong].sort(()=>Math.random()-.5);
-    curQuiz={kind,noteIdx,iv,resultIdx,choiceVals};
+    curQuiz={kind,noteIdx,iv,resultIdx,choiceVals,spelled};
     quizCorrect2={type:'note',val:resultIdx};
   }else{
     const noteIdx=Math.floor(Math.random()*12);
@@ -639,7 +705,9 @@ function renderQuiz2(){
       L?`Нота ${srcNote} (${NOTE_EN[noteIdx]}) + ${ivName} = ?`
        :`Note ${NOTE_EN[noteIdx]} + ${ivName} = ?`;
     document.getElementById('quizChoices2').innerHTML=choiceVals.map(ci=>{
-      const label=L?`${NOTE_RU[ci]} (${NOTE_EN[ci]})`:NOTE_EN[ci];
+      const label=ci===resultIdx
+        ? (L?`${curQuiz.spelled.ru} (${curQuiz.spelled.en})`:curQuiz.spelled.en)
+        : (L?`${NOTE_RU[ci]} (${NOTE_EN[ci]})`:NOTE_EN[ci]);
       let cls='qc';
       if(answered&&ci===quizCorrect2.val)cls+=' correct';
       else if(answered&&ci===quizChosenVal)cls+=' wrong';
