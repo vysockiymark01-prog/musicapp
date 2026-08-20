@@ -18,7 +18,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>Джазовая гармония</title>
 <meta name="theme-color" content="#1c3a8e">
-<script>(function(){var t=localStorage.getItem('musicapp_theme');var dark=t==='dark';document.documentElement.setAttribute('data-theme',dark?'dark':'light');})()</script>
+<script>(function(){var t=localStorage.getItem('musicapp_theme');var dark=t?t==='dark':window.matchMedia('(prefers-color-scheme: dark)').matches;document.documentElement.setAttribute('data-theme',dark?'dark':'light');})()</script>
 <style>
 /* Отключаем системный жест pull-to-refresh (стрелка/спиннер при потягивании вниз) — приложение уже показывает свой интерфейс, обновление страницы через этот жест не нужно и мешает свайпам внутри модулей. */
 html,body{overscroll-behavior-y:contain;}
@@ -877,6 +877,10 @@ const JAZZ_CHORDS=[
   {id:'maj9',label:'maj9',desc:{ru:'Большой мажорный нонаккорд',en:'Major 9th'},intervals:[0,4,7,11,14]},
   {id:'9',label:'9',desc:{ru:'Доминантовый нонаккорд',en:'Dominant 9th'},intervals:[0,4,7,10,14]},
   {id:'m9',label:'m9',desc:{ru:'Малый минорный нонаккорд',en:'Minor 9th'},intervals:[0,3,7,10,14]},
+  {id:'aug',label:'aug',desc:{ru:'Увеличенное трезвучие (повышенная квинта)',en:'Augmented triad (raised 5th)'},intervals:[0,4,8]},
+  {id:'6',label:'6',desc:{ru:'Мажорное трезвучие с секстой',en:'Major triad with added 6th'},intervals:[0,4,7,9]},
+  {id:'sus4',label:'sus4',desc:{ru:'Задержание: кварта вместо терции',en:'Suspended: 4th instead of 3rd'},intervals:[0,5,7]},
+  {id:'add9',label:'add9',desc:{ru:'Трезвучие с добавленной ноной, без септимы',en:'Triad with added 9th, no 7th'},intervals:[0,4,7,14]},
 ];
 
 const PROG_DATA=[
@@ -888,6 +892,12 @@ const PROG_DATA=[
    steps:[{deg:'I',type:'maj7',offset:0},{deg:'VI',type:'7',offset:9},{deg:'ii',type:'m7',offset:2},{deg:'V',type:'7',offset:7}]},
   {id:'blues',name:{ru:'I–IV–V (блюз)',en:'I–IV–V (blues)'},
    steps:[{deg:'I',type:'7',offset:0},{deg:'IV',type:'7',offset:5},{deg:'V',type:'7',offset:7}]},
+  {id:'tonic-walk',name:{ru:'I–I+–I6–I7 (ход на месте)',en:'I–I+–I6–I7 (stationary walk-up)'},
+   steps:[{deg:'I',type:'maj7',offset:0},{deg:'I+',type:'aug',offset:0},{deg:'I6',type:'6',offset:0},{deg:'I7',type:'7',offset:0}]},
+  {id:'sus-V-I',name:{ru:'Vsus4–V7–I (каданс)',en:'Vsus4–V7–I (cadence)'},
+   steps:[{deg:'V(sus4)',type:'sus4',offset:7},{deg:'V',type:'7',offset:7},{deg:'I',type:'maj7',offset:0}]},
+  {id:'I-IV-Iadd9',name:{ru:'I–IV–I(add9)',en:'I–IV–I(add9)'},
+   steps:[{deg:'I',type:'maj7',offset:0},{deg:'IV',type:'maj7',offset:5},{deg:'I',type:'add9',offset:0}]},
 ];
 
 const CHORD_TYPE_OPTIONS=['maj7','m7','7','m7♭5','dim7','maj9','9','m9'];
@@ -911,6 +921,10 @@ const QUIZ_DATA=[
   {q:{ru:'Прогрессия «ритм-чэнджес» — это…',en:'"Rhythm changes" progression is…'},opts:['I–VI–ii–V','ii–V–I','I–IV–V','I–V–vi–IV'],ans:0},
   {q:{ru:'Какой тип аккорда — это Cmaj7?',en:'What chord type is Cmaj7?'},opts:['Большой мажорный септаккорд','Доминантовый септ.','Малый минорный септ.','Уменьшённый'],ans:0},
   {q:{ru:'Кто записал альбом «Kind of Blue»?',en:'Who recorded "Kind of Blue"?'},opts:['Майлс Дэвис','Джон Колтрейн','Бил Эванс','Херби Хэнкок'],ans:0},
+  {q:{ru:'Что такое увеличенное (aug) трезвучие?',en:'What is an augmented (aug) triad?'},opts:['Мажорное трезвучие с повышенной квинтой','Минорное трезвучие с пониженной квинтой','Мажорное трезвучие с секстой','Трезвучие без терции'],ans:0},
+  {q:{ru:'Чем аккорд C6 отличается от Cmaj7?',en:'How does C6 differ from Cmaj7?'},opts:['В нём секста (ля) вместо большой септимы (си)','В нём малая септима вместо большой','В нём нет терции','Он на октаву выше'],ans:0},
+  {q:{ru:'Что происходит с терцией в аккорде sus4?',en:'What happens to the 3rd in a sus4 chord?'},opts:['Заменяется квартой','Повышается на полутон','Понижается на полутон','Удваивается'],ans:0},
+  {q:{ru:'Чем аккорд add9 отличается от maj9?',en:'How does add9 differ from maj9?'},opts:['В нём нет септимы','В нём нет терции','Он на октаву выше','В нём нет квинты'],ans:0},
 ];
 
 const EX_TABS_DEF=[
