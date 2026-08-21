@@ -301,6 +301,22 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
 [data-theme="dark"] .ex-btn.hint-btn{color:#fbbf24;}
 .opt-btn.eliminated{opacity:.25;text-decoration:line-through;cursor:default;pointer-events:none;}
 
+@keyframes musicappShake{
+  10%,90%{transform:translateX(-1px);}
+  20%,80%{transform:translateX(2px);}
+  30%,50%,70%{transform:translateX(-4px);}
+  40%,60%{transform:translateX(4px);}
+}
+.musicapp-shake{animation:musicappShake .4s;}
+
+.rv-actions{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:14px;}
+@media print{
+  body *{visibility:hidden;}
+  .quiz-finish,.quiz-finish *{visibility:visible;}
+  .quiz-finish{position:absolute;left:0;top:0;width:100%;}
+  .rv-actions{display:none;}
+}
+
 @media(max-width:600px){
   .hdr{flex-wrap:wrap;gap:8px;}
   .intro{padding:16px;}
@@ -319,6 +335,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
     <div class="hdr-sub" id="hdrSub">Стили, история, звучание</div>
   </div>
   <div class="hdr-btns">
+    <button class="hbtn" id="soundBtn" title="Звук"><span id="soundIco">🔊</span></button>
     <button class="hbtn fav-toggle" id="favToggleBtn" onclick="toggleFavOnly()">⭐</button>
     <button class="hbtn" id="themeBtn">
       <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" id="themeIco">
@@ -868,6 +885,68 @@ function playExChord(rootNote,intervals,rootOctave=4){
 
 function playExNote(note,octave){initAudio();playTone(noteFreq(note,octave),audioCtx.currentTime,0.6,0.18,'triangle');}
 
+// ── Звук / вибрация / тряска на верный-неверный ответ ──
+function musicappSoundOn(){return localStorage.getItem('musicapp_sound_enabled')!=='0';}
+let _fbCtx=null;
+function _fbAudioCtx(){
+  if(!_fbCtx){try{_fbCtx=new (window.AudioContext||window.webkitAudioContext)();}catch(e){}}
+  return _fbCtx;
+}
+function playAnswerSound(ok){
+  if(!musicappSoundOn())return;
+  const ctx=_fbAudioCtx();
+  if(!ctx)return;
+  if(ctx.state==='suspended')ctx.resume();
+  const now=ctx.currentTime;
+  if(ok){
+    [523.25,659.25,783.99].forEach((f,i)=>{
+      const o=ctx.createOscillator(),g=ctx.createGain();
+      o.type='sine';o.frequency.value=f;
+      o.connect(g);g.connect(ctx.destination);
+      const t=now+i*0.07;
+      g.gain.setValueAtTime(0,t);
+      g.gain.linearRampToValueAtTime(0.18,t+0.02);
+      g.gain.exponentialRampToValueAtTime(0.001,t+0.35);
+      o.start(t);o.stop(t+0.36);
+    });
+  }else{
+    const o=ctx.createOscillator(),g=ctx.createGain();
+    o.type='sine';o.frequency.setValueAtTime(220,now);o.frequency.exponentialRampToValueAtTime(140,now+0.18);
+    o.connect(g);g.connect(ctx.destination);
+    g.gain.setValueAtTime(0.16,now);
+    g.gain.exponentialRampToValueAtTime(0.001,now+0.22);
+    o.start(now);o.stop(now+0.23);
+  }
+}
+function vibrateAnswer(ok){
+  if(!musicappSoundOn())return;
+  if(!('vibrate' in navigator))return;
+  try{navigator.vibrate(ok?20:[40,40,40]);}catch(e){}
+}
+function shakeEl(el){
+  if(!el)return;
+  el.classList.remove('musicapp-shake');
+  void el.offsetWidth;
+  el.classList.add('musicapp-shake');
+  setTimeout(()=>el.classList.remove('musicapp-shake'),400);
+}
+function answerFeedback(ok,el){
+  playAnswerSound(ok);
+  vibrateAnswer(ok);
+  if(!ok)shakeEl(el);
+}
+(function initSoundBtn(){
+  const b=document.getElementById('soundBtn');
+  if(!b)return;
+  const render=()=>{document.getElementById('soundIco').textContent=musicappSoundOn()?'🔊':'🔇';};
+  render();
+  b.addEventListener('click',()=>{
+    localStorage.setItem('musicapp_sound_enabled',musicappSoundOn()?'0':'1');
+    render();
+  });
+})();
+function exCardEl(){return document.querySelector('#exContent .ex-card');}
+
 const JAZZ_CHORDS=[
   {id:'maj7',label:'maj7',desc:{ru:'Большой мажорный септаккорд',en:'Major 7th'},intervals:[0,4,7,11]},
   {id:'m7',label:'m7',desc:{ru:'Малый минорный септаккорд',en:'Minor 7th'},intervals:[0,3,7,10]},
@@ -949,14 +1028,16 @@ const TL={
     quizQ:'Вопрос',quizFinish:'Вы ответили правильно на',quizOf:'из',quizRestart:'Начать заново',
     earTask:'Определите тип аккорда на слух',styleTask:'Определите джазовый стиль',
     selectAnswer:'Выберите ответ',next:'Далее →',score:'Счёт',hint:'💡 Подсказка',
-    hintElim:'Один неверный вариант исключён',hintFirst:'Первый аккорд'},
+    hintElim:'Один неверный вариант исключён',hintFirst:'Первый аккорд',
+    rvExportImgText:'Скачать картинкой',rvPrintText:'Печать / PDF',quizFinishTitle:'Джазовая гармония — Вопросы'},
   en:{buildChord:'Build the chord',selectNotes:'Click piano keys',check:'Check',newEx:'New',clear:'Reset',correct:'✓ Correct!',wrong:'✗ Try again',
     missingType:'Choose chord type',playChord:'▶ Play chord',playPattern:'▶ Play pattern',
     chainsTask:'Fill the blank in the progression',notationTask:'Arrange chords in the correct order',
     quizQ:'Question',quizFinish:'You answered correctly',quizOf:'out of',quizRestart:'Start over',
     earTask:'Identify the chord type by ear',styleTask:'Identify the jazz style',
     selectAnswer:'Select an answer',next:'Next →',score:'Score',hint:'💡 Hint',
-    hintElim:'One wrong option eliminated',hintFirst:'First chord'},
+    hintElim:'One wrong option eliminated',hintFirst:'First chord',
+    rvExportImgText:'Save as image',rvPrintText:'Print / PDF',quizFinishTitle:'Jazz Harmony — Quiz'},
 };
 
 function t(key){return (TL[lang]||TL.ru)[key]||key;}
@@ -1067,6 +1148,7 @@ function checkBuild(){
   buildChecked=true;
   const target=buildEx.correct.slice(1);
   const ok=target.every(c=>buildSel.some(s=>s.note===c.note&&s.octave===c.octave))&&buildSel.length===target.length;
+  answerFeedback(ok,exCardEl());
   renderBuild();
   if(ok)setTimeout(genBuild,1300);
   else setTimeout(()=>{buildChecked=false;buildSel=[];renderBuild();},1600);
@@ -1152,6 +1234,7 @@ function checkChains(){
   if(chainsChecked||!chainsAnswer)return;
   chainsChecked=true;
   const ok=chainsAnswer===chainsEx.correctLabel;
+  answerFeedback(ok,exCardEl());
   renderChains();
   if(ok)setTimeout(genChains,1300);
   else setTimeout(()=>{chainsChecked=false;chainsAnswer='';renderChains();},1600);
@@ -1230,6 +1313,7 @@ function checkEar(){
   if(earChecked||!earAnswer)return;
   earChecked=true;
   const ok=earAnswer===earEx.chord.id;
+  answerFeedback(ok,exCardEl());
   renderEar();
   if(ok)setTimeout(genEar,1300);
   else setTimeout(()=>{earChecked=false;earAnswer=null;renderEar();},1600);
@@ -1312,6 +1396,7 @@ function checkStyleId(){
   if(styleIdChecked||!styleIdAnswer)return;
   styleIdChecked=true;
   const ok=styleIdAnswer===styleIdEx.style.id;
+  answerFeedback(ok,exCardEl());
   renderStyleId();
   if(ok)setTimeout(genStyleId,1300);
   else setTimeout(()=>{styleIdChecked=false;styleIdAnswer=null;renderStyleId();},1600);
@@ -1397,6 +1482,7 @@ function checkNotation(){
   const correct=notationEx.chords.map(c=>c.label);
   notationChecked=true;
   const isOk=notationSeq.every((l,i)=>l===correct[i]);
+  answerFeedback(isOk,exCardEl());
   renderNotation();
   if(isOk)setTimeout(genNotation,1300);
   else setTimeout(()=>{notationChecked=false;notationSeq=[];renderNotation();},1600);
@@ -1475,7 +1561,9 @@ function quizPick(idx){
   quizChosen=idx;
   quizAnswered=true;
   quizTotal++;
-  if(idx===quizShuffled.ans)quizScore++;
+  const ok=idx===quizShuffled.ans;
+  if(ok)quizScore++;
+  answerFeedback(ok,exCardEl());
   renderQuiz();
   setTimeout(()=>{quizIdx++;loadQuizQ();},1400);
 }
@@ -1518,11 +1606,65 @@ function renderQuizFinish(){
   if(!area)return;
   const pct=quizTotal>0?Math.round(quizScore/quizTotal*100):0;
   area.innerHTML=`<div class="ex-card quiz-finish">
-    <div class="quiz-finish-score">${quizScore}/${quizTotal}</div>
-    <div class="quiz-finish-label">${t('quizFinish')} ${quizScore} ${t('quizOf')} ${quizTotal} (${pct}%)</div>
-    <div style="margin-top:20px"><button class="ex-btn primary" onclick="initQuiz()">${t('quizRestart')}</button></div>
+    <div id="rvTitle" style="display:none">${t('quizFinishTitle')}</div>
+    <div class="quiz-finish-score" id="rvScore">${quizScore}/${quizTotal}</div>
+    <div class="quiz-finish-label" id="rvSub">${t('quizFinish')} ${quizScore} ${t('quizOf')} ${quizTotal} (${pct}%)</div>
+    <div class="rv-actions">
+      <button class="ex-btn secondary" onclick="exportResultImage()">📥 ${t('rvExportImgText')}</button>
+      <button class="ex-btn secondary" onclick="printResult()">🖨 ${t('rvPrintText')}</button>
+    </div>
+    <div style="margin-top:12px"><button class="ex-btn primary" onclick="initQuiz()">${t('quizRestart')}</button></div>
   </div>`;
 }
+
+function rvRoundRect(ctx,x,y,w,h,r){
+  ctx.beginPath();
+  ctx.moveTo(x+r,y);
+  ctx.arcTo(x+w,y,x+w,y+h,r);
+  ctx.arcTo(x+w,y+h,x,y+h,r);
+  ctx.arcTo(x,y+h,x,y,r);
+  ctx.arcTo(x,y,x+w,y,r);
+  ctx.closePath();
+}
+function exportResultImage(){
+  const title=t('quizFinishTitle');
+  const score=document.getElementById('rvScore').textContent;
+  const sub=document.getElementById('rvSub').textContent;
+  const dark=document.documentElement.getAttribute('data-theme')==='dark';
+  const W=640,H=360;
+  const cv=document.createElement('canvas');cv.width=W;cv.height=H;
+  const ctx=cv.getContext('2d');
+  ctx.fillStyle=dark?'#0f172a':'#f8fafc';
+  ctx.fillRect(0,0,W,H);
+  const pad=24;
+  ctx.fillStyle=dark?'#1e293b':'#ffffff';
+  rvRoundRect(ctx,pad,pad,W-pad*2,H-pad*2,24);ctx.fill();
+  ctx.strokeStyle='#2563eb';ctx.lineWidth=3;
+  rvRoundRect(ctx,pad,pad,W-pad*2,H-pad*2,24);ctx.stroke();
+  ctx.textAlign='center';
+  ctx.fillStyle='#2563eb';
+  ctx.font='900 13px sans-serif';
+  ctx.fillText('МУЗГРАМОТА',W/2,pad+34);
+  ctx.fillStyle=dark?'#f1f5f9':'#0f172a';
+  ctx.font='800 16px sans-serif';
+  ctx.fillText(title,W/2,pad+64);
+  ctx.fillStyle='#2563eb';
+  ctx.font='900 64px sans-serif';
+  ctx.fillText(score,W/2,H/2+20);
+  ctx.fillStyle=dark?'#94a3b8':'#64748b';
+  ctx.font='600 14px sans-serif';
+  ctx.fillText(sub,W/2,H-pad-40);
+  ctx.font='500 11px sans-serif';
+  ctx.fillText(new Date().toLocaleDateString(lang==='ru'?'ru-RU':'en-US'),W/2,H-pad-16);
+  cv.toBlob(blob=>{
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement('a');
+    a.href=url;a.download='rezultat-'+Date.now()+'.png';
+    document.body.appendChild(a);a.click();document.body.removeChild(a);
+    setTimeout(()=>URL.revokeObjectURL(url),1000);
+  });
+}
+function printResult(){ window.print(); }
 
 /* ─── THEME / LANG ───────────────────────────────────── */
 document.getElementById('themeBtn').addEventListener('click',()=>{
