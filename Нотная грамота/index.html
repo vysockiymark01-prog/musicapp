@@ -857,6 +857,14 @@ html,body{overscroll-behavior-y:contain;}
         }
         .musicapp-shake{animation:musicappShake .4s;}
 
+        @keyframes musicappStreakIn{from{transform:translate(-50%,20px);opacity:0;}to{transform:translate(-50%,0);opacity:1;}}
+        @keyframes musicappStreakOut{from{opacity:1;}to{opacity:0;}}
+        .musicapp-streak-toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);
+          background:#111827;color:#fff;padding:10px 18px;border-radius:14px;
+          font-size:13px;font-weight:800;box-shadow:0 8px 24px rgba(0,0,0,.25);
+          z-index:9999;animation:musicappStreakIn .25s ease-out;pointer-events:none;white-space:nowrap;}
+        [data-theme="dark"] .musicapp-streak-toast{background:#f1f5f9;color:#0f172a;}
+
         .test-level-row {
             display: flex;
             gap: 6px;
@@ -2440,6 +2448,42 @@ html,body{overscroll-behavior-y:contain;}
           });
         })();
 
+        // ── Подбадривающие фразы за серию верных ответов подряд ──
+        let _fbStreak=0;
+        const STREAK_PHRASES={
+          5:{ru:['Отлично! 👍','Уверенно идёшь!','Хорошая серия!'],en:['Nice! 👍','Great streak!','Well done!']},
+          10:{ru:['Ты в ударе! 🔥','Не останавливайся!','Красота!'],en:['You are on fire! 🔥','Keep it going!','Nice work!']},
+          15:{ru:['Невероятная точность! ⭐','Так держать!'],en:['Incredible accuracy! ⭐','Keep this up!']},
+          20:{ru:['Ты профи! 🏆','Фантастика! 🏆','Железная серия! 🏆'],en:['You are a pro! 🏆','Fantastic! 🏆','Iron streak! 🏆']},
+        };
+        function streakTier(n){
+          if(n>=20&&n%10===0)return 20;
+          if(n===15)return 15;
+          if(n===10)return 10;
+          if(n===5)return 5;
+          return null;
+        }
+        function showStreakToast(text){
+          const old=document.querySelector('.musicapp-streak-toast');
+          if(old)old.remove();
+          const el=document.createElement('div');
+          el.className='musicapp-streak-toast';
+          el.textContent=text;
+          document.body.appendChild(el);
+          setTimeout(()=>{
+            el.style.animation='musicappStreakOut .3s ease-in forwards';
+            setTimeout(()=>el.remove(),300);
+          },1800);
+        }
+        function maybeShowStreak(){
+          const tier=streakTier(_fbStreak);
+          if(tier===null)return;
+          const L=(typeof lang!=='undefined'&&lang==='en')?'en':'ru';
+          const arr=STREAK_PHRASES[tier][L];
+          const phrase=arr[Math.floor(Math.random()*arr.length)];
+          showStreakToast(`${phrase} (${_fbStreak})`);
+        }
+
         function showFeedback(text, isCorrect) {
             const modal = document.getElementById('feedbackModal');
             const feedbackText = document.getElementById('feedbackText');
@@ -2448,7 +2492,13 @@ html,body{overscroll-behavior-y:contain;}
             modal.classList.remove('hidden');
             playAnswerSound(isCorrect);
             vibrateAnswer(isCorrect);
-            if(!isCorrect)shakeEl(document.querySelector('#feedbackModal .feedback-content'));
+            if(!isCorrect){
+              shakeEl(document.querySelector('#feedbackModal .feedback-content'));
+              _fbStreak=0;
+            }else{
+              _fbStreak++;
+              maybeShowStreak();
+            }
             setTimeout(() => modal.classList.add('hidden'), isCorrect ? 800 : 1000);
         }
 
