@@ -481,6 +481,7 @@ const T={
     tourBtn:'Тур',tourSkip:'Пропустить',tourNext:'Далее',tourPrev:'Назад',tourDone:'Готово',
     tourProgressTitle:'Прогресс и серия',tourProgressBody:'Здесь виден процент пройденных разделов и серия дней подряд — занимайтесь регулярно, чтобы её не прерывать.',
     tourProfileTitle:'Мой класс',tourProfileBody:'Укажите класс — задания в модулях с уровнями (тональности, диктанты, цифровка и другие) сразу откроются на подходящей сложности.',
+    tourInstrTitle:'Мой инструмент',tourInstrBody:'Выберите инструмент, отмечайте дни занятий или запускайте таймер — приложение считает серию дней подряд и подбадривает во время занятия.',
     tourReviewTitle:'Что подтянуть',tourReviewBody:'Здесь появляются термины и темы, которые пора повторить — подборка собирается автоматически по вашим результатам.',
     tourDataTitle:'Резервная копия',tourDataBody:'Весь прогресс хранится в этом браузере. Экспортируйте файл, чтобы не потерять его при смене устройства или очистке памяти.',
     tourAchTitle:'Достижения',tourAchBody:'За регулярные занятия и успехи открываются значки — их можно собрать все.',
@@ -522,6 +523,7 @@ const T={
     tourBtn:'Tour',tourSkip:'Skip',tourNext:'Next',tourPrev:'Back',tourDone:'Done',
     tourProgressTitle:'Progress & streak',tourProgressBody:"Here you can see the share of sections you've completed and your daily streak — practice regularly to keep it going.",
     tourProfileTitle:'My grade',tourProfileBody:'Pick your grade — modules with leveled assignments (key signatures, dictations, figured bass, and more) will open at the right difficulty right away.',
+    tourInstrTitle:'My instrument',tourInstrBody:'Pick your instrument, check in on days you practice, or run the timer — the app tracks your streak and cheers you on while you play.',
     tourReviewTitle:'What to review',tourReviewBody:'Terms and topics that are due for review show up here — the list is built automatically from your results.',
     tourDataTitle:'Backup',tourDataBody:'All your progress is stored in this browser. Export a file so you don\'t lose it if you switch devices or clear your data.',
     tourAchTitle:'Achievements',tourAchBody:'Regular practice and good results unlock badges — try to collect them all.',
@@ -1066,6 +1068,8 @@ function buildTourSteps(){
   if(progressCard)steps.push({el:progressCard,titleKey:'tourProgressTitle',bodyKey:'tourProgressBody'});
   const profileSel=document.getElementById('profileGradeSelect');
   if(profileSel)steps.push({el:profileSel.closest('.data-card')||profileSel,titleKey:'tourProfileTitle',bodyKey:'tourProfileBody'});
+  const instrCard=document.getElementById('instrumentCard');
+  if(instrCard)steps.push({el:instrCard,titleKey:'tourInstrTitle',bodyKey:'tourInstrBody'});
   const reviewCard=document.getElementById('reviewCard');
   if(reviewCard && getComputedStyle(reviewCard).display!=='none')
     steps.push({el:reviewCard,titleKey:'tourReviewTitle',bodyKey:'tourReviewBody'});
