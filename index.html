@@ -79,6 +79,25 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
 [data-theme="dark"] .data-status.ok{color:#34d399;}
 .data-status.err{background:rgba(239,68,68,.12);color:#b91c1c;}
 [data-theme="dark"] .data-status.err{color:#f87171;}
+.instr-timer-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:10px;
+  padding-top:10px;border-top:1px solid var(--border);}
+.timer-display{font-size:15px;font-weight:900;font-variant-numeric:tabular-nums;color:var(--text);min-width:56px;}
+.timer-today{font-size:11px;color:var(--muted);}
+.new-badge{display:inline-block;margin-left:6px;padding:1px 7px;border-radius:8px;
+  font-size:9px;font-weight:900;text-transform:uppercase;letter-spacing:.4px;
+  background:rgba(37,99,235,.15);color:var(--blue);vertical-align:middle;}
+@keyframes instrSpotlightPulse{
+  0%,100%{box-shadow:0 0 0 0 rgba(37,99,235,.35);}
+  50%{box-shadow:0 0 0 7px rgba(37,99,235,0);}
+}
+.instr-spotlight{animation:instrSpotlightPulse 1.6s ease-out 3;border-color:var(--blue) !important;}
+@keyframes homeToastIn{from{transform:translate(-50%,20px);opacity:0;}to{transform:translate(-50%,0);opacity:1;}}
+@keyframes homeToastOut{from{opacity:1;}to{opacity:0;}}
+.home-toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);
+  background:#111827;color:#fff;padding:10px 18px;border-radius:14px;
+  font-size:13px;font-weight:800;box-shadow:0 8px 24px rgba(0,0,0,.25);
+  z-index:9999;animation:homeToastIn .25s ease-out;pointer-events:none;white-space:nowrap;max-width:88vw;text-align:center;}
+[data-theme="dark"] .home-toast{background:#f1f5f9;color:#0f172a;}
 .ach-card{background:var(--card);border:1.5px solid var(--border);border-radius:20px;
   padding:16px 20px;margin-bottom:24px;box-shadow:var(--shadow);}
 .ach-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;}
@@ -222,7 +241,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
 </div>
 
 <div class="data-card" id="instrumentCard">
-  <div class="data-card-title" id="instrTitle">🎸 Мой инструмент</div>
+  <div class="data-card-title"><span id="instrTitle">🎸 Мой инструмент</span><span class="new-badge" id="instrNewBadge" style="display:none">New</span></div>
   <div class="data-card-desc" id="instrDesc">Выберите инструмент и отмечайте дни занятий — приложение посчитает вашу серию.</div>
   <select id="instrumentSelect" class="hbtn" style="width:100%;max-width:260px;">
     <option value="">—</option>
@@ -243,6 +262,11 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
   <div class="streak-row" id="practiceStreakRow" style="margin-top:10px;">
     <span class="streak-flame" id="practiceStreakFlame">🔥</span>
     <span class="streak-text" id="practiceStreakText">0 дней подряд</span>
+  </div>
+  <div class="instr-timer-row" id="instrTimerRow">
+    <span class="timer-display" id="timerDisplay">00:00</span>
+    <button class="hbtn data-btn-primary" id="timerToggleBtn">▶️ <span id="timerToggleText">Начать занятие</span></button>
+    <span class="timer-today" id="timerTodayText"></span>
   </div>
   <div class="data-status" id="practiceBanner" style="display:none"></div>
 </div>
@@ -453,6 +477,7 @@ const T={
     reviewTitle:'🧠 Что подтянуть',
     instrTitle:'🎸 Мой инструмент',instrDesc:'Выберите инструмент и отмечайте дни занятий — приложение посчитает вашу серию.',
     practiceMarkText:'Я позанимался сегодня',practiceDoneText:'Сегодня уже отмечено ✅',
+    timerStart:'Начать занятие',timerPause:'Пауза',timerToday:'Сегодня:',
     tourBtn:'Тур',tourSkip:'Пропустить',tourNext:'Далее',tourPrev:'Назад',tourDone:'Готово',
     tourProgressTitle:'Прогресс и серия',tourProgressBody:'Здесь виден процент пройденных разделов и серия дней подряд — занимайтесь регулярно, чтобы её не прерывать.',
     tourProfileTitle:'Мой класс',tourProfileBody:'Укажите класс — задания в модулях с уровнями (тональности, диктанты, цифровка и другие) сразу откроются на подходящей сложности.',
@@ -493,6 +518,7 @@ const T={
     reviewTitle:'🧠 What to review',
     instrTitle:'🎸 My instrument',instrDesc:'Pick your instrument and check in each day you practice — the app will track your streak.',
     practiceMarkText:'I practiced today',practiceDoneText:'Marked for today ✅',
+    timerStart:'Start practicing',timerPause:'Pause',timerToday:'Today:',
     tourBtn:'Tour',tourSkip:'Skip',tourNext:'Next',tourPrev:'Back',tourDone:'Done',
     tourProgressTitle:'Progress & streak',tourProgressBody:"Here you can see the share of sections you've completed and your daily streak — practice regularly to keep it going.",
     tourProfileTitle:'My grade',tourProfileBody:'Pick your grade — modules with leveled assignments (key signatures, dictations, figured bass, and more) will open at the right difficulty right away.',
@@ -552,6 +578,7 @@ function applyLang(){
   renderAchievements();
   renderStreak();
   renderPractice();
+  renderTimer();
   renderReview();
   renderExportReminder();
 }
@@ -665,6 +692,126 @@ function markPracticeToday(){
   });
   if(btn)btn.addEventListener('click',markPracticeToday);
 })();
+
+// Таймер занятия: считает время сегодняшней сессии, каждые 30 минут показывает
+// подбадривающий тост, а при остановке автоматически отмечает день как отработанный.
+const TIMER_KEY='musicapp_practice_timer';
+const TIMER_PHRASES={
+  ru:['Отличная работа! Так держать 💪','Ты молодец, продолжай в том же духе! 🎵','Прекрасный прогресс — ещё немного! 🔥','Настоящий музыкант тренируется каждый день 🎼','Ты справляешься великолепно! 👏','Ещё 30 минут позади — ты умница! ⭐'],
+  en:['Great work, keep it up! 💪','You\'re doing awesome — keep going! 🎵','Nice progress, a bit more! 🔥','A real musician practices every day 🎼','You\'re doing great! 👏','Another 30 minutes done — well done! ⭐']
+};
+let timerInterval=null;
+function getTimerData(){
+  let d={date:'',seconds:0,running:false,startedAt:null,notifiedTier:0};
+  try{
+    const s=JSON.parse(localStorage.getItem(TIMER_KEY));
+    if(s&&typeof s==='object')d=Object.assign(d,s);
+  }catch(e){}
+  if(d.date!==todayStr()){d={date:todayStr(),seconds:0,running:false,startedAt:null,notifiedTier:0};}
+  return d;
+}
+function saveTimerData(d){localStorage.setItem(TIMER_KEY,JSON.stringify(d));}
+function timerElapsedSeconds(d){
+  if(!d.running||!d.startedAt)return d.seconds;
+  const delta=Math.min((Date.now()-d.startedAt)/1000,6*3600); // страховка от забытого запущенного таймера
+  return d.seconds+delta;
+}
+function formatTimer(totalSec){
+  const s=Math.max(0,Math.floor(totalSec));
+  const h=Math.floor(s/3600),m=Math.floor((s%3600)/60),sec=s%60;
+  const pad=n=>String(n).padStart(2,'0');
+  return h>0?(h+':'+pad(m)+':'+pad(sec)):(pad(m)+':'+pad(sec));
+}
+function showHomeToast(text){
+  const old=document.querySelector('.home-toast');
+  if(old)old.remove();
+  const el=document.createElement('div');
+  el.className='home-toast';
+  el.textContent=text;
+  document.body.appendChild(el);
+  setTimeout(()=>{
+    el.style.animation='homeToastOut .3s ease-in forwards';
+    setTimeout(()=>el.remove(),300);
+  },2200);
+}
+function renderTimer(){
+  const disp=document.getElementById('timerDisplay');
+  const btn=document.getElementById('timerToggleBtn');
+  const txt=document.getElementById('timerToggleText');
+  const today=document.getElementById('timerTodayText');
+  if(!disp||!btn||!txt||!today)return;
+  const d=getTimerData();
+  const elapsed=timerElapsedSeconds(d);
+  disp.textContent=formatTimer(elapsed);
+  txt.textContent=d.running?T[lang].timerPause:T[lang].timerStart;
+  if(btn.firstChild&&btn.firstChild.nodeType===Node.TEXT_NODE)btn.firstChild.nodeValue=d.running?'⏸ ':'▶️ ';
+  const mins=Math.floor(elapsed/60);
+  today.textContent=mins>0?(T[lang].timerToday+' '+mins+' '+(lang==='ru'?ruPluralMin(mins):('min'+(mins===1?'':'s')))):'';
+}
+function ruPluralMin(n){
+  const n10=n%10,n100=n%100;
+  if(n10===1&&n100!==11)return 'минута';
+  if(n10>=2&&n10<=4&&(n100<12||n100>14))return 'минуты';
+  return 'минут';
+}
+function timerTick(){
+  const d=getTimerData();
+  if(!d.running){clearInterval(timerInterval);timerInterval=null;return;}
+  renderTimer();
+  const elapsed=timerElapsedSeconds(d);
+  const tier=Math.floor(elapsed/1800);
+  if(tier>d.notifiedTier&&tier>=1){
+    d.notifiedTier=tier;
+    saveTimerData(d);
+    const phrases=TIMER_PHRASES[lang]||TIMER_PHRASES.ru;
+    showHomeToast(phrases[Math.floor(Math.random()*phrases.length)]);
+  }
+}
+function toggleTimer(){
+  const d=getTimerData();
+  if(d.running){
+    d.seconds=timerElapsedSeconds(d);
+    d.running=false;
+    d.startedAt=null;
+    saveTimerData(d);
+    if(timerInterval){clearInterval(timerInterval);timerInterval=null;}
+    if(d.seconds>0)markPracticeToday();
+  }else{
+    d.running=true;
+    d.startedAt=Date.now();
+    saveTimerData(d);
+    if(!timerInterval)timerInterval=setInterval(timerTick,1000);
+  }
+  renderTimer();
+}
+(function initTimer(){
+  const btn=document.getElementById('timerToggleBtn');
+  if(btn)btn.addEventListener('click',toggleTimer);
+  const d=getTimerData();
+  if(d.running&&!timerInterval)timerInterval=setInterval(timerTick,1000);
+  renderTimer();
+})();
+
+// Мягкая подсветка карточки инструмента при первом заходе после выхода фичи —
+// показывается один раз, затем больше не появляется.
+function initInstrumentSpotlight(){
+  const card=document.getElementById('instrumentCard');
+  const badge=document.getElementById('instrNewBadge');
+  if(!card)return;
+  if(localStorage.getItem('musicapp_instrument_spotlight_seen')){
+    if(badge)badge.style.display='none';
+    return;
+  }
+  if(badge){badge.textContent=lang==='ru'?'Новое':'New';badge.style.display='inline-block';}
+  card.classList.add('instr-spotlight');
+  const clear=()=>{
+    card.classList.remove('instr-spotlight');
+    if(badge)badge.style.display='none';
+    localStorage.setItem('musicapp_instrument_spotlight_seen','1');
+  };
+  card.addEventListener('animationend',clear,{once:true});
+  setTimeout(clear,6000);
+}
 function renderReview(){
   const card=document.getElementById('reviewCard');
   const list=document.getElementById('reviewList');
@@ -1014,6 +1161,7 @@ document.getElementById('tourBtn').addEventListener('click',startTour);
 
 applyLang();
 maybeAutoStartTour();
+initInstrumentSpotlight();
 </script>
 <script>
 if ('serviceWorker' in navigator) {
