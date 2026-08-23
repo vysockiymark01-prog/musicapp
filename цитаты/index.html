@@ -18,7 +18,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Цитатник</title>
 <meta name="theme-color" content="#1c3a8e">
-<script>(function(){var t=localStorage.getItem('musicapp_theme');var dark=t==='dark';document.documentElement.setAttribute('data-theme',dark?'dark':'light');})()</script>
+<script>(function(){var t=localStorage.getItem('musicapp_theme');var dark=t?t==='dark':window.matchMedia('(prefers-color-scheme: dark)').matches;document.documentElement.setAttribute('data-theme',dark?'dark':'light');})()</script>
 <style>
 /* Отключаем системный жест pull-to-refresh (стрелка/спиннер при потягивании вниз) — приложение уже показывает свой интерфейс, обновление страницы через этот жест не нужно и мешает свайпам внутри модулей. */
 html,body{overscroll-behavior-y:contain;}
@@ -315,8 +315,8 @@ const DATA=[
    quotes:[
      {ru:'Цель и конечное основание всей музыки — прославление Бога и освежение духа.',
       en:'The aim and final end of all music should be none other than the glory of God and the refreshment of the soul.',theme:'music'},
-     {ru:'Я работал усердно. Кто будет столь же прилежен, достигнет того же результата.',
-      en:'I worked hard. Anyone who works as hard will achieve the same.',theme:'work'}
+     {ru:'Там, где звучит благоговейная музыка, там всегда пребывает Бог со Своей милостью.',
+      en:'Where there is devotional music, God with his grace is always present.',theme:'music'}
    ]},
   {id:'handel',
    name:{ru:'Георг Фридрих Гендель',en:'George Frideric Handel'},
@@ -331,28 +331,26 @@ const DATA=[
    dates:'1732–1809',country:{ru:'Австрия',en:'Austria'},
    era:'classicism',origin:'foreign',color:'#059669',ini:'JH',
    quotes:[
-     {ru:'Из самых ничтожных начал можно добиться великого, если приложить усердие и настойчивость.',
-      en:'From the most humble beginnings one can achieve greatness with diligence and perseverance.',theme:'work'}
+     {ru:'Раз Бог даровал мне весёлое сердце, Он простит мне, что я служу Ему с весельем.',
+      en:'Since God has given me a cheerful heart, He will forgive me for serving Him cheerfully.',theme:'music'}
    ]},
   {id:'mozart',
    name:{ru:'Вольфганг Амадей Моцарт',en:'Wolfgang Amadeus Mozart'},
    dates:'1756–1791',country:{ru:'Австрия',en:'Austria'},
    era:'classicism',origin:'foreign',color:'#d97706',ini:'WAM',
    quotes:[
-     {ru:'Ни одно из произведений, которыми я горжусь, не было написано с трудом — всё пришло само собой.',
-      en:'None of the pieces I am proud of were written with difficulty — everything came of itself.',theme:'inspiration'},
-     {ru:'Музыка не должна быть несерьёзной, но должна доставлять людям радость.',
-      en:'Music should not be trivial, but it must bring people joy.',theme:'music'}
+     {ru:'Страсти, бурные или нет, никогда нельзя выражать до отвращения — музыка даже в самых страшных ситуациях не должна оскорблять слух, но должна оставаться приятной и всегда оставаться музыкой.',
+      en:'Passions, whether violent or not, must never be expressed to the point of disgust; music, even in the most horrible situations, must never offend the ear, but must always remain music.',theme:'music'}
    ]},
   {id:'beethoven',
    name:{ru:'Людвиг ван Бетховен',en:'Ludwig van Beethoven'},
    dates:'1770–1827',country:{ru:'Германия',en:'Germany'},
    era:'classicism',origin:'foreign',color:'#dc2626',ini:'LvB',
    quotes:[
-     {ru:'Музыка должна высекать огонь из груди человека.',
-      en:'Music should strike fire from the heart of man.',theme:'music'},
-     {ru:'Рекомендую вам терпение. Без него ничего великого не достигнешь.',
-      en:'I recommend patience. Without it you will not achieve anything great.',theme:'work'},
+     {ru:'Я хочу схватить судьбу за глотку.',
+      en:'I want to seize fate by the throat.',theme:'work'},
+     {ru:'Не только практикуйте своё искусство, но проникайте в самую его суть — оно того заслуживает, ибо лишь искусство и наука возвышают человека до божественного.',
+      en:'Do not merely practice your art, but force your way into its secrets; it deserves that, for only art and science can exalt man to divinity.',theme:'craft'},
      {ru:'Музыка — это откровение выше всякой мудрости и философии.',
       en:'Music is a higher revelation than all wisdom and philosophy.',theme:'music'}
    ]},
@@ -361,8 +359,8 @@ const DATA=[
    dates:'1797–1828',country:{ru:'Австрия',en:'Austria'},
    era:'romanticism',origin:'foreign',color:'#7c3aed',ini:'FS',
    quotes:[
-     {ru:'Счастливой музыки нет. Есть только музыка, которая трогает нас, или не трогает.',
-      en:'There is no happy music, only music that moves us or doesn\'t.',theme:'music'}
+     {ru:'Моя музыка — порождение моего таланта и моего страдания.',
+      en:'My music is the product of my talent and my misery.',theme:'inspiration'}
    ]},
   {id:'chopin',
    name:{ru:'Фридерик Шопен',en:'Frédéric Chopin'},
@@ -370,43 +368,39 @@ const DATA=[
    era:'romanticism',origin:'foreign',color:'#0891b2',ini:'FŠ',
    quotes:[
      {ru:'Простота — высшая цель, достичь которой можно только после долгой борьбы.',
-      en:'Simplicity is the final achievement — one reached only after a long struggle.',theme:'craft'},
-     {ru:'Играйте как чувствуете, но чувствуйте правильно.',
-      en:'Play as you feel, but feel correctly.',theme:'craft'}
+      en:'Simplicity is the final achievement — one reached only after a long struggle.',theme:'craft'}
    ]},
   {id:'schumann',
    name:{ru:'Роберт Шуман',en:'Robert Schumann'},
    dates:'1810–1856',country:{ru:'Германия',en:'Germany'},
    era:'romanticism',origin:'foreign',color:'#059669',ini:'RS',
    quotes:[
-     {ru:'Задача художника — освещать тьму человеческих сердец.',
-      en:'The task of the artist is to illuminate the darkness of human hearts.',theme:'art'},
-     {ru:'Чтобы стать настоящим музыкантом, нужно много читать и думать — не только о музыке.',
-      en:'To become a true musician, you must read and think — not only about music.',theme:'craft'}
+     {ru:'Нести свет во тьму человеческих сердец — вот в чём долг художника.',
+      en:'To send light into the darkness of men\'s hearts — such is the duty of the artist.',theme:'art'}
    ]},
   {id:'liszt',
    name:{ru:'Ференц Лист',en:'Franz Liszt'},
    dates:'1811–1886',country:{ru:'Венгрия',en:'Hungary'},
    era:'romanticism',origin:'foreign',color:'#d97706',ini:'FL',
    quotes:[
-     {ru:'Гений — это усердный труд.',
-      en:'Genius is diligent work.',theme:'work'}
+     {ru:'Трата времени — один из худших пороков в мире. Жизнь так коротка, каждое мгновение так драгоценно, а мы живём, будто ей не будет конца.',
+      en:'Wasting time is one of the worst faults of the world. Life is so short, every moment so precious, and yet we live as if life will never end.',theme:'work'}
    ]},
   {id:'wagner',
    name:{ru:'Рихард Вагнер',en:'Richard Wagner'},
    dates:'1813–1883',country:{ru:'Германия',en:'Germany'},
    era:'romanticism',origin:'foreign',color:'#dc2626',ini:'RW',
    quotes:[
-     {ru:'Музыка начинается там, где заканчиваются возможности слова.',
-      en:'Music begins where the possibilities of language end.',theme:'music'}
+     {ru:'Древнейший, самый истинный и прекрасный инструмент музыки, тот источник, которому наша музыка обязана самим своим существованием, — это человеческий голос.',
+      en:'The oldest, truest, most beautiful organ of music, the origin to which alone our music owes its being, is the human voice.',theme:'music'}
    ]},
   {id:'brahms',
    name:{ru:'Иоганнес Брамс',en:'Johannes Brahms'},
    dates:'1833–1897',country:{ru:'Германия',en:'Germany'},
    era:'romanticism',origin:'foreign',color:'#7c3aed',ini:'JB',
    quotes:[
-     {ru:'Без ремесла нет искусства.',
-      en:'Without craft, there is no art.',theme:'craft'}
+     {ru:'Без мастерства вдохновение — всего лишь тростник, колеблемый ветром.',
+      en:'Without craftsmanship, inspiration is a mere reed shaken in the wind.',theme:'craft'}
    ]},
   {id:'verdi',
    name:{ru:'Джузеппе Верди',en:'Giuseppe Verdi'},
@@ -421,10 +415,8 @@ const DATA=[
    dates:'1862–1918',country:{ru:'Франция',en:'France'},
    era:'romanticism',origin:'foreign',color:'#d97706',ini:'CD',
    quotes:[
-     {ru:'Музыка — это искусство, наиболее близкое к природе.',
-      en:'Music is the art most close to nature.',theme:'music'},
-     {ru:'В музыке важнее всего то, что не поддаётся записи нотами.',
-      en:'In music, what matters most is what cannot be written in notes.',theme:'music'}
+     {ru:'Нет ничего более музыкального, чем закат солнца. Тот, кто чувствует то, что видит, найдёт лучший пример развития в той книге, которую музыканты, увы, читают слишком редко, — в книге природы.',
+      en:'There is nothing more musical than a sunset. He who feels what he sees will find no more beautiful example of development in all that book which, alas, musicians read but too little — the book of Nature.',theme:'music'}
    ]},
   {id:'mahler',
    name:{ru:'Густав Малер',en:'Gustav Mahler'},
@@ -439,8 +431,8 @@ const DATA=[
    dates:'1875–1937',country:{ru:'Франция',en:'France'},
    era:'modern',origin:'foreign',color:'#7c3aed',ini:'MR',
    quotes:[
-     {ru:'Сложность — признак посредственности. Ничего лишнего.',
-      en:'Complexity is a sign of mediocrity. Nothing superfluous.',theme:'craft'}
+     {ru:'Неужели этим людям никогда не приходит в голову, что я, возможно, искусствен по самой своей природе?',
+      en:'But do these people never come up with the idea that I might be artificial by nature?',theme:'craft'}
    ]},
   {id:'glinka',
    name:{ru:'Михаил Иванович Глинка',en:'Mikhail Glinka'},
@@ -457,44 +449,40 @@ const DATA=[
    quotes:[
      {ru:'Вдохновение — это такая гостья, которая не любит посещать ленивых.',
       en:'Inspiration is a guest that does not willingly visit the lazy.',theme:'inspiration'},
-     {ru:'Жить — значит работать. Искусство ненасытно: давай, давай и давай.',
-      en:'To live is to work. Art is insatiable: give, give, give.',theme:'work'},
-     {ru:'Я тысячу раз убеждался, что талант без трудолюбия — ничто.',
-      en:'I have convinced myself a thousand times that talent without diligence is nothing.',theme:'work'}
+     {ru:'Надо всегда работать, и уважающий себя художник не должен сидеть сложа руки под предлогом, что он не расположен.',
+      en:'We must always work, and a self-respecting artist must not fold his hands on the pretext that he is not in the mood.',theme:'work'}
    ]},
   {id:'mussorgsky',
    name:{ru:'Модест Петрович Мусоргский',en:'Modest Mussorgsky'},
    dates:'1839–1881',country:{ru:'Россия',en:'Russia'},
    era:'romanticism',origin:'russian',color:'#d97706',ini:'ММ',
    quotes:[
-     {ru:'К новым берегам! Без страха и сомнения, через бурю — вперёд!',
-      en:'Toward new shores! Without fear or doubt, through the storm — forward!',theme:'art'}
+     {ru:'Дерзай! Вперёд — к новым берегам!',
+      en:'Dare! Onward — to new shores!',theme:'art'}
    ]},
   {id:'rimsky',
    name:{ru:'Николай Андреевич Римский-Корсаков',en:'Nikolai Rimsky-Korsakov'},
    dates:'1844–1908',country:{ru:'Россия',en:'Russia'},
    era:'romanticism',origin:'russian',color:'#7c3aed',ini:'НРК',
    quotes:[
-     {ru:'Хорошая музыка та, в которой форма и содержание нераздельны.',
-      en:'Good music is that in which form and content are inseparable.',theme:'music'}
+     {ru:'Оркестровка — часть самой души произведения. Произведение мыслится в красках оркестра, и определённые тембры неотделимы от него в сознании его создателя с самого часа его рождения.',
+      en:'Orchestration is part of the very soul of the work. A work is thought out in terms of the orchestra, certain tone-colors being inseparable from it in the mind of its creator and native to it from the hour of its birth.',theme:'craft'}
    ]},
   {id:'rachmaninoff',
    name:{ru:'Сергей Васильевич Рахманинов',en:'Sergei Rachmaninoff'},
    dates:'1873–1943',country:{ru:'Россия',en:'Russia'},
    era:'modern',origin:'russian',color:'#0891b2',ini:'СР',
    quotes:[
-     {ru:'Музыки достаточно, чтобы наполнить всю жизнь, но жизнь слишком коротка для музыки.',
-      en:'Music is enough for a whole lifetime, but a lifetime is not enough for music.',theme:'music'},
-     {ru:'Великий художник должен постоянно обновляться — иначе он умирает как художник.',
-      en:'A great artist must constantly renew himself — otherwise he dies as an artist.',theme:'art'}
+     {ru:'Не тратьте время на музыку тривиальную или недостойную. Жизнь слишком коротка, чтобы блуждать по бесплодным пустыням музыкального мусора.',
+      en:'Do not waste your time with music that is trite or ignoble. Life is too short to spend it wandering in the barren Saharas of musical trash.',theme:'music'}
    ]},
   {id:'stravinsky',
    name:{ru:'Игорь Фёдорович Стравинский',en:'Igor Stravinsky'},
    dates:'1882–1971',country:{ru:'Россия',en:'Russia'},
    era:'modern',origin:'russian',color:'#dc2626',ini:'ИС',
    quotes:[
-     {ru:'Хороший композитор не подражает — он крадёт.',
-      en:'A good composer does not imitate; he steals.',theme:'art'},
+     {ru:'Беда музыкального просвещения в том, что людей учат слишком уважать музыку — их следовало бы учить её любить.',
+      en:'The trouble with music appreciation in general is that people are taught to have too much respect for music; they should be taught to love it instead.',theme:'audience'},
      {ru:'Чем больше ограничений накладывает на себя художник, тем он свободнее.',
       en:'The more constraints an artist imposes, the more free he becomes.',theme:'craft'}
    ]},
@@ -503,18 +491,18 @@ const DATA=[
    dates:'1891–1953',country:{ru:'Россия',en:'Russia'},
    era:'modern',origin:'russian',color:'#059669',ini:'СП',
    quotes:[
-     {ru:'Я хочу писать музыку, которую мой народ может петь или насвистывать.',
-      en:'I want to write music that my people can sing or whistle.',theme:'audience'}
+     {ru:'Композитор, как и поэт, скульптор или живописец, призван служить Человеку, народу. Он должен украшать человеческую жизнь и защищать её.',
+      en:'In my view, the composer, just as the poet, the sculptor or the painter, is in duty bound to serve Man, the people. He must beautify human life and defend it.',theme:'audience'}
    ]},
   {id:'shostakovich',
    name:{ru:'Дмитрий Дмитриевич Шостакович',en:'Dmitri Shostakovich'},
    dates:'1906–1975',country:{ru:'Россия',en:'Russia'},
    era:'modern',origin:'russian',color:'#d97706',ini:'ДШ',
    quotes:[
-     {ru:'Настоящая музыка способна выражать только то, для чего словам нет слов.',
-      en:'True music can only express what words cannot.',theme:'music'},
-     {ru:'Художник обязан быть честным. Это его главный долг перед людьми.',
-      en:'The artist must be honest. That is his chief duty to people.',theme:'art'}
+     {ru:'Художник-творец берётся за следующее произведение потому, что недоволен предыдущим. Когда он теряет критическое отношение к собственной работе, он перестаёт быть художником.',
+      en:'A creative artist works on his next composition because he is not satisfied with his previous one. When he loses a critical attitude toward his own work, he ceases to be an artist.',theme:'craft'},
+     {ru:'Я всегда стараюсь быть понятным как можно более широкому кругу людей, и если мне это не удаётся, я считаю это своей виной.',
+      en:'I always try to make myself as widely understood as possible, and if I don\'t succeed I consider it\'s my own fault.',theme:'audience'}
    ]}
 ];
 
