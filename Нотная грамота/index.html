@@ -1881,6 +1881,7 @@ html,body{overscroll-behavior-y:contain;}
         let micAnimId = null;
         let micLastDetected = null;
         let micMatchCooldown = false;
+        let micFreqHistory = [];
         let activeNodes = [];
         let rhythmSig = '4/4';
         let targetRhythm = [];
@@ -2594,10 +2595,11 @@ html,body{overscroll-behavior-y:contain;}
             const SIZE = buffer.length;
             const half = SIZE >> 1;
 
-            // Silence check
+            // Silence check — low threshold so quietly played / lightly fretted notes
+            // still get analysed instead of being dismissed as silence
             let rms = 0;
             for (let i = 0; i < SIZE; i++) rms += buffer[i] * buffer[i];
-            if (Math.sqrt(rms / SIZE) < 0.015) return -1;
+            if (Math.sqrt(rms / SIZE) < 0.007) return -1;
 
             // Step 1: difference function  d[tau] = Σ (x[j] - x[j+tau])²
             const d = new Float32Array(half);
@@ -2656,10 +2658,18 @@ html,body{overscroll-behavior-y:contain;}
                 bar.className = 'mic-bar' + (vol > 75 ? ' loud' : '');
             }
 
-            const freq = autocorrelate(buf, micAnalyser.context.sampleRate);
+            const rawFreq = autocorrelate(buf, micAnalyser.context.sampleRate);
             const detected = document.getElementById('micDetected');
 
-            if (freq > 0) {
+            if (rawFreq > 0) {
+                // Smooth out momentary jitter — a lightly fretted/quiet note gives a noisier
+                // signal, so a single frame can briefly read a wrong frequency. Taking the
+                // median of the last few readings makes detection much more stable.
+                micFreqHistory.push(rawFreq);
+                if (micFreqHistory.length > 6) micFreqHistory.shift();
+                const sortedFreqs = [...micFreqHistory].sort((a, b) => a - b);
+                const freq = sortedFreqs[Math.floor(sortedFreqs.length / 2)];
+
                 const result = freqToNoteOctave(freq);
                 if (result) {
                     const t = TRANSLATIONS[lang];
@@ -2669,24 +2679,31 @@ html,body{overscroll-behavior-y:contain;}
                         detected.textContent = noteName + ' · ' + octaveName;
                     }
 
-                    // Check against test note
+                    // Check against test note — match by cents distance rather than exact
+                    // rounded note name. A real instrument is rarely tuned to exactly 440Hz,
+                    // so a fixed ±50-cent rounding window can miss notes sitting near a
+                    // semitone boundary; a slightly wider ±55-cent tolerance absorbs normal
+                    // tuning drift without confusing it with the neighbouring note.
                     if (isTestMode && testNote && !micMatchCooldown) {
-                        const noteMatch = result.note === testNote.note;
-                        const octaveMatch = result.octave === testNote.octave;
-                        if (detected) detected.className = 'mic-detected ' + (noteMatch && octaveMatch ? 'match' : 'nomatch');
+                        const targetFreq = getFrequency(testNote.note, testNote.octave);
+                        const cents = 1200 * Math.log2(freq / targetFreq);
+                        const isMatch = Math.abs(cents) <= 55;
+                        if (detected) detected.className = 'mic-detected ' + (isMatch ? 'match' : 'nomatch');
 
-                        if (noteMatch && octaveMatch) {
+                        if (isMatch) {
                             micMatchCooldown = true;
                             showFeedback(TRANSLATIONS[lang].correct, true);
                             setTimeout(() => {
                                 generateNewTestNote();
                                 micMatchCooldown = false;
+                                micFreqHistory = [];
                             }, 1000);
                         }
                     }
                     micLastDetected = result;
                 }
             } else {
+                micFreqHistory = [];
                 if (detected && !micMatchCooldown) {
                     detected.textContent = TRANSLATIONS[lang].micListening;
                     detected.className = 'mic-detected';
@@ -2706,6 +2723,7 @@ html,body{overscroll-behavior-y:contain;}
                 micAnalyser.fftSize = 2048;
                 micSource.connect(micAnalyser);
                 micEnabled = true;
+                micFreqHistory = [];
                 micAnimId = requestAnimationFrame(micTick);
                 const btn = document.getElementById('micToggleBtn');
                 if (btn) { btn.className = 'mic-toggle active'; }
