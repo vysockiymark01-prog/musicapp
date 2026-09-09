@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="ru" data-theme="light">
+<head>
+<script>(function(){try{var k='musicapp_visited',id='forms';var v=JSON.parse(localStorage.getItem(k)||'[]');if(v.indexOf(id)===-1){v.push(id);localStorage.setItem(k,JSON.stringify(v));}}catch(e){}try{var SK='musicapp_streak';var td=new Date();td.setHours(0,0,0,0);var ts=td.getFullYear()+'-'+(td.getMonth()+1)+'-'+td.getDate();var s=JSON.parse(localStorage.getItem(SK)||'{"count":0,"longest":0,"last":null}');if(s.last!==ts){var dd=null;if(s.last){var pp=s.last.split('-').map(Number);var ld=new Date(pp[0],pp[1]-1,pp[2]);dd=Math.round((td-ld)/86400000);}s.count=(dd===1)?s.count+1:1;s.last=ts;if(s.count>s.longest)s.longest=s.count;localStorage.setItem(SK,JSON.stringify(s));}}catch(e){}})();</script>
+<!-- Yandex.Metrika counter -->
+<script type="text/javascript">
+    (function(m,e,t,r,i,k,a){
+        m[i]=m[i]||function(){(m[i].a=m[i].a||[]).push(arguments)};
+        m[i].l=1*new Date();
+        for (var j = 0; j < document.scripts.length; j++) {if (document.scripts[j].src === r) { return; }}
+        k=e.createElement(t),a=e.getElementsByTagName(t)[0],k.async=1,k.src=r,a.parentNode.insertBefore(k,a)
+    })(window, document,'script','https://mc.yandex.ru/metrika/tag.js?id=110314124', 'ym');
+    ym(110314124, 'init', {ssr:true, webvisor:true, clickmap:true, ecommerce:"dataLayer", referrer: document.referrer, url: location.href, accurateTrackBounce:true, trackLinks:true});
+</script>
+<noscript><div><img src="https://mc.yandex.ru/watch/110314124" style="position:absolute; left:-9999px;" alt="" /></div></noscript>
+<!-- /Yandex.Metrika counter -->
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Музыкальные формы</title>
+<meta name="theme-color" content="#1c3a8e">
+<script>(function(){var t=localStorage.getItem('musicapp_theme');var dark=t?t==='dark':window.matchMedia('(prefers-color-scheme: dark)').matches;document.documentElement.setAttribute('data-theme',dark?'dark':'light');})()</script>
+<style>
+html,body{overscroll-behavior-y:contain;}
+
+:root{
+  --bg:#f8fafc;--card:#fff;--text:#0f172a;--muted:#94a3b8;--border:#e2e8f0;
+  --sl100:#f1f5f9;--sl200:#e2e8f0;--blue:#2563eb;--blue2:#1d4ed8;
+  --shadow:0 1px 4px rgba(0,0,0,.07);
+}
+[data-theme="dark"]{
+  --bg:#0f172a;--card:#1e293b;--text:#f1f5f9;--muted:#64748b;
+  --border:#334155;--sl100:#334155;--sl200:#475569;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+  background:var(--bg);color:var(--text);transition:background .3s,color .3s;}
+.wrap{max-width:960px;margin:0 auto;padding:12px 14px;}
+
+.hdr{display:flex;justify-content:space-between;align-items:center;
+  padding:10px 16px;background:var(--card);border:1px solid var(--border);
+  border-radius:16px;margin-bottom:12px;box-shadow:var(--shadow);}
+.hdr-title{font-weight:900;font-size:15px;}
+.hdr-sub{font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;}
+.hdr-btns{display:flex;gap:6px;}
+.hbtn{padding:6px 11px;background:var(--sl100);border:none;border-radius:10px;
+  font-size:10px;font-weight:800;text-transform:uppercase;cursor:pointer;
+  color:var(--text);display:flex;align-items:center;gap:5px;}
+.hbtn:hover{background:var(--sl200);}
+
+.intro{background:linear-gradient(135deg,#1e1b4b 0%,#312e81 50%,#1e3a5f 100%);
+  border-radius:18px;padding:22px 20px;margin-bottom:12px;color:#fff;}
+.intro-title{font-size:20px;font-weight:900;margin-bottom:6px;}
+.intro-sub{font-size:12px;opacity:.75;line-height:1.6;max-width:560px;}
+
+.controls{background:var(--card);border:1px solid var(--border);border-radius:16px;
+  padding:12px 14px;margin-bottom:12px;display:flex;flex-direction:column;gap:10px;}
+.search-wrap{position:relative;}
+.search-inp{width:100%;padding:9px 36px 9px 14px;border:1.5px solid var(--border);
+  border-radius:12px;background:var(--sl100);color:var(--text);font-size:13px;
+  outline:none;transition:border-color .2s;font-family:inherit;}
+.search-inp:focus-visible{border-color:var(--blue);box-shadow:0 0 0 3px rgba(37,99,235,.25);}
+.search-inp:focus{border-color:var(--blue);}
+.search-ico{position:absolute;right:12px;top:50%;transform:translateY(-50%);
+  color:var(--muted);pointer-events:none;}
+.filter-row{display:flex;gap:6px;flex-wrap:wrap;align-items:center;}
+.chip{padding:5px 12px;border:1.5px solid var(--border);border-radius:20px;
+  background:var(--card);font-size:11px;font-weight:700;cursor:pointer;
+  color:var(--muted);transition:all .15s;white-space:nowrap;font-family:inherit;}
+.chip:hover{border-color:var(--blue);color:var(--text);}
+.chip.active{background:var(--blue);border-color:var(--blue);color:#fff;}
+
+.top-bar{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;}
+.count-lbl{font-size:11px;font-weight:700;color:var(--muted);}
+
+.cards{columns:2;column-gap:12px;}
+@media(max-width:560px){.cards{columns:1;}}
+.scard{break-inside:avoid;background:var(--card);border:1px solid var(--border);
+  border-radius:18px;padding:0;margin-bottom:12px;box-shadow:var(--shadow);
+  overflow:hidden;}
+.scard-header{padding:16px 16px 14px;cursor:pointer;transition:background .15s;}
+.scard-header:hover{background:var(--sl100);}
+.scard-top{display:flex;align-items:center;gap:10px;margin-bottom:10px;}
+.scard-emoji{font-size:26px;line-height:1;flex-shrink:0;}
+.scard-name{font-size:15px;font-weight:900;line-height:1.2;}
+.scheme-badge{display:inline-block;margin-top:3px;padding:2px 8px;border-radius:8px;
+  font-size:10px;font-weight:800;font-family:'SF Mono',Consolas,Menlo,monospace;
+  background:var(--sl100);color:var(--text);letter-spacing:.3px;}
+.group-badge{display:inline-block;padding:2px 8px;border-radius:10px;font-size:9px;
+  font-weight:900;text-transform:uppercase;letter-spacing:.5px;margin-bottom:9px;}
+.scard-desc{font-size:12px;line-height:1.65;color:var(--muted);margin-bottom:12px;}
+.features{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:12px;}
+.feature-tag{padding:3px 9px;border-radius:10px;font-size:10px;font-weight:700;
+  background:var(--sl100);color:var(--text);}
+.scard-actions{display:flex;gap:8px;align-items:center;}
+.btn-more{padding:7px 12px;border:1.5px solid var(--border);border-radius:10px;
+  font-size:11px;font-weight:800;cursor:pointer;background:none;
+  color:var(--text);transition:all .15s;font-family:inherit;}
+.btn-more:hover{border-color:var(--blue);color:var(--blue);}
+.scard-body{display:none;border-top:1px solid var(--border);padding:14px 16px;}
+.scard-body.open{display:block;}
+.body-section-title{font-size:9px;font-weight:900;text-transform:uppercase;
+  color:var(--muted);letter-spacing:.6px;margin-bottom:8px;margin-top:12px;}
+.body-section-title:first-child{margin-top:0;}
+.full-text{font-size:13px;line-height:1.75;color:var(--text);}
+.full-text p{margin-bottom:10px;}
+.full-text p:last-child{margin-bottom:0;}
+.work-item{padding:8px 10px;background:var(--sl100);border-radius:10px;margin-bottom:6px;}
+.work-item:last-child{margin-bottom:0;}
+.work-name{font-size:12px;font-weight:800;}
+.work-meta{font-size:10px;color:var(--muted);margin-top:2px;}
+.work-desc{font-size:11px;color:var(--muted);margin-top:4px;line-height:1.5;}
+
+.empty{text-align:center;padding:60px 20px;color:var(--muted);}
+.empty-ico{font-size:48px;margin-bottom:12px;}
+.empty-txt{font-size:14px;font-weight:700;}
+
+@media(max-width:600px){
+  .hdr{flex-wrap:wrap;gap:8px;padding:10px 12px;}
+  .hdr-btns{gap:4px;}
+  .hbtn{padding:7px 9px;font-size:9px;}
+  .wrap{padding:10px;}
+}
+@media(max-width:400px){
+  .cards{columns:1;}
+  .hdr-title{font-size:13px;}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+<a href="../index.html" id="backHomeLink" style="display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:800;text-decoration:none;opacity:.65;padding:5px 11px;border:1px solid rgba(128,128,128,.25);border-radius:10px;margin-bottom:8px;color:inherit;">← Главная</a>
+
+<div class="hdr">
+  <div>
+    <div class="hdr-title">🧩 <span id="hdrTitle">Музыкальные формы</span></div>
+    <div class="hdr-sub" id="hdrSub">Строение произведений</div>
+  </div>
+  <div class="hdr-btns">
+    <button class="hbtn" id="themeBtn">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" id="themeIco">
+        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+      </svg>
+      <span id="themeText">Тёмная</span>
+    </button>
+    <button class="hbtn" id="langBtn">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+        <path d="m5 8 6 6"/><path d="m4 14 6-6 2-3"/><path d="M2 5h12"/><path d="M7 2h1"/>
+        <path d="m22 22-5-10-5 10"/><path d="M14 18h6"/>
+      </svg>
+      <span id="langText">RU</span>
+    </button>
+  </div>
+</div>
+
+<div class="intro">
+  <div class="intro-title" id="introTitle">🧩 Музыкальные формы</div>
+  <div class="intro-sub" id="introSub">Как устроены музыкальные произведения — от короткого периода до сонатной формы. Схема строения, признаки и примеры для каждой формы.</div>
+</div>
+
+<div class="controls">
+  <div class="search-wrap">
+    <input class="search-inp" id="searchInp" placeholder="Поиск по названию или схеме…">
+    <svg class="search-ico" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+    </svg>
+  </div>
+  <div class="filter-row">
+    <button class="chip active" data-val="all" id="grpAll">Все</button>
+    <button class="chip" data-val="small" id="grpSmall">Малые формы</button>
+    <button class="chip" data-val="large" id="grpLarge">Крупные формы</button>
+  </div>
+</div>
+
+<div class="top-bar">
+  <span class="count-lbl" id="countLbl">0 форм</span>
+</div>
+
+<div class="cards" id="cardsGrid"></div>
+<div class="empty" id="emptyState" style="display:none">
+  <div class="empty-ico">🔍</div>
+  <div class="empty-txt" id="emptyTxt">Ничего не найдено</div>
+</div>
+
+</div>
+<script>
+/* ─── DATA ─────────────────────────────────────────────────────────── */
+const FORMS=[
+  {id:'period',emoji:'📏',color:'#2563eb',group:'small',
+   name:{ru:'Период',en:'Period'},
+   scheme:'a + a¹',
+   shortDef:{ru:'Наименьшая законченная музыкальная мысль — обычно 8–16 тактов из двух предложений.',en:'The smallest self-contained musical idea — usually 8–16 bars made of two phrases.'},
+   fullText:{ru:'Период — это самая маленькая форма, способная выразить законченную музыкальную мысль. Обычно он состоит из двух предложений по 4–8 тактов каждое и завершается каденцией.\n\nЕсли второе предложение почти повторяет первое, но с другой, более устойчивой каденцией — это период повторного строения (a + a¹). Если оба предложения построены на разном материале — период неповторного строения (a + b).\n\nПериод редко звучит как самостоятельное произведение — чаще он открывает пьесу как экспозиция главной темы, а дальше форма развивается дальше.',
+     en:'The period is the smallest form capable of expressing a complete musical thought. It usually consists of two phrases of 4–8 bars each, ending with a cadence.\n\nIf the second phrase closely repeats the first but ends with a more conclusive cadence, this is a period of repeated construction (a + a¹). If both phrases use different material, it is a period of non-repeated construction (a + b).\n\nA period rarely stands as a complete piece on its own — more often it opens a work by presenting the main theme, after which the form continues to develop.'},
+   features:{ru:['8–16 тактов','Два предложения','Завершается каденцией','Повторного или неповторного строения'],en:['8–16 bars','Two phrases','Ends with a cadence','Repeated or non-repeated construction']},
+   works:[
+     {name:{ru:'Прелюдия до мажор (ХТК I)',en:'Prelude in C major (WTC I)'},composer:'И. С. Бах',desc:{ru:'Вся пьеса вырастает из фактуры одного периода, многократно повторяемого.',en:'The whole piece grows from the texture of a single period, repeated throughout.'}},
+     {name:{ru:'«Болезнь куклы»',en:'"The Doll\'s Illness"'},composer:'П. И. Чайковский',desc:{ru:'Пьеса из «Детского альбома» открывается ясным периодом повторного строения.',en:'This piece from the Children\'s Album opens with a clear period of repeated construction.'}}
+   ]},
+  {id:'simple2',emoji:'2️⃣',color:'#0891b2',group:'small',
+   name:{ru:'Простая двухчастная форма',en:'Simple Two-Part Form'},
+   scheme:'A B',
+   shortDef:{ru:'Два раздела: тема и её развитие или лёгкий контраст, без возврата к началу.',en:'Two sections: a theme and its development or a light contrast, with no return to the opening.'},
+   fullText:{ru:'Простая двухчастная форма состоит из двух разделов, каждый размером примерно с период. Первый раздел (A) излагает тему, второй (B) либо развивает и завершает мысль, либо приносит лёгкий контраст, оставаясь в русле того же образа.\n\nЭта форма не заявляет о серьёзном конфликте — она компактна и естественна, поэтому особенно часто встречается в танцевальной и песенной музыке XVII–XVIII веков, а также в пьесах для детей.',
+     en:'The simple two-part form consists of two sections, each roughly the size of a period. The first section (A) presents the theme; the second (B) either develops and completes the idea or offers a light contrast while staying within the same mood.\n\nThis form makes no claim to serious conflict — it is compact and natural, which is why it appears so often in dance and song music of the 17th–18th centuries, as well as in pieces for children.'},
+   features:{ru:['Два раздела (A B)','Без репризы первой темы','Компактный объём','Танцевальные и песенные жанры'],en:['Two sections (A B)','No return of the first theme','Compact scale','Common in dance and song genres']},
+   works:[
+     {name:{ru:'«Во поле берёза стояла» (рус. нар. песня)',en:'"In the Field a Birch Tree Stood" (Russian folk song)'},composer:'Народная',desc:{ru:'Куплетная структура — ясный пример простой двухчастной формы.',en:'Its verse structure is a clear example of the simple two-part form.'}}
+   ]},
+  {id:'simple3',emoji:'3️⃣',color:'#059669',group:'small',
+   name:{ru:'Простая трёхчастная форма',en:'Simple Three-Part Form'},
+   scheme:'A B A',
+   shortDef:{ru:'Тема — контрастная середина — возвращение темы. Самая частая форма небольших пьес.',en:'A theme — a contrasting middle section — the return of the theme. The most common form for short pieces.'},
+   fullText:{ru:'Простая трёхчастная форма — пожалуй, самая узнаваемая структура в музыке для детей и небольших инструментальных пьес. Первый раздел (A) излагает тему, средний раздел (B) приносит контраст — по настроению, тональности или фактуре, — а третий раздел возвращает начальную тему.\n\nЕсли реприза звучит точно так же, как первый раздел, её называют точной (da capo). Если тема возвращается изменённой — динамически, фактурно или с небольшими деталями — говорят о варьированной репризе (A¹).',
+     en:'The simple three-part form is probably the most recognisable structure in music for children and short instrumental pieces. The first section (A) presents the theme, the middle section (B) brings contrast — in mood, key, or texture — and the third section brings the opening theme back.\n\nIf the reprise sounds exactly like the first section, it is called an exact reprise (da capo). If the theme returns changed — in dynamics, texture, or small details — it is called a varied reprise (A¹).'},
+   features:{ru:['Три раздела (A B A)','Контрастная середина','Реприза — точная или варьированная','Основа пьес для детей'],en:['Three sections (A B A)','Contrasting middle section','Exact or varied reprise','Common basis for children\'s pieces']},
+   works:[
+     {name:{ru:'«Неаполитанская песенка»',en:'"Neapolitan Song"'},composer:'П. И. Чайковский',desc:{ru:'Пьеса из «Детского альбома» — учебный пример простой трёхчастной формы.',en:'A piece from the Children\'s Album — a textbook example of the simple three-part form.'}},
+     {name:{ru:'«Утро» (сюита «Пер Гюнт»)',en:'"Morning Mood" (from Peer Gynt Suite)'},composer:'Э. Григ',desc:{ru:'Контрастная середина сменяет спокойную главную тему, которая возвращается в репризе.',en:'A contrasting middle section interrupts the calm main theme, which then returns in the reprise.'}}
+   ]},
+  {id:'complex3',emoji:'🧱',color:'#d97706',group:'large',
+   name:{ru:'Сложная трёхчастная форма',en:'Complex Three-Part Form'},
+   scheme:'[A] — Трио — [A]',
+   shortDef:{ru:'Каждая из трёх частей — уже сама законченная форма, обычно с контрастным трио в середине.',en:'Each of the three sections is itself a complete form, usually with a contrasting trio in the middle.'},
+   fullText:{ru:'В сложной трёхчастной форме каждый из трёх крупных разделов — сам по себе простая форма (период или простая 2-/3-хчастная), а не отдельная фраза, как в простой трёхчастной форме. Средний раздел по традиции называют трио — от старинных танцев, где среднюю часть менуэта исполняли силами трёх инструментов.\n\nТрио почти всегда контрастно первому разделу: другая тональность, фактура или характер. После трио первый раздел возвращается — часто без изменений (da capo).\n\nЭта форма — стандарт для менуэтов и скерцо с трио внутри симфоний, сонат и сюит.',
+     en:'In the complex three-part form, each of the three large sections is itself a simple form (a period, or a simple two- or three-part form), rather than a single phrase as in the simple three-part form. The middle section is traditionally called a trio, after old dances where the middle part of a minuet was played by just three instruments.\n\nThe trio is almost always contrasting to the first section — in key, texture, or character. After the trio, the first section returns, often unchanged (da capo).\n\nThis form is the standard shape for minuets and scherzos with a trio, found inside symphonies, sonatas, and suites.'},
+   features:{ru:['Каждая часть — сама форма','Средний раздел — трио','Контраст трио к крайним частям','Менуэты и скерцо'],en:['Each section is itself a form','Middle section is a trio','Trio contrasts with outer sections','Found in minuets and scherzos']},
+   works:[
+     {name:{ru:'Менуэт (Симфония № 40 соль минор, III ч.)',en:'Menuetto (Symphony No. 40 in G minor, mvt. III)'},composer:'В. А. Моцарт',desc:{ru:'Классический пример менуэта с контрастным трио посередине.',en:'A textbook example of a minuet with a contrasting trio in the middle.'}}
+   ]},
+  {id:'variation',emoji:'🎭',color:'#7c3aed',group:'large',
+   name:{ru:'Вариации',en:'Theme and Variations'},
+   scheme:'A A¹ A² A³ …',
+   shortDef:{ru:'Тема излагается, а затем повторяется несколько раз с изменениями, сохраняя узнаваемую основу.',en:'A theme is presented, then repeated several times with changes, while remaining recognisable.'},
+   fullText:{ru:'В вариационной форме сначала звучит тема — обычно простая и запоминающаяся, — а затем следует ряд вариаций, в каждой из которых что-то меняется: мелодический рисунок, лад, темп, фактура сопровождения, регистр.\n\nВ строгих (классических) вариациях сохраняются форма и гармонический план темы — меняется лишь оформление. В свободных (романтических и более поздних) вариациях автор может менять форму, тональность и даже жанр, отталкиваясь от темы лишь как от отправной точки.',
+     en:'In the variation form, a theme is presented first — usually simple and memorable — followed by a series of variations, each changing something: the melodic outline, the mode, the tempo, the accompaniment texture, or the register.\n\nIn strict (classical) variations, the form and harmonic plan of the theme are preserved, and only the surface details change. In free (Romantic and later) variations, the composer may change the form, key, or even genre, using the theme only as a starting point.'},
+   features:{ru:['Тема + ряд вариаций','Строгие или свободные','Сохраняется узнаваемость темы','Каждая вариация меняет один или больше параметров'],en:['Theme plus a series of variations','Strict or free','The theme stays recognisable','Each variation changes one or more parameters']},
+   works:[
+     {name:{ru:'12 вариаций на тему «Ah vous dirai-je, maman»',en:'12 Variations on "Ah vous dirai-je, maman"'},composer:'В. А. Моцарт',desc:{ru:'Знакомая всем мелодия («Сияй, сияй, звезда») в 12 классических вариациях.',en:'A tune known worldwide ("Twinkle, Twinkle, Little Star") set in 12 classical variations.'}},
+     {name:{ru:'32 вариации до минор',en:'32 Variations in C minor'},composer:'Л. ван Бетховен',desc:{ru:'Пример более свободного, драматического подхода к вариационной форме.',en:'An example of a freer, more dramatic approach to the variation form.'}}
+   ]},
+  {id:'rondo',emoji:'🔄',color:'#db2777',group:'large',
+   name:{ru:'Рондо',en:'Rondo'},
+   scheme:'A B A C A …',
+   shortDef:{ru:'Рефрен (A) чередуется с разными эпизодами (B, C…). Название означает «круг».',en:'A refrain (A) alternates with different episodes (B, C…). The name means "circle."'},
+   fullText:{ru:'Рондо строится на чередовании неизменного рефрена (A) и эпизодов между его повторами (B, C, D…), каждый из которых приносит новый материал. Название происходит от французского rondeau — «круг», «хоровод»: рефрен словно снова и снова возвращает слушателя на одно и то же место.\n\nЧисло эпизодов не фиксировано — их может быть два, три и больше. Благодаря постоянному возвращению главной темы рондо звучит цельно и энергично, поэтому его часто выбирают для финалов сонат, симфоний и концертов.',
+     en:'Rondo form is built on the alternation of an unchanging refrain (A) and episodes between its repetitions (B, C, D…), each bringing new material. The name comes from the French rondeau — "circle," "round dance": the refrain keeps bringing the listener back to the same place.\n\nThe number of episodes is not fixed — there may be two, three, or more. Because the main theme keeps returning, rondo form feels cohesive and energetic, which is why it is often chosen for the finales of sonatas, symphonies, and concertos.'},
+   features:{ru:['Рефрен (A) многократно возвращается','Контрастные эпизоды между повторами','Часто финал сонаты/симфонии','Название от франц. «круг»'],en:['The refrain (A) returns repeatedly','Contrasting episodes between repetitions','Often used as a sonata/symphony finale','Name derived from the French for "circle"']},
+   works:[
+     {name:{ru:'«К Элизе»',en:'"Für Elise"'},composer:'Л. ван Бетховен',desc:{ru:'Один из самых узнаваемых примеров рондо в мировой музыке.',en:'One of the most recognisable examples of rondo form in the repertoire.'}},
+     {name:{ru:'Рондо в турецком стиле (финал Сонаты № 11)',en:'"Rondo alla Turca" (finale of Sonata No. 11)'},composer:'В. А. Моцарт',desc:{ru:'Энергичный рефрен возвращается снова и снова между контрастными эпизодами.',en:'An energetic refrain keeps returning between contrasting episodes.'}}
+   ]},
+  {id:'sonata',emoji:'🏛',color:'#dc2626',group:'large',
+   name:{ru:'Сонатная форма',en:'Sonata Form'},
+   scheme:'Экспозиция — Разработка — Реприза',
+   shortDef:{ru:'Две контрастные темы сталкиваются, развиваются и примиряются в одной тональности.',en:'Two contrasting themes clash, develop, and are reconciled in a single key.'},
+   fullText:{ru:'Сонатная форма строится на конфликте и его разрешении. В экспозиции звучат главная партия (в основной тональности) и побочная партия (в контрастной тональности — обычно доминанте в мажоре или параллельном мажоре в миноре), соединённые связующей партией.\n\nВ разработке обе темы дробятся, развиваются и модулируют через несколько тональностей — это самый напряжённый и нестабильный раздел формы.\n\nВ репризе главная и побочная партии возвращаются, но теперь обе — в главной тональности, и тональный конфликт экспозиции разрешается. Часто форму завершает кода.\n\nЭта форма — основа первых, а нередко и финальных частей симфоний, сонат, концертов и квартетов классико-романтической эпохи.',
+     en:'Sonata form is built on conflict and its resolution. In the exposition, the main theme (in the home key) and the secondary theme (in a contrasting key — usually the dominant in major, or the relative major in minor) are presented, joined by a transition.\n\nIn the development, both themes are broken apart, developed, and modulated through several keys — this is the most tense and unstable section of the form.\n\nIn the recapitulation, the main and secondary themes return, but now both are in the home key, resolving the tonal conflict of the exposition. A coda often closes the form.\n\nThis form is the foundation of the first — and often the final — movements of symphonies, sonatas, concertos, and quartets from the Classical and Romantic eras.'},
+   features:{ru:['Экспозиция — Разработка — Реприза','Гл. и поб. партии в разных тональностях (экспозиция)','Тональный конфликт разрешается в репризе','Первые части симфоний и сонат'],en:['Exposition — Development — Recapitulation','Main and secondary themes in different keys (exposition)','The tonal conflict resolves in the recapitulation','First movements of symphonies and sonatas']},
+   works:[
+     {name:{ru:'Симфония № 40 соль минор, I ч.',en:'Symphony No. 40 in G minor, mvt. I'},composer:'В. А. Моцарт',desc:{ru:'Учебный пример ясной сонатной формы с ярким контрастом тем.',en:'A textbook example of clear sonata form with a vivid contrast of themes.'}},
+     {name:{ru:'Симфония № 5 до минор, I ч.',en:'Symphony No. 5 in C minor, mvt. I'},composer:'Л. ван Бетховен',desc:{ru:'Знаменитый «мотив судьбы» пронизывает разработку, разрастаясь и трансформируясь.',en:'The famous "fate motif" runs through the development, expanding and transforming.'}}
+   ]},
+];
+
+let lang=localStorage.getItem('musicapp_lang')||'ru';
+let expandedId=null;
+let searchQuery='';
+let filterGroup='all';
+
+function matchesSearch(f,q){
+  if(!q)return true;
+  q=q.toLowerCase();
+  const hay=[f.name.ru,f.name.en,f.scheme,f.shortDef.ru,f.shortDef.en,
+    ...(f.features.ru||[]),...(f.features.en||[])].join(' ').toLowerCase();
+  return hay.indexOf(q)!==-1;
+}
+
+function renderCards(){
+  const el=document.getElementById('cardsGrid');
+  const empty=document.getElementById('emptyState');
+  let list=FORMS.filter(f=>(filterGroup==='all'||f.group===filterGroup)&&matchesSearch(f,searchQuery));
+  document.getElementById('countLbl').textContent=list.length+' '+(lang==='ru'?'форм':'forms');
+  if(!list.length){
+    el.innerHTML='';
+    empty.style.display='block';
+    return;
+  }
+  empty.style.display='none';
+  el.innerHTML=list.map(f=>{
+    const col=f.color,isExp=expandedId===f.id;
+    const groupLabel=f.group==='small'?(lang==='ru'?'Малая форма':'Small form'):(lang==='ru'?'Крупная форма':'Large form');
+    const features=(f.features[lang]||f.features.ru).map(x=>`<span class="feature-tag">${x}</span>`).join('');
+    const works=(f.works||[]).map(w=>`<div class="work-item"><div class="work-name">${w.name[lang]||w.name.ru}</div><div class="work-meta">${w.composer}</div><div class="work-desc">${w.desc[lang]||w.desc.ru}</div></div>`).join('');
+    const story=(f.fullText[lang]||f.fullText.ru).split('\n').filter(Boolean).map(p=>`<p>${p}</p>`).join('');
+    return `<div class="scard" id="sc-${f.id}">
+      <div class="scard-header" onclick="toggleExpand('${f.id}')">
+        <div class="scard-top"><div class="scard-emoji">${f.emoji}</div><div><div class="scard-name">${f.name[lang]||f.name.ru}</div><span class="scheme-badge">${f.scheme}</span></div></div>
+        <span class="group-badge" style="background:${col}22;color:${col}">${groupLabel}</span>
+        <div class="scard-desc">${f.shortDef[lang]||f.shortDef.ru}</div>
+        <div class="features">${features}</div>
+        <div class="scard-actions">
+          <button class="btn-more" onclick="event.stopPropagation();toggleExpand('${f.id}')">${isExp?(lang==='ru'?'Свернуть ▲':'Collapse ▲'):(lang==='ru'?'Подробнее ▼':'Details ▼')}</button>
+        </div>
+      </div>
+      <div class="scard-body${isExp?' open':''}">
+        <div class="body-section-title">${lang==='ru'?'Строение':'Structure'}</div>
+        <div class="full-text">${story}</div>
+        <div class="body-section-title">${lang==='ru'?'Примеры произведений':'Example works'}</div>
+        ${works}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function toggleExpand(id){
+  expandedId=expandedId===id?null:id;
+  renderCards();
+}
+
+document.getElementById('searchInp').addEventListener('input',function(){
+  searchQuery=this.value;
+  renderCards();
+});
+document.querySelectorAll('.filter-row .chip').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    filterGroup=btn.dataset.val;
+    document.querySelectorAll('.filter-row .chip').forEach(b=>b.classList.toggle('active',b===btn));
+    renderCards();
+  });
+});
+
+/* ─── THEME / LANG ───────────────────────────────────── */
+document.getElementById('themeBtn').addEventListener('click',()=>{
+  const dk=document.documentElement.getAttribute('data-theme')==='dark';
+  document.documentElement.setAttribute('data-theme',dk?'light':'dark');
+  localStorage.setItem('musicapp_theme',dk?'light':'dark');
+  document.getElementById('themeText').textContent=dk?'Тёмная':'Светлая';
+  document.getElementById('themeIco').innerHTML=dk
+    ?'<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>'
+    :'<circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>';
+});
+
+document.getElementById('langBtn').addEventListener('click',()=>{
+  lang=lang==='ru'?'en':'ru';
+  localStorage.setItem('musicapp_lang',lang);
+  document.getElementById('langText').textContent=lang==='ru'?'RU':'EN';
+  document.getElementById('hdrTitle').textContent=lang==='ru'?'Музыкальные формы':'Musical Forms';
+  document.getElementById('hdrSub').textContent=lang==='ru'?'Строение произведений':'How pieces are structured';
+  document.getElementById('introTitle').textContent=lang==='ru'?'🧩 Музыкальные формы':'🧩 Musical Forms';
+  document.getElementById('introSub').textContent=lang==='ru'
+    ?'Как устроены музыкальные произведения — от короткого периода до сонатной формы. Схема строения, признаки и примеры для каждой формы.'
+    :'How musical works are structured — from the short period to sonata form. A structural scheme, key features, and examples for each form.';
+  document.getElementById('searchInp').placeholder=lang==='ru'?'Поиск по названию или схеме…':'Search by name or scheme…';
+  document.getElementById('grpAll').textContent=lang==='ru'?'Все':'All';
+  document.getElementById('grpSmall').textContent=lang==='ru'?'Малые формы':'Small forms';
+  document.getElementById('grpLarge').textContent=lang==='ru'?'Крупные формы':'Large forms';
+  document.getElementById('emptyTxt').textContent=lang==='ru'?'Ничего не найдено':'Nothing found';
+  document.getElementById('backHomeLink').textContent=lang==='ru'?'← Главная':'← Home';
+  renderCards();
+});
+
+renderCards();
+</script>
+<script>
+/* Клавиатурная доступность: элементы с onclick (не <button>/<a>/полям форм)
+   становятся фокусируемыми и активируются Enter/Space — включая те,
+   что добавляются в DOM динамически. */
+(function(){
+  function tagEl(el){
+    if(!el || !el.hasAttribute || !el.hasAttribute('onclick')) return;
+    var tag=el.tagName;
+    if(tag==='BUTTON'||tag==='A'||tag==='INPUT'||tag==='SELECT'||tag==='TEXTAREA'||tag==='LABEL') return;
+    if(el.hasAttribute('data-a11y-kb')) return;
+    el.setAttribute('data-a11y-kb','1');
+    if(!el.hasAttribute('tabindex')) el.setAttribute('tabindex','0');
+    if(!el.hasAttribute('role')) el.setAttribute('role','button');
+  }
+  function scan(root){
+    if(!root||!root.querySelectorAll) return;
+    tagEl(root);
+    root.querySelectorAll('[onclick]').forEach(tagEl);
+  }
+  document.addEventListener('keydown', function(e){
+    if(e.key!=='Enter' && e.key!==' ' && e.key!=='Spacebar') return;
+    var el=document.activeElement;
+    if(el && el.getAttribute && el.hasAttribute('onclick') && el.getAttribute('role')==='button'){
+      e.preventDefault();
+      el.click();
+    }
+  });
+  if(document.body) scan(document.body);
+  else document.addEventListener('DOMContentLoaded', function(){ scan(document.body); });
+  var mo=new MutationObserver(function(muts){
+    muts.forEach(function(m){
+      m.addedNodes.forEach(function(n){ if(n.nodeType===1) scan(n); });
+    });
+  });
+  if(document.body) mo.observe(document.body,{childList:true,subtree:true});
+  else document.addEventListener('DOMContentLoaded', function(){ mo.observe(document.body,{childList:true,subtree:true}); });
+})();
+</script>
+
+</body>
+</html>

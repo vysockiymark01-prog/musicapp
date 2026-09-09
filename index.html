@@ -191,7 +191,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
     <div class="logo">🎵</div>
     <div>
       <div class="hdr-title" id="hdrTitle">Музыкальное приложение</div>
-      <div class="hdr-sub" id="hdrSub">Музыкальная школа · 15 модулей</div>
+      <div class="hdr-sub" id="hdrSub">Музыкальная школа · 16 модулей</div>
     </div>
   </div>
   <div class="hdr-btns">
@@ -373,6 +373,12 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
       <div class="mcard-desc" id="m8d">300+ музыкальных терминов с определениями и примерами</div>
       <span class="mcard-tag" id="m8t">Теория</span>
     </a>
+    <a class="mcard cat-theory" href="./музыкальные формы/index.html">
+      <div class="mcard-ico">🧩</div>
+      <div class="mcard-name" id="m18">Музыкальные формы</div>
+      <div class="mcard-desc" id="m18d">Период, простые и сложные формы, вариации, рондо, соната — со схемами и примерами</div>
+      <span class="mcard-tag" id="m18t">Теория</span>
+    </a>
   </div>
 </div>
 
@@ -463,7 +469,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
 let lang=localStorage.getItem('musicapp_lang')||'ru';
 const T={
   ru:{
-    title:'Музыкальное приложение',sub:'Музыкальная школа · 15 модулей',
+    title:'Музыкальное приложение',sub:'Музыкальная школа · 16 модулей',
     dark:'Тёмная',light:'Светлая',progress:'Ваш прогресс',progressOf:'из',installBtnText:'Установить',
     sec1:'🎼 Сольфеджио и теория',sec2:'📖 Теория',sec3:'🎭 История и культура',sec4:'🎸 Инструменты',sec5:'🤝 Сотрудничество',
     mFav:'Избранное',mFavD:'Сохранённые композиторы, инструменты, термины и цитаты',mFavT:'Моё',
@@ -497,6 +503,7 @@ const T={
     m7:'Транспозиция',m7d:'Перенос нот и гамм на интервал, викторина',m7t:'Сольфеджио',
     m17:'Сольфеджио',m17d:'Пение по нотам с проверкой через микрофон — ноты, гаммы, мелодии',m17t:'Сольфеджио',
     m8:'Словарик терминов',m8d:'300+ музыкальных терминов с определениями и примерами',m8t:'Теория',
+    m18:'Музыкальные формы',m18d:'Период, простые и сложные формы, вариации, рондо, соната — со схемами и примерами',m18t:'Теория',
     m9:'Муз. литература',m9d:'Великие композиторы, произведения, хронология, викторина',m9t:'История',
     m10:'Цитатник',m10d:'Мысли великих композиторов о музыке и творчестве',m10t:'История',
     m11:'Джазовая гармония',m11d:'Блюз, свинг, бибоп, кул-джаз, латино-джаз, фьюжн и другие стили',m11t:'История',
@@ -505,7 +512,7 @@ const T={
     m16:'Инструменты оркестра',m16d:'Симфонический, народный, джазовый — состав и звучание',m16t:'Инструменты',
   },
   en:{
-    title:'Music App',sub:'Music School · 15 modules',
+    title:'Music App',sub:'Music School · 16 modules',
     dark:'Dark',light:'Light',progress:'Your Progress',progressOf:'of',installBtnText:'Install',
     sec1:'🎼 Solfège & Theory',sec2:'📖 Theory',sec3:'🎭 History & Culture',sec4:'🎸 Instruments',sec5:'🤝 Collaboration',
     mFav:'Favorites',mFavD:'Saved composers, instruments, terms and quotes',mFavT:'Mine',
@@ -539,6 +546,7 @@ const T={
     m7:'Transposition',m7d:'Transpose notes and scales by interval, quiz',m7t:'Solfège',
     m17:'Solfège Singing',m17d:'Sing from notation with real-time mic pitch checking — notes, scales, melodies',m17t:'Solfège',
     m8:'Glossary',m8d:'300+ musical terms with definitions and examples',m8t:'Theory',
+    m18:'Musical Forms',m18d:'Period, simple and complex forms, variations, rondo, sonata — with schemes and examples',m18t:'Theory',
     m9:'Music History',m9d:'Great composers, works, timeline, quiz',m9t:'History',
     m10:'Quotes',m10d:'Thoughts of great composers on music and creativity',m10t:'History',
     m11:'Jazz Harmony',m11d:'Blues, swing, bebop, cool jazz, latin jazz, fusion, and more',m11t:'History',
@@ -555,6 +563,7 @@ function applyLang(){
     'instrTitle','instrDesc',
     'm17','m17d','m17t','m1','m1d','m1t','m2','m2d','m2t','m3','m3d','m3t','m4','m4d','m4t',
     'm5','m5d','m5t','m6','m6d','m6t','m7','m7d','m7t','m8','m8d','m8t',
+    'm18','m18d','m18t',
     'm9','m9d','m9t','m10','m10d','m10t','m11','m11d','m11t',
     'm12','m12d','m12t','m15','m15d','m15t','m16','m16d','m16t','m13','m13d','m13t','m14','m14d','m14t'];
   const keys=['title','sub','sec1','sec2','sec3','sec4','sec5',
@@ -562,6 +571,7 @@ function applyLang(){
     'instrTitle','instrDesc',
     'm17','m17d','m17t','m1','m1d','m1t','m2','m2d','m2t','m3','m3d','m3t','m4','m4d','m4t',
     'm5','m5d','m5t','m6','m6d','m6t','m7','m7d','m7t','m8','m8d','m8t',
+    'm18','m18d','m18t',
     'm9','m9d','m9t','m10','m10d','m10t','m11','m11d','m11t',
     'm12','m12d','m12t','m15','m15d','m15t','m16','m16d','m16t','m13','m13d','m13t','m14','m14d','m14t'];
   ids.forEach((id,i)=>{
@@ -584,7 +594,7 @@ function applyLang(){
   renderReview();
   renderExportReminder();
 }
-const ALL_MODULES=['notation','rhythm','ear','dictation','figured-bass','keys','transposition','glossary','history','quotes','jazz','tuner','metronome','orchestra','solfege'];
+const ALL_MODULES=['notation','rhythm','ear','dictation','figured-bass','keys','transposition','glossary','forms','history','quotes','jazz','tuner','metronome','orchestra','solfege'];
 function updateProgress(){
   let visited=[];
   try{visited=JSON.parse(localStorage.getItem('musicapp_visited')||'[]');}catch(e){visited=[];}
@@ -876,7 +886,7 @@ const ACHIEVEMENTS=[
     descRu:'Открыть 7+ разделов',descEn:'Open 7+ sections',
     check:()=>getVisitedCount()>=7},
   {id:'all-sections',icon:'🏆',ru:'Все разделы',en:'All sections',
-    descRu:'Открыть все 15 разделов',descEn:'Open all 15 sections',
+    descRu:'Открыть все 16 разделов',descEn:'Open all 16 sections',
     check:()=>getVisitedCount()>=ALL_MODULES.length},
   {id:'first-fav',icon:'⭐',ru:'Первое избранное',en:'First favorite',
     descRu:'Сохранить первый элемент',descEn:'Save your first item',

@@ -1,4 +1,4 @@
-const CACHE = 'muzgramota-v31';
+const CACHE = 'muzgramota-v32';
 
 // Критические файлы с ASCII-путями — кэшируются через addAll (всё-или-ничего),
 // поэтому здесь только то, без чего приложение не откроется вообще.
@@ -26,6 +26,7 @@ const PRECACHE_MODULES = [
   '/musicapp/словарик терминов/index.html',
   '/musicapp/муз-литература/index.html',
   '/musicapp/цитаты/index.html',
+  '/musicapp/музыкальные формы/index.html',
   '/musicapp/джазовая-гармония/index.html',
   '/musicapp/тюнер/index.html',
   '/musicapp/метроном/index.html',
