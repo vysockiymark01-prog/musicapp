@@ -9,7 +9,7 @@
 <script>
 (function(){
   var t=localStorage.getItem('musicapp_theme');
-  var dark=t==='dark';
+  var dark=t?t==='dark':window.matchMedia('(prefers-color-scheme: dark)').matches;
   document.documentElement.setAttribute('data-theme',dark?'dark':'light');
 })();
 </script>
@@ -511,6 +511,13 @@ const pitchBuf = [];
 const NOTE_LOCK_FRAMES = 6;
 let heldMidi = null, pendingMidi = null, pendingCount = 0;
 
+// Дополнительное экспоненциальное сглаживание для стрелки — сырое значение
+// центов от кадра к кадру немного дрожит даже после медианного фильтра, и
+// стрелка (обновляется 60 раз/сек) выглядела дёрганой. Стрелка теперь плавно
+// подъезжает к цели, а цифры под ней остаются отзывчивыми (без этой задержки).
+let needleCentsSmoothed = null;
+const NEEDLE_SMOOTH_ALPHA = 0.25;
+
 // Audio – manual mode
 let oscNode  = null;
 let gainNode = null;
@@ -578,6 +585,16 @@ function detectPitch(buf, sr) {
   // а настоящая нота — чёткий и сильный; так шум надёжнее не принимается за сигнал.
   if (bestL < 0 || best < rms * rms * 0.4) return -1;
 
+  // Octave-error guard: if there's a comparably strong peak at double the lag
+  // (i.e. half the frequency), the detected pitch is very likely a harmonic
+  // overtone rather than the true fundamental — autocorrelation regularly
+  // mistakes one for the other, which is what caused the note to occasionally
+  // jump to the wrong octave. Prefer the lower, more likely fundamental.
+  if (bestL * 2 <= maxL && c[bestL * 2] > best * 0.85) {
+    bestL = bestL * 2;
+    best = c[bestL];
+  }
+
   // Parabolic interpolation for sub-sample precision
   let T = bestL;
   if (T > minL && T < maxL) {
@@ -631,6 +648,7 @@ function updateAutoDisplay(info) {
     centsEl.textContent= '';
     statusEl.textContent = Lc.silence;
     statusEl.className   = 'status-text c-muted';
+    needleCentsSmoothed = null;
     updateNeedle(0, false);
     setNeedleColor('var(--muted)');
     clearHints();
@@ -644,6 +662,12 @@ function updateAutoDisplay(info) {
   freqEl.textContent = freq.toFixed(1) + ' ' + Lc.hz;
   centsEl.textContent= (c >= 0 ? '+' : '') + c.toFixed(0) + ' ' + Lc.c;
 
+  // Стрелка едет к сглаженному значению — гасит дрожание от кадра к кадру,
+  // цифры (выше) при этом остаются живыми/отзывчивыми.
+  needleCentsSmoothed = (needleCentsSmoothed === null)
+    ? c
+    : needleCentsSmoothed + (c - needleCentsSmoothed) * NEEDLE_SMOOTH_ALPHA;
+
   const ab = Math.abs(c);
   let col, cls, key;
   if      (ab <= 5)  { col='var(--green)'; cls='c-green'; key='inTune'; }
@@ -653,7 +677,7 @@ function updateAutoDisplay(info) {
   nameEl.className = 'note-name ' + cls;
   statusEl.textContent = Lc[key];
   statusEl.className   = 'status-text ' + cls;
-  updateNeedle(c, true);
+  updateNeedle(needleCentsSmoothed, true);
   setNeedleColor(col);
   updateHints(info);
 }
@@ -753,6 +777,7 @@ function stopListening() {
   analyser = null;
   pitchBuf.length = 0;
   heldMidi = null; pendingMidi = null; pendingCount = 0;
+  needleCentsSmoothed = null;
   setStartBtn(false);
   updateAutoDisplay(null);
 }
