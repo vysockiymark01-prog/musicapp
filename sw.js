@@ -1,4 +1,4 @@
-const CACHE = 'muzgramota-v33';
+const CACHE = 'muzgramota-v34';
 
 // Критические файлы с ASCII-путями — кэшируются через addAll (всё-или-ничего),
 // поэтому здесь только то, без чего приложение не откроется вообще.
@@ -72,8 +72,21 @@ self.addEventListener('fetch', e => {
         return response;
       })
       .catch(() =>
-        // Нет сети — берём из кэша
-        caches.match(e.request).then(r => r || caches.match('/musicapp/'))
+        // Нет сети — берём из кэша. Модули закэшированы под путём вида
+        // '/musicapp/тюнер/index.html', но ярлыки в manifest.json (и некоторые
+        // прямые переходы) запрашивают '/musicapp/тюнер/' без index.html —
+        // это разные ключи для Cache API, из-за чего такие переходы офлайн
+        // проваливались мимо кэша прямо на страницу-заглушку. Пробуем оба варианта.
+        caches.match(e.request).then(r => {
+          if (r) return r;
+          const url = new URL(e.request.url);
+          if (url.pathname.endsWith('/')) {
+            return caches.match(url.pathname + 'index.html')
+              .then(r2 => r2 || caches.match('/musicapp/'));
+          }
+          return caches.match(url.pathname + '/index.html')
+            .then(r2 => r2 || caches.match('/musicapp/'));
+        })
       )
   );
 });
