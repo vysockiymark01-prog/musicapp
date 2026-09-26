@@ -1568,6 +1568,26 @@ html,body{overscroll-behavior-y:contain;}
                 <button class="level-btn" data-level="2" id="levelBtn2">Продвинутый</button>
             </div>
 
+            <div class="test-level-row hidden" id="noteSetToggleRow">
+                <button class="level-btn" id="noteSetBtn">🎯 Набор нот</button>
+            </div>
+
+            <div class="hidden" id="noteSetPanel" style="background:var(--color-bg-card);border:1px solid var(--color-border);border-radius:16px;padding:16px;margin-bottom:16px;box-shadow:var(--shadow-sm);">
+                <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:4px;flex-wrap:wrap;">
+                    <span style="font-size:11px;font-weight:900;text-transform:uppercase;color:var(--color-text-primary);" id="noteSetTitleEl">Выберите ноты для тренировки</span>
+                    <label style="display:flex;align-items:center;gap:6px;font-size:10px;font-weight:900;text-transform:uppercase;color:var(--color-text-secondary);cursor:pointer;">
+                        <input type="checkbox" id="noteSetEnableChk" style="width:16px;height:16px;cursor:pointer;">
+                        <span id="noteSetOnLabel">Свой набор</span>
+                    </label>
+                </div>
+                <div style="font-size:10px;color:var(--color-text-muted);margin-bottom:12px;" id="noteSetHintEl">Будут попадаться только отмеченные ноты. Ничего не выбрано — используется весь диапазон.</div>
+                <div id="noteSetGrid"></div>
+                <div style="display:flex;gap:8px;margin-top:12px;">
+                    <button class="action-btn secondary" id="noteSetAllBtn" style="flex:1;padding:10px;">Все</button>
+                    <button class="action-btn secondary" id="noteSetClearBtn" style="flex:1;padding:10px;">Очистить</button>
+                </div>
+            </div>
+
             <div class="mic-panel hidden" id="micPanel">
                 <button class="mic-toggle" id="micToggleBtn">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" id="micIcon">
@@ -1791,7 +1811,14 @@ html,body{overscroll-behavior-y:contain;}
                 composerHint2: 'Нажмите клавишу пианино',
                 testLevels: ['Начальный', 'Средний', 'Продвинутый'],
                 noteLabels: 'Ноты',
-                backHome: '← Главная'
+                backHome: '← Главная',
+                noteSetBtn: 'Набор нот',
+                noteSetOn: 'Свой набор',
+                noteSetTitle: 'Выберите ноты для тренировки',
+                noteSetHint: 'Будут попадаться только отмеченные ноты. Ничего не выбрано — используется весь диапазон.',
+                noteSetAll: 'Все',
+                noteSetClear: 'Очистить',
+                noteSetClose: 'Свернуть'
             },
             en: {
                 appTitle: 'Music Theory',
@@ -1851,7 +1878,14 @@ html,body{overscroll-behavior-y:contain;}
                 composerHint2: 'Press a piano key',
                 testLevels: ['Beginner', 'Intermediate', 'Advanced'],
                 noteLabels: 'Notes',
-                backHome: '← Home'
+                backHome: '← Home',
+                noteSetBtn: 'Note set',
+                noteSetOn: 'Custom set',
+                noteSetTitle: 'Choose notes to practice',
+                noteSetHint: 'Only checked notes will appear. Nothing checked — full range is used.',
+                noteSetAll: 'All',
+                noteSetClear: 'Clear',
+                noteSetClose: 'Collapse'
             }
         };
 
@@ -1873,6 +1907,12 @@ html,body{overscroll-behavior-y:contain;}
         let isTestMode = false;
         let testLevel = 0; // 0=начальный(C4-B4), 1=средний(C3-B4), 2=продвинутый(C3-B5)
         let testNote = null;
+        // Свой набор нот для тренировки чтения (учитель/ученик отмечает конкретные ноты
+        // в разных октавах — например, те, что встретились в разбираемом произведении).
+        // Порядок внутри набора остаётся случайным — это фильтр пула, а не последовательность.
+        let useCustomNoteSet = localStorage.getItem('musicapp_notation_useCustomSet') === '1';
+        let customNoteSet = new Set(JSON.parse(localStorage.getItem('musicapp_notation_customSet') || '[]'));
+        let noteSetPanelOpen = false;
         let audioCtx = null;
         let micEnabled = false;
         let micStream = null;
@@ -2567,16 +2607,59 @@ html,body{overscroll-behavior-y:contain;}
         function generateNewTestNote() {
             const { minMidi, maxMidi } = getInstrTestRange();
             const natural = NOTES.filter(n => !n.includes('#'));
-            const candidates = [];
+            let candidates = [];
             for (let oct = 2; oct <= 6; oct++) {
                 for (const note of natural) {
                     const midi = noteToMidi(note, oct);
                     if (midi >= minMidi && midi <= maxMidi) candidates.push({ note, octave: oct });
                 }
             }
+            // Если включён свой набор нот и в нём что-то отмечено — сужаем пул до
+            // пересечения набора с текущим диапазоном инструмента/уровня. Если
+            // пересечение пустое (например, отметили ноты вне диапазона), не оставляем
+            // пользователя без кандидатов — откатываемся на полный диапазон.
+            if (useCustomNoteSet && customNoteSet.size > 0) {
+                const filtered = candidates.filter(c => customNoteSet.has(c.note + c.octave));
+                if (filtered.length > 0) candidates = filtered;
+            }
             testNote = candidates[Math.floor(Math.random() * candidates.length)];
             showHint = false;
             updateUI();
+        }
+
+        // Рисуем сетку чекбоксов "нота × октава" для выбора своего набора.
+        // Строится по октавам 2–6 (те же, что использует generateNewTestNote),
+        // только натуральные ноты — тест по нотной грамоте не включает диезы.
+        function renderNoteSetGrid() {
+            const grid = document.getElementById('noteSetGrid');
+            if (!grid) return;
+            const t = TRANSLATIONS[lang];
+            const natural = NOTES.filter(n => !n.includes('#'));
+            let html = '';
+            for (let oct = 6; oct >= 2; oct--) {
+                html += `<div style="display:flex;align-items:center;gap:6px;margin-bottom:6px;">
+                    <span style="width:52px;flex-shrink:0;font-size:9px;font-weight:900;color:var(--color-text-muted);text-transform:uppercase;">${t.octaves[oct] || oct}</span>
+                    <div style="display:flex;gap:4px;flex-wrap:wrap;">`;
+                for (const note of natural) {
+                    const key = note + oct;
+                    const checked = customNoteSet.has(key);
+                    html += `<button type="button" data-notekey="${key}" style="min-width:38px;padding:6px 4px;border-radius:8px;border:1px solid var(--color-border);cursor:pointer;font-size:10px;font-weight:900;transition:all .15s;background:${checked ? 'var(--color-blue-600)' : 'var(--color-bg-primary)'};color:${checked ? '#fff' : 'var(--color-text-secondary)'};border-color:${checked ? 'var(--color-blue-600)' : 'var(--color-border)'};">${t.notes[note]}</button>`;
+                }
+                html += `</div></div>`;
+            }
+            grid.innerHTML = html;
+            grid.querySelectorAll('[data-notekey]').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const key = btn.dataset.notekey;
+                    if (customNoteSet.has(key)) customNoteSet.delete(key);
+                    else customNoteSet.add(key);
+                    localStorage.setItem('musicapp_notation_customSet', JSON.stringify([...customNoteSet]));
+                    renderNoteSetGrid();
+                    const noteSetBtnEl = document.getElementById('noteSetBtn');
+                    if (noteSetBtnEl) noteSetBtnEl.textContent = '🎯 ' + t.noteSetBtn + (useCustomNoteSet && customNoteSet.size > 0 ? ` (${customNoteSet.size})` : '');
+                    if (isTestMode && useCustomNoteSet) generateNewTestNote();
+                });
+            });
         }
 
         // ── MICROPHONE PITCH DETECTION ──────────────────────────────────
@@ -2882,11 +2965,30 @@ html,body{overscroll-behavior-y:contain;}
             // Show level row and mic panel only in test mode
             const levelRow = document.getElementById('testLevelRow');
             if (levelRow) levelRow.classList.toggle('hidden', !isTestMode);
-            document.querySelectorAll('.level-btn').forEach(b => {
+            document.querySelectorAll('.level-btn[data-level]').forEach(b => {
                 const lv = parseInt(b.dataset.level);
                 b.classList.toggle('active', lv === testLevel);
                 b.textContent = t.testLevels[lv];
             });
+
+            // Набор нот — доступен только в тест-режиме
+            const noteSetToggleRow = document.getElementById('noteSetToggleRow');
+            if (noteSetToggleRow) noteSetToggleRow.classList.toggle('hidden', !isTestMode);
+            const noteSetBtn = document.getElementById('noteSetBtn');
+            if (noteSetBtn) {
+                noteSetBtn.textContent = '🎯 ' + t.noteSetBtn + (useCustomNoteSet && customNoteSet.size > 0 ? ` (${customNoteSet.size})` : '');
+                noteSetBtn.classList.toggle('active', noteSetPanelOpen);
+            }
+            const noteSetPanel = document.getElementById('noteSetPanel');
+            if (noteSetPanel) noteSetPanel.classList.toggle('hidden', !isTestMode || !noteSetPanelOpen);
+            const noteSetTitleEl = document.getElementById('noteSetTitleEl'); if (noteSetTitleEl) noteSetTitleEl.textContent = t.noteSetTitle;
+            const noteSetOnLabel = document.getElementById('noteSetOnLabel'); if (noteSetOnLabel) noteSetOnLabel.textContent = t.noteSetOn;
+            const noteSetHintEl = document.getElementById('noteSetHintEl'); if (noteSetHintEl) noteSetHintEl.textContent = t.noteSetHint;
+            const noteSetAllBtn = document.getElementById('noteSetAllBtn'); if (noteSetAllBtn) noteSetAllBtn.textContent = t.noteSetAll;
+            const noteSetClearBtn = document.getElementById('noteSetClearBtn'); if (noteSetClearBtn) noteSetClearBtn.textContent = t.noteSetClear;
+            const noteSetEnableChk = document.getElementById('noteSetEnableChk');
+            if (noteSetEnableChk) noteSetEnableChk.checked = useCustomNoteSet;
+            if (isTestMode && noteSetPanelOpen) renderNoteSetGrid();
             const micPanel = document.getElementById('micPanel');
             if (micPanel) micPanel.classList.toggle('hidden', !isTestMode);
             if (!isTestMode && micEnabled) stopMic();
@@ -3149,12 +3251,40 @@ html,body{overscroll-behavior-y:contain;}
                 updateUI();
             });
 
-            document.querySelectorAll('.level-btn').forEach(btn => {
+            document.querySelectorAll('#testLevelRow .level-btn').forEach(btn => {
                 btn.addEventListener('click', () => {
                     testLevel = parseInt(btn.dataset.level);
                     generateNewTestNote(); // новая нота из нового диапазона
                     updateUI();
                 });
+            });
+
+            document.getElementById('noteSetBtn').addEventListener('click', () => {
+                noteSetPanelOpen = !noteSetPanelOpen;
+                updateUI();
+            });
+
+            document.getElementById('noteSetEnableChk').addEventListener('change', (e) => {
+                useCustomNoteSet = e.target.checked;
+                localStorage.setItem('musicapp_notation_useCustomSet', useCustomNoteSet ? '1' : '0');
+                if (isTestMode) generateNewTestNote();
+                updateUI();
+            });
+
+            document.getElementById('noteSetAllBtn').addEventListener('click', () => {
+                const natural = NOTES.filter(n => !n.includes('#'));
+                customNoteSet.clear();
+                for (let oct = 2; oct <= 6; oct++) for (const note of natural) customNoteSet.add(note + oct);
+                localStorage.setItem('musicapp_notation_customSet', JSON.stringify([...customNoteSet]));
+                if (isTestMode && useCustomNoteSet) generateNewTestNote();
+                updateUI();
+            });
+
+            document.getElementById('noteSetClearBtn').addEventListener('click', () => {
+                customNoteSet.clear();
+                localStorage.setItem('musicapp_notation_customSet', JSON.stringify([]));
+                if (isTestMode && useCustomNoteSet) generateNewTestNote();
+                updateUI();
             });
 
             document.getElementById('micToggleBtn').addEventListener('click', toggleMic);
