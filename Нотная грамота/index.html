@@ -1496,6 +1496,7 @@ html,body{overscroll-behavior-y:contain;}
 
         <div class="tabs">
             <button class="tab active" data-tab="theory" id="theoryTab">Теория</button>
+            <button class="tab" data-tab="reading" id="readingTab">Чтение</button>
             <button class="tab" data-tab="rhythm" id="rhythmTab">Ритм</button>
             <button class="tab" data-tab="composer" id="composerTab">Композитор</button>
             <button class="tab" data-tab="construction" id="constructionTab">Построение</button>
@@ -1623,6 +1624,70 @@ html,body{overscroll-behavior-y:contain;}
                 </svg>
                 <input type="range" class="scroll-slider" min="0" max="100" value="40" id="pianoScroll">
             </div>
+        </div>
+
+        <div id="readingContent" class="hidden">
+            <div class="time-sig-selector" id="readingTimeSigRow" style="margin-bottom:12px;">
+                <button class="time-sig-btn" data-sig="2/4">2/4</button>
+                <button class="time-sig-btn" data-sig="3/4">3/4</button>
+                <button class="time-sig-btn active" data-sig="4/4">4/4</button>
+            </div>
+
+            <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px;" id="readingMelodyRow"></div>
+
+            <div class="staff-container">
+                <div class="staff-label" id="readingStaffLabel">Мелодия</div>
+                <div class="staff-scroll" id="readingStaffScrollContainer">
+                    <svg id="readingStaffSvg" viewBox="0 0 300 300" style="height: 288px; width: 100%;"></svg>
+                </div>
+            </div>
+
+            <div class="scroll-control">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="5 9 2 12 5 15"></polyline>
+                    <polyline points="9 5 12 2 15 5"></polyline>
+                    <polyline points="15 19 12 22 9 19"></polyline>
+                    <polyline points="19 9 22 12 19 15"></polyline>
+                    <line x1="2" y1="12" x2="22" y2="12"></line>
+                    <line x1="12" y1="2" x2="12" y2="22"></line>
+                </svg>
+                <input type="range" class="scroll-slider" id="readingTempoSlider" min="40" max="160" value="90" step="1">
+                <span id="readingTempoLabel" style="font-size:11px;font-weight:900;color:var(--color-text-secondary);min-width:70px;text-align:right;">90 BPM</span>
+            </div>
+
+            <div class="control-grid" style="grid-template-columns: repeat(2, 1fr);">
+                <button class="control-btn" id="readingPreviewBtn">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polygon points="5 3 19 12 5 21 5 3"></polygon>
+                    </svg>
+                    <span class="control-btn-text" id="readingPreviewText">Прослушать</span>
+                </button>
+                <button class="control-btn" id="readingStartBtn">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M22 10v6M2 10l10-5 10 5-10 5z"></path>
+                        <path d="M6 12v5c3 3 9 3 12 0v-5"></path>
+                    </svg>
+                    <span class="control-btn-text" id="readingStartText">Начать чтение</span>
+                </button>
+            </div>
+
+            <div class="mic-panel" id="readingMicPanel">
+                <button class="mic-toggle" id="readingMicToggleBtn">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>
+                        <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
+                        <line x1="12" y1="19" x2="12" y2="23"/>
+                        <line x1="8" y1="23" x2="16" y2="23"/>
+                    </svg>
+                    <span id="readingMicToggleText">Микрофон</span>
+                </button>
+                <div class="mic-meter-wrap">
+                    <div class="mic-detected" id="readingMicDetected">—</div>
+                    <div class="mic-bar-bg"><div class="mic-bar" id="readingMicBar"></div></div>
+                </div>
+            </div>
+
+            <div id="readingScoreBox" style="background:var(--color-bg-card);border:1px solid var(--color-border);border-radius:16px;padding:14px 16px;text-align:center;font-size:12px;font-weight:900;color:var(--color-text-secondary);text-transform:uppercase;letter-spacing:0.5px;"></div>
         </div>
 
         <div id="rhythmContent" class="hidden">
@@ -1818,7 +1883,12 @@ html,body{overscroll-behavior-y:contain;}
                 noteSetHint: 'Будут попадаться только отмеченные ноты. Ничего не выбрано — используется весь диапазон.',
                 noteSetAll: 'Все',
                 noteSetClear: 'Очистить',
-                noteSetClose: 'Свернуть'
+                noteSetClose: 'Свернуть',
+                reading: 'Чтение',
+                readingPreview: 'Прослушать',
+                readingStart: 'Начать чтение',
+                readingScore: 'Верно',
+                readingScoreEmpty: 'Нажмите «Начать чтение»'
             },
             en: {
                 appTitle: 'Music Theory',
@@ -1885,7 +1955,12 @@ html,body{overscroll-behavior-y:contain;}
                 noteSetHint: 'Only checked notes will appear. Nothing checked — full range is used.',
                 noteSetAll: 'All',
                 noteSetClear: 'Clear',
-                noteSetClose: 'Collapse'
+                noteSetClose: 'Collapse',
+                reading: 'Reading',
+                readingPreview: 'Preview',
+                readingStart: 'Start reading',
+                readingScore: 'Correct',
+                readingScoreEmpty: 'Press "Start reading"'
             }
         };
 
@@ -1913,6 +1988,90 @@ html,body{overscroll-behavior-y:contain;}
         let useCustomNoteSet = localStorage.getItem('musicapp_notation_useCustomSet') === '1';
         let customNoteSet = new Set(JSON.parse(localStorage.getItem('musicapp_notation_customSet') || '[]'));
         let noteSetPanelOpen = false;
+
+        // ── ЧТЕНИЕ С ЛИСТА (готовые мелодии, регулировка скорости, проверка микрофоном) ──
+        // Все мелодии ниже написаны с нуля специально для этого раздела (не заимствованы
+        // из чужих произведений) — короткие диатонические попевки в до мажоре, без диезов,
+        // чтобы соответствовать остальному тест-режиму нотной грамоты.
+        // Длительности расставлены по правилу сольфеджио: сумма длительностей внутри
+        // каждого такта равна размеру (числитель/4 долей); w=4, h=2, q=1, e=0.5 долей.
+        // note/octave/duration(в долях)/type(id из DURATIONS, для символа на стане).
+        function rn(note, octave, dur) {
+            const val = { whole: 4, half: 2, quarter: 1, eighth: 0.5 }[dur];
+            return { note, octave, duration: val, type: dur, isPause: false };
+        }
+        const READING_MELODIES = [
+            {
+                id: 'm1', timeSig: '4/4',
+                name: { ru: 'Попевка №1 (4/4)', en: 'Tune #1 (4/4)' },
+                notes: [
+                    rn('C',4,'quarter'), rn('D',4,'quarter'), rn('E',4,'quarter'), rn('F',4,'quarter'),
+                    rn('G',4,'half'),    rn('F',4,'quarter'), rn('E',4,'quarter'),
+                    rn('D',4,'quarter'), rn('D',4,'quarter'), rn('C',4,'half')
+                ]
+            },
+            {
+                id: 'm2', timeSig: '4/4',
+                name: { ru: 'Попевка №2 (4/4, с восьмыми)', en: 'Tune #2 (4/4, with eighths)' },
+                notes: [
+                    rn('C',4,'eighth'), rn('D',4,'eighth'), rn('E',4,'eighth'), rn('F',4,'eighth'), rn('G',4,'quarter'), rn('G',4,'quarter'),
+                    rn('A',4,'half'),   rn('G',4,'quarter'), rn('F',4,'quarter'),
+                    rn('E',4,'quarter'), rn('D',4,'quarter'), rn('C',4,'half')
+                ]
+            },
+            {
+                id: 'm3', timeSig: '3/4',
+                name: { ru: 'Попевка №3 (3/4)', en: 'Tune #3 (3/4)' },
+                notes: [
+                    rn('C',4,'quarter'), rn('E',4,'quarter'), rn('G',4,'quarter'),
+                    rn('G',4,'half'),    rn('F',4,'quarter'),
+                    rn('E',4,'quarter'), rn('D',4,'quarter'), rn('C',4,'quarter')
+                ]
+            },
+            {
+                id: 'm4', timeSig: '3/4',
+                name: { ru: 'Попевка №4 (3/4, с восьмыми)', en: 'Tune #4 (3/4, with eighths)' },
+                notes: [
+                    rn('C',4,'eighth'), rn('D',4,'eighth'), rn('E',4,'quarter'), rn('F',4,'quarter'),
+                    rn('G',4,'half'),   rn('G',4,'quarter'),
+                    rn('F',4,'quarter'), rn('E',4,'quarter'), rn('D',4,'quarter')
+                ]
+            },
+            {
+                id: 'm5', timeSig: '2/4',
+                name: { ru: 'Попевка №5 (2/4)', en: 'Tune #5 (2/4)' },
+                notes: [
+                    rn('C',4,'quarter'), rn('D',4,'quarter'),
+                    rn('E',4,'half'),
+                    rn('F',4,'quarter'), rn('E',4,'quarter'),
+                    rn('D',4,'quarter'), rn('C',4,'quarter')
+                ]
+            },
+            {
+                id: 'm6', timeSig: '2/4',
+                name: { ru: 'Попевка №6 (2/4, с восьмыми)', en: 'Tune #6 (2/4, with eighths)' },
+                notes: [
+                    rn('C',4,'eighth'), rn('D',4,'eighth'), rn('E',4,'quarter'),
+                    rn('F',4,'eighth'), rn('G',4,'eighth'), rn('A',4,'quarter'),
+                    rn('G',4,'half'),
+                    rn('F',4,'quarter'), rn('E',4,'quarter'),
+                    rn('D',4,'quarter'), rn('C',4,'quarter')
+                ]
+            }
+        ];
+        let readingTimeSig = '4/4';
+        let readingMelodyIdx = 0;
+        let readingTempo = 90; // BPM
+        let readingRunning = false;      // идёт ли тренировка (авто-курсор + проверка микрофоном)
+        let readingCursor = 0;           // индекс текущей ноты в readingMelody.notes
+        let readingResults = [];         // true/false по каждой пройденной ноте
+        let readingStepTimer = null;
+        let readingPlayingIdx = -1;      // для подсветки при "Прослушать"
+
+        function readingCurrentNote() {
+            const m = READING_MELODIES[readingMelodyIdx];
+            return (readingRunning && readingCursor < m.notes.length) ? m.notes[readingCursor] : null;
+        }
         let audioCtx = null;
         let micEnabled = false;
         let micStream = null;
@@ -2159,7 +2318,7 @@ html,body{overscroll-behavior-y:contain;}
             return ledgers;
         }
 
-        function drawStaff(svgId, note, octave, isComposer = false, composerNotesList = []) {
+        function drawStaff(svgId, note, octave, isComposer = false, composerNotesList = [], highlightIdxOverride = null, resultsOverride = null, barBeats = null) {
             const svg = document.getElementById(svgId);
             // singleClef: 'treble' | 'alto' | 'tenor' | 'bass' — только один стан; null — дуальный режим (пианино и т.п.), как в composer
             let singleClef = isComposer ? null : (CLEF_ONLY[instrMode] || null);
@@ -2204,9 +2363,9 @@ html,body{overscroll-behavior-y:contain;}
                 html += `<path d="M 25 120 Q 10 175 25 260" fill="none" stroke="${colors.staffLine}" stroke-width="2"/>`;
             }
 
-            function renderNote(noteObj, xOffset) {
+            function renderNote(noteObj, xOffset, resultColor) {
                 const { note: noteName, octave: noteOct, type } = noteObj;
-                const color = colors.note;
+                const color = resultColor || colors.note;
                 const clefUsed = singleClef || (noteOct < 4 ? 'bass' : 'treble');
                 const isBass = clefUsed === 'bass';
                 const staffY = (isBass && singleClef !== 'bass') ? 220 : 120;
@@ -2251,14 +2410,32 @@ html,body{overscroll-behavior-y:contain;}
             }
 
             if (isComposer) {
-                // Yellow highlight for currently playing note
-                if (composerPlayingIdx >= 0 && composerPlayingIdx < composerNotesList.length) {
-                    const hx = 120 + composerPlayingIdx * 70;
+                // Yellow highlight for currently playing/current note
+                const hlIdx = highlightIdxOverride !== null ? highlightIdxOverride : composerPlayingIdx;
+                if (hlIdx >= 0 && hlIdx < composerNotesList.length) {
+                    const hx = 120 + hlIdx * 70;
                     html += `<rect x="${hx - 18}" y="105" width="52" height="200" fill="rgba(250,200,0,0.22)" rx="7"/>`;
                 }
+                // Тактовые черты — по правилу сольфеджио сумма длительностей внутри такта
+                // равна числителю размера. Проводим вертикальную черту каждый раз, когда
+                // накопленная сумма долей перед нотой кратна размеру такта.
+                let cumBeats = 0;
                 composerNotesList.forEach((noteObj, idx) => {
-                    html += renderNote(noteObj, 120 + idx * 70);
+                    if (barBeats && idx > 0 && Math.abs(cumBeats % barBeats) < 0.001) {
+                        const bx = 120 + idx * 70 - 35;
+                        html += `<line x1="${bx}" y1="120" x2="${bx}" y2="260" stroke="${colors.staffLine}" stroke-width="2"/>`;
+                    }
+                    let resultColor = null;
+                    if (resultsOverride && resultsOverride[idx] !== undefined && resultsOverride[idx] !== null) {
+                        resultColor = resultsOverride[idx] ? '#10b981' : '#ef4444';
+                    }
+                    html += renderNote(noteObj, 120 + idx * 70, resultColor);
+                    cumBeats += (noteObj.duration || 1);
                 });
+                if (barBeats) {
+                    const bx = 120 + composerNotesList.length * 70 - 35;
+                    html += `<line x1="${bx}" y1="120" x2="${bx}" y2="260" stroke="${colors.staffLine}" stroke-width="2"/>`;
+                }
             } else {
                 html += renderNote({ note, octave, type: 'quarter', isPause: false }, 180);
             }
@@ -2662,6 +2839,141 @@ html,body{overscroll-behavior-y:contain;}
             });
         }
 
+        // ── ЧТЕНИЕ С ЛИСТА: рендер и тренажёр ────────────────────────────
+        function renderReadingTimeSigRow() {
+            const row = document.getElementById('readingTimeSigRow');
+            if (!row) return;
+            row.querySelectorAll('.time-sig-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.sig === readingTimeSig);
+            });
+        }
+
+        function renderReadingMelodyRow() {
+            const row = document.getElementById('readingMelodyRow');
+            if (!row) return;
+            const matching = READING_MELODIES.filter(m => m.timeSig === readingTimeSig);
+            row.innerHTML = matching.map(m => {
+                const idx = READING_MELODIES.indexOf(m);
+                return `<button type="button" data-idx="${idx}" class="level-btn ${idx === readingMelodyIdx ? 'active' : ''}" style="flex:0 0 auto;padding:8px 14px;">${m.name[lang]}</button>`;
+            }).join('');
+            row.querySelectorAll('button').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    if (readingRunning) readingStop();
+                    readingMelodyIdx = parseInt(btn.dataset.idx);
+                    readingResults = [];
+                    updateReadingUI();
+                });
+            });
+        }
+
+        function updateReadingStaff() {
+            const m = READING_MELODIES[readingMelodyIdx];
+            const hlIdx = readingRunning ? readingCursor : readingPlayingIdx;
+            const resultsForDraw = readingResults.length ? readingResults : null;
+            const barBeats = parseInt(m.timeSig.split('/')[0]);
+            drawStaff('readingStaffSvg', 'C', 4, true, m.notes, hlIdx, resultsForDraw, barBeats);
+        }
+
+        function updateReadingUI() {
+            const t = TRANSLATIONS[lang];
+            renderReadingTimeSigRow();
+            renderReadingMelodyRow();
+            updateReadingStaff();
+            const m = READING_MELODIES[readingMelodyIdx];
+            document.getElementById('readingStaffLabel').textContent = m.name[lang] + ' · ' + m.timeSig;
+            document.getElementById('readingTempoLabel').textContent = readingTempo + ' BPM';
+            document.getElementById('readingTempoSlider').value = readingTempo;
+            document.getElementById('readingPreviewText').textContent = (readingPlayingIdx >= 0 && !readingRunning) ? t.stop : t.readingPreview;
+            document.getElementById('readingStartText').textContent = readingRunning ? t.exit : t.readingStart;
+            document.getElementById('readingStartBtn').classList.toggle('active', readingRunning);
+            document.getElementById('readingPreviewBtn').classList.toggle('active', readingPlayingIdx >= 0 && !readingRunning);
+            document.getElementById('readingMicToggleText').textContent = micEnabled ? t.micOn : t.micOff;
+
+            const scoreBox = document.getElementById('readingScoreBox');
+            if (scoreBox) {
+                if (readingResults.length === 0) {
+                    scoreBox.textContent = t.readingScoreEmpty;
+                } else {
+                    const correct = readingResults.filter(r => r).length;
+                    scoreBox.textContent = `${t.readingScore}: ${correct}/${readingResults.length}`;
+                }
+            }
+        }
+
+        // Прослушать мелодию целиком на текущем темпе (не тест, просто аудио-превью).
+        // Длительность каждой ноты (в долях, whole=4..eighth=0.5) масштабирует её звучание —
+        // половинная звучит вдвое дольше четвертной при том же темпе, как и положено.
+        async function readingPreview() {
+            if (readingPlayingIdx >= 0) { stopPlayback = true; readingPlayingIdx = -1; updateReadingUI(); return; }
+            if (readingRunning) readingStop();
+            const m = READING_MELODIES[readingMelodyIdx];
+            stopPlayback = false;
+            const msPerBeat = 60000 / readingTempo;
+            for (let i = 0; i < m.notes.length; i++) {
+                if (stopPlayback) break;
+                readingPlayingIdx = i;
+                updateReadingUI();
+                const msThisNote = msPerBeat * (m.notes[i].duration || 1);
+                playFrequency(m.notes[i].note, m.notes[i].octave, msThisNote / 1000 * 0.85);
+                await new Promise(r => setTimeout(r, msThisNote));
+            }
+            readingPlayingIdx = -1;
+            updateReadingUI();
+        }
+
+        // Тренажёр: курсор автоматически идёт по нотам мелодии на заданном темпе.
+        // Пока курсор стоит на ноте — микрофон её слушает (см. getMicTargetNote/handleMicMatch).
+        // Если ученик успел сыграть верную ноту — отмечаем зелёным и сразу двигаемся дальше;
+        // если время вышло — отмечаем красным (не угадал/не успел) и идём дальше без остановки,
+        // чтобы держать темп чтения, а не превращать упражнение в бесконечное ожидание.
+        function readingStart() {
+            if (readingRunning) { readingStop(); return; }
+            const m = READING_MELODIES[readingMelodyIdx];
+            if (!m || m.notes.length === 0) return;
+            if (readingPlayingIdx >= 0) { stopPlayback = true; readingPlayingIdx = -1; }
+            readingRunning = true;
+            readingCursor = 0;
+            readingResults = [];
+            if (!micEnabled) startMic();
+            updateReadingUI();
+            readingScheduleStep();
+        }
+
+        function readingScheduleStep() {
+            if (readingStepTimer) clearTimeout(readingStepTimer);
+            const m = READING_MELODIES[readingMelodyIdx];
+            const note = m.notes[readingCursor];
+            // Время на ноту масштабируется её длительностью — на половинную даётся вдвое
+            // больше времени, чем на четвертную, на восьмую — вдвое меньше, как в чтении с листа.
+            const msForThisNote = (60000 / readingTempo) * ((note && note.duration) || 1);
+            readingStepTimer = setTimeout(() => {
+                if (!readingRunning) return;
+                // время на текущую ноту вышло без совпадения — засчитываем как ошибку
+                readingRegisterResult(false);
+            }, msForThisNote);
+        }
+
+        function readingRegisterResult(isCorrect) {
+            if (!readingRunning) return;
+            if (readingStepTimer) { clearTimeout(readingStepTimer); readingStepTimer = null; }
+            readingResults[readingCursor] = isCorrect;
+            readingCursor++;
+            const m = READING_MELODIES[readingMelodyIdx];
+            if (readingCursor >= m.notes.length) {
+                readingRunning = false;
+                updateReadingUI();
+                return;
+            }
+            updateReadingUI();
+            readingScheduleStep();
+        }
+
+        function readingStop() {
+            readingRunning = false;
+            if (readingStepTimer) { clearTimeout(readingStepTimer); readingStepTimer = null; }
+            updateReadingUI();
+        }
+
         // ── MICROPHONE PITCH DETECTION ──────────────────────────────────
         function freqToNoteOctave(freq) {
             if (!freq || freq < 50 || freq > 5000) return null;
@@ -2725,24 +3037,62 @@ html,body{overscroll-behavior-y:contain;}
             return sampleRate / tau;
         }
 
+        // Идентификаторы DOM-элементов микрофонной панели зависят от активной вкладки —
+        // у "Теории" (тест-режим) и у "Чтения" (тренажёр мелодий) отдельные панели с
+        // собственной вёрсткой, но обе используют один и тот же аудио-пайплайн ниже.
+        function micIds() {
+            return (activeTab === 'reading')
+                ? { toggleBtn: 'readingMicToggleBtn', toggleText: 'readingMicToggleText', bar: 'readingMicBar', detected: 'readingMicDetected' }
+                : { toggleBtn: 'micToggleBtn', toggleText: 'micToggleText', bar: 'micBar', detected: 'micDetected' };
+        }
+
+        // Нота-цель для сверки с микрофоном: в "Теории" — testNote тест-режима,
+        // в "Чтении" — текущая нота проигрываемой мелодии.
+        function getMicTargetNote() {
+            if (activeTab === 'theory' && isTestMode) return testNote;
+            if (activeTab === 'reading' && readingRunning) return readingCurrentNote();
+            return null;
+        }
+
+        // Что делать при совпадении ноты — переход к следующей цели зависит от вкладки.
+        function handleMicMatch() {
+            if (activeTab === 'theory' && isTestMode) {
+                micMatchCooldown = true;
+                showFeedback(TRANSLATIONS[lang].correct, true);
+                setTimeout(() => {
+                    generateNewTestNote();
+                    micMatchCooldown = false;
+                    micFreqHistory = [];
+                }, 1000);
+            } else if (activeTab === 'reading' && readingRunning) {
+                micMatchCooldown = true;
+                readingRegisterResult(true);
+                setTimeout(() => {
+                    micMatchCooldown = false;
+                    micFreqHistory = [];
+                }, 250);
+            }
+        }
+
         function micTick() {
             if (!micAnalyser || !micEnabled) return;
             const buf = new Float32Array(micAnalyser.fftSize);
             micAnalyser.getFloatTimeDomainData(buf);
+            const ids = micIds();
 
             // Volume bar
             let rms = 0;
             for (let i = 0; i < buf.length; i++) rms += buf[i] * buf[i];
             rms = Math.sqrt(rms / buf.length);
             const vol = Math.min(100, rms * 400);
-            const bar = document.getElementById('micBar');
+            const bar = document.getElementById(ids.bar);
             if (bar) {
                 bar.style.width = vol + '%';
                 bar.className = 'mic-bar' + (vol > 75 ? ' loud' : '');
             }
 
             const rawFreq = autocorrelate(buf, micAnalyser.context.sampleRate);
-            const detected = document.getElementById('micDetected');
+            const detected = document.getElementById(ids.detected);
 
             if (rawFreq > 0) {
                 // Smooth out momentary jitter — a lightly fretted/quiet note gives a noisier
@@ -2762,26 +3112,18 @@ html,body{overscroll-behavior-y:contain;}
                         detected.textContent = noteName + ' · ' + octaveName;
                     }
 
-                    // Check against test note — match by cents distance rather than exact
+                    // Check against target note — match by cents distance rather than exact
                     // rounded note name. A real instrument is rarely tuned to exactly 440Hz,
                     // so a fixed ±50-cent rounding window can miss notes sitting near a
                     // semitone boundary; a slightly wider ±55-cent tolerance absorbs normal
                     // tuning drift without confusing it with the neighbouring note.
-                    if (isTestMode && testNote && !micMatchCooldown) {
-                        const targetFreq = getFrequency(testNote.note, testNote.octave);
+                    const targetNote = getMicTargetNote();
+                    if (targetNote && !micMatchCooldown) {
+                        const targetFreq = getFrequency(targetNote.note, targetNote.octave);
                         const cents = 1200 * Math.log2(freq / targetFreq);
                         const isMatch = Math.abs(cents) <= 55;
                         if (detected) detected.className = 'mic-detected ' + (isMatch ? 'match' : 'nomatch');
-
-                        if (isMatch) {
-                            micMatchCooldown = true;
-                            showFeedback(TRANSLATIONS[lang].correct, true);
-                            setTimeout(() => {
-                                generateNewTestNote();
-                                micMatchCooldown = false;
-                                micFreqHistory = [];
-                            }, 1000);
-                        }
+                        if (isMatch) handleMicMatch();
                     }
                     micLastDetected = result;
                 }
@@ -2797,6 +3139,7 @@ html,body{overscroll-behavior-y:contain;}
         }
 
         async function startMic() {
+            const ids = micIds();
             try {
                 micStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
                 if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -2808,18 +3151,21 @@ html,body{overscroll-behavior-y:contain;}
                 micEnabled = true;
                 micFreqHistory = [];
                 micAnimId = requestAnimationFrame(micTick);
-                const btn = document.getElementById('micToggleBtn');
+                const btn = document.getElementById(ids.toggleBtn);
                 if (btn) { btn.className = 'mic-toggle active'; }
-                document.getElementById('micToggleText').textContent = TRANSLATIONS[lang].micOn;
+                const txtEl = document.getElementById(ids.toggleText);
+                if (txtEl) txtEl.textContent = TRANSLATIONS[lang].micOn;
             } catch (e) {
                 micEnabled = false;
-                const btn = document.getElementById('micToggleBtn');
+                const btn = document.getElementById(ids.toggleBtn);
                 if (btn) btn.className = 'mic-toggle error';
-                document.getElementById('micToggleText').textContent = TRANSLATIONS[lang].micError;
+                const txtEl = document.getElementById(ids.toggleText);
+                if (txtEl) txtEl.textContent = TRANSLATIONS[lang].micError;
             }
         }
 
         function stopMic() {
+            const ids = micIds();
             micEnabled = false;
             micMatchCooldown = false;
             if (micAnimId) { cancelAnimationFrame(micAnimId); micAnimId = null; }
@@ -2828,13 +3174,13 @@ html,body{overscroll-behavior-y:contain;}
             micAnalyser = null;
             // приостанавливаем контекст в фоне; ensureCtx()/воспроизведение звука сами разбудят его через resume()
             if (audioCtx && audioCtx.state === 'running') { try { audioCtx.suspend(); } catch(_) {} }
-            const btn = document.getElementById('micToggleBtn');
+            const btn = document.getElementById(ids.toggleBtn);
             if (btn) btn.className = 'mic-toggle';
-            const txt = document.getElementById('micToggleText');
+            const txt = document.getElementById(ids.toggleText);
             if (txt) txt.textContent = TRANSLATIONS[lang].micOff;
-            const bar = document.getElementById('micBar');
+            const bar = document.getElementById(ids.bar);
             if (bar) bar.style.width = '0%';
-            const det = document.getElementById('micDetected');
+            const det = document.getElementById(ids.detected);
             if (det) { det.textContent = '—'; det.className = 'mic-detected'; }
         }
 
@@ -2921,6 +3267,7 @@ html,body{overscroll-behavior-y:contain;}
             document.getElementById('langText').textContent = lang === 'ru' ? 'RU' : 'EN';
             document.getElementById('themeText').textContent = isDark ? t.lightTheme : t.darkTheme;
             document.getElementById('theoryTab').textContent = t.theory;
+            document.getElementById('readingTab').textContent = t.reading;
             document.getElementById('rhythmTab').textContent = t.rhythm;
             document.getElementById('composerTab').textContent = t.composer;
             document.getElementById('constructionTab').textContent = t.construction;
@@ -3136,6 +3483,7 @@ html,body{overscroll-behavior-y:contain;}
                 document.documentElement.setAttribute('data-theme', isDark ? 'dark' : '');
                 updateUI();
                 if (activeTab === 'composer') updateComposerStaff();
+                if (activeTab === 'reading') updateReadingStaff();
                 if (activeTab === 'construction') { renderPostrExercise(); if(postrTheoryOpen) renderPostrTheoryContent(); }
             });
 
@@ -3145,6 +3493,7 @@ html,body{overscroll-behavior-y:contain;}
                 updateUI();
                 if (activeTab === 'rhythm') updateRhythmUI();
                 if (activeTab === 'composer') { updateComposerStaff(); updateComposerActions(); }
+                if (activeTab === 'reading') updateReadingUI();
                 if (activeTab === 'construction') {
                     renderPostrExercise();
                     const tt=document.getElementById('postrTheoryToggleText');
@@ -3161,9 +3510,15 @@ html,body{overscroll-behavior-y:contain;}
                     document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
                     tab.classList.add('active');
                     document.getElementById('theoryContent').classList.toggle('hidden', tabName !== 'theory');
+                    document.getElementById('readingContent').classList.toggle('hidden', tabName !== 'reading');
                     document.getElementById('rhythmContent').classList.toggle('hidden', tabName !== 'rhythm');
                     document.getElementById('composerContent').classList.toggle('hidden', tabName !== 'composer');
                     document.getElementById('constructionContent').classList.toggle('hidden', tabName !== 'construction');
+
+                    if (tabName !== 'theory' && tabName !== 'reading' && micEnabled) stopMic();
+                    if (tabName !== 'reading' && readingRunning) readingStop();
+
+                    if (tabName === 'reading') updateReadingUI();
 
                     if (tabName === 'rhythm' && targetRhythm.length === 0) {
                         generateNewRhythm();
@@ -3288,6 +3643,31 @@ html,body{overscroll-behavior-y:contain;}
             });
 
             document.getElementById('micToggleBtn').addEventListener('click', toggleMic);
+            document.getElementById('readingMicToggleBtn').addEventListener('click', toggleMic);
+
+            document.querySelectorAll('#readingTimeSigRow .time-sig-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    if (readingRunning) readingStop();
+                    readingTimeSig = btn.dataset.sig;
+                    // Если текущая мелодия не подходит под новый размер — берём первую подходящую
+                    const m = READING_MELODIES[readingMelodyIdx];
+                    if (m.timeSig !== readingTimeSig) {
+                        const firstMatch = READING_MELODIES.findIndex(mm => mm.timeSig === readingTimeSig);
+                        readingMelodyIdx = firstMatch >= 0 ? firstMatch : readingMelodyIdx;
+                    }
+                    readingResults = [];
+                    updateReadingUI();
+                });
+            });
+
+            document.getElementById('readingPreviewBtn').addEventListener('click', readingPreview);
+            document.getElementById('readingStartBtn').addEventListener('click', readingStart);
+            document.getElementById('readingTempoSlider').addEventListener('input', (e) => {
+                readingTempo = parseInt(e.target.value);
+                document.getElementById('readingTempoLabel').textContent = readingTempo + ' BPM';
+                // Если тренажёр уже идёт, новый темп применится к следующему шагу
+                if (readingRunning) readingScheduleStep();
+            });
 
             document.querySelectorAll('#clefModeRow .cello-clef-btn').forEach(btn => {
                 btn.addEventListener('click', () => {
