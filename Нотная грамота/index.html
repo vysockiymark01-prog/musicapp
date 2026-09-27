@@ -2153,12 +2153,15 @@ html,body{overscroll-behavior-y:contain;}
             return typeof m.name === 'string' ? m.name : m.name[lang];
         }
 
-        // Клавишный клавиатурный ключ инструмента для показа мелодии в "Чтении" —
-        // виолончель/контрабас всегда в басовом (мелодии короткие, узкого диапазона,
-        // так что упрощённая "auto"-логика Теории здесь не нужна); пианино — null (грандстан).
-        const READING_CLEF = Object.assign({}, CLEF_ONLY, { cello: 'bass', contrabass: 'bass' });
+        // Клавишный ключ инструмента для показа мелодии в "Чтении" — виолончель/контрабас
+        // всегда в басовом (мелодии короткие, узкого диапазона, так что упрощённая
+        // "auto"-логика Теории здесь не нужна); пианино — null (грандстан).
+        // CLEF_ONLY объявлен ниже по файлу (рядом с drawStaff) — читаем его лениво внутри
+        // функции, а не на этапе загрузки скрипта, чтобы не словить ReferenceError из-за
+        // temporal dead zone у const, объявленного позже в том же скрипте.
         function getReadingClef(mode) {
-            return READING_CLEF[mode] !== undefined ? READING_CLEF[mode] : null;
+            if (mode === 'cello' || mode === 'contrabass') return 'bass';
+            return CLEF_ONLY[mode] !== undefined ? CLEF_ONLY[mode] : null;
         }
 
         // Подгоняем мелодию под диапазон инструмента, сдвигая её целиком на N октав —
