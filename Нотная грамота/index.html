@@ -1627,6 +1627,27 @@ html,body{overscroll-behavior-y:contain;}
         </div>
 
         <div id="readingContent" class="hidden">
+            <div class="instr-cat-tabs reading-instr-cat-tabs" id="readingInstrCatTabs">
+                <button class="instr-cat-tab reading-instr-cat-tab active" data-cat="keys" id="catKeysBtnR">Клавишные</button>
+                <button class="instr-cat-tab reading-instr-cat-tab" data-cat="bowed" id="catBowedBtnR">Струнно-смычковые</button>
+                <button class="instr-cat-tab reading-instr-cat-tab" data-cat="plucked" id="catPluckedBtnR">Струнно-щипковые</button>
+            </div>
+            <div class="instrument-selector" id="readingInstrSelKeys">
+                <button class="instrument-btn reading-instrument-btn active" data-instr="piano" id="pianoBtnR">Пианино</button>
+            </div>
+            <div class="instrument-selector hidden" id="readingInstrSelBowed">
+                <button class="instrument-btn reading-instrument-btn" data-instr="violin" id="violinBtnR">Скрипка</button>
+                <button class="instrument-btn reading-instrument-btn" data-instr="viola" id="violaBtnR">Альт</button>
+                <button class="instrument-btn reading-instrument-btn" data-instr="cello" id="celloBtnR">Виолончель</button>
+                <button class="instrument-btn reading-instrument-btn" data-instr="contrabass" id="contrabassBtnR">Контрабас</button>
+            </div>
+            <div class="instrument-selector hidden" id="readingInstrSelPlucked">
+                <button class="instrument-btn reading-instrument-btn" data-instr="guitar" id="guitarBtnR">Гитара</button>
+                <button class="instrument-btn reading-instrument-btn" data-instr="balalaika" id="balalaikaBtnR">Балалайка</button>
+                <button class="instrument-btn reading-instrument-btn" data-instr="domra" id="domraBtnR">Домра</button>
+                <button class="instrument-btn reading-instrument-btn" data-instr="ukulele" id="ukuleleBtnR">Укулеле</button>
+            </div>
+
             <div class="time-sig-selector" id="readingTimeSigRow" style="margin-bottom:12px;">
                 <button class="time-sig-btn" data-sig="2/4">2/4</button>
                 <button class="time-sig-btn" data-sig="3/4">3/4</button>
@@ -1687,7 +1708,40 @@ html,body{overscroll-behavior-y:contain;}
                 </div>
             </div>
 
-            <div id="readingScoreBox" style="background:var(--color-bg-card);border:1px solid var(--color-border);border-radius:16px;padding:14px 16px;text-align:center;font-size:12px;font-weight:900;color:var(--color-text-secondary);text-transform:uppercase;letter-spacing:0.5px;"></div>
+            <div id="readingScoreBox" style="background:var(--color-bg-card);border:1px solid var(--color-border);border-radius:16px;padding:14px 16px;text-align:center;font-size:12px;font-weight:900;color:var(--color-text-secondary);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:16px;"></div>
+
+            <div class="test-level-row" style="margin-bottom:0;">
+                <button class="level-btn" id="readingEditorBtn">✏️ Своя мелодия</button>
+            </div>
+
+            <div class="hidden" id="readingEditorPanel" style="background:var(--color-bg-card);border:1px solid var(--color-border);border-radius:16px;padding:16px;margin-top:16px;box-shadow:var(--shadow-sm);">
+                <div class="time-sig-selector" id="readingEditTimeSigRow" style="margin-bottom:12px;">
+                    <button class="time-sig-btn" data-sig="2/4">2/4</button>
+                    <button class="time-sig-btn" data-sig="3/4">3/4</button>
+                    <button class="time-sig-btn active" data-sig="4/4">4/4</button>
+                </div>
+
+                <div class="staff-container" style="padding:16px;">
+                    <div class="staff-scroll" id="readingEditorStaffScroll">
+                        <svg id="readingEditorStaffSvg" viewBox="0 0 300 300" style="height: 220px; width: 100%;"></svg>
+                    </div>
+                </div>
+                <div style="font-size:10px;color:var(--color-text-muted);margin-bottom:12px;" id="readingEditorBeatsHint"></div>
+
+                <div class="piano-container" id="readingEditorPianoContainer" style="height:180px;">
+                    <div class="piano-keys" id="readingEditorPianoKeys"></div>
+                </div>
+
+                <div class="duration-grid" id="readingEditorDurationGrid" style="margin-top:12px;"></div>
+
+                <div style="display:flex;gap:8px;margin-top:12px;">
+                    <button class="action-btn dark" id="readingEditorUndoBtn" style="flex:1;">Удалить</button>
+                    <button class="action-btn danger" id="readingEditorClearBtn" style="flex:1;">Очистить</button>
+                </div>
+
+                <input type="text" id="readingEditorNameInput" placeholder="Название мелодии" maxlength="40" style="width:100%;margin-top:12px;padding:10px 12px;border-radius:10px;border:1px solid var(--color-border);background:var(--color-bg-primary);color:var(--color-text-primary);font-size:13px;">
+                <button class="action-btn success" id="readingEditorSaveBtn" style="width:100%;margin-top:8px;">Сохранить</button>
+            </div>
         </div>
 
         <div id="rhythmContent" class="hidden">
@@ -1888,7 +1942,18 @@ html,body{overscroll-behavior-y:contain;}
                 readingPreview: 'Прослушать',
                 readingStart: 'Начать чтение',
                 readingScore: 'Верно',
-                readingScoreEmpty: 'Нажмите «Начать чтение»'
+                readingScoreEmpty: 'Нажмите «Начать чтение»',
+                readingEditorBtn: '✏️ Своя мелодия',
+                readingEditorClose: '✕ Закрыть редактор',
+                readingEditorUndo: 'Удалить',
+                readingEditorClear: 'Очистить',
+                readingEditorNamePlaceholder: 'Название мелодии',
+                readingEditorSave: 'Сохранить',
+                readingEditorNameRequired: 'Введите название мелодии',
+                readingEditorEmpty: 'Добавьте хотя бы одну ноту',
+                readingEditorBeatsHint: (beats, bar) => `Долей в мелодии: ${beats}. По ${bar} на такт — ${Math.abs(beats % bar) < 0.001 ? 'ровно ложится в такты ✓' : 'не кратно размеру, такты сдвинутся'}`,
+                readingEditorDeleteConfirm: 'Удалить мелодию',
+                readingEditorPickInstrument: 'Мелодия пишется на пианино и адаптируется под выбранный инструмент автоматически'
             },
             en: {
                 appTitle: 'Music Theory',
@@ -1960,7 +2025,18 @@ html,body{overscroll-behavior-y:contain;}
                 readingPreview: 'Preview',
                 readingStart: 'Start reading',
                 readingScore: 'Correct',
-                readingScoreEmpty: 'Press "Start reading"'
+                readingScoreEmpty: 'Press "Start reading"',
+                readingEditorBtn: '✏️ Custom melody',
+                readingEditorClose: '✕ Close editor',
+                readingEditorUndo: 'Undo',
+                readingEditorClear: 'Clear',
+                readingEditorNamePlaceholder: 'Melody name',
+                readingEditorSave: 'Save',
+                readingEditorNameRequired: 'Enter a melody name',
+                readingEditorEmpty: 'Add at least one note',
+                readingEditorBeatsHint: (beats, bar) => `Beats in melody: ${beats}. At ${bar} per bar — ${Math.abs(beats % bar) < 0.001 ? 'fits bars exactly ✓' : 'not a multiple of the meter, bars will shift'}`,
+                readingEditorDeleteConfirm: 'Delete melody',
+                readingEditorPickInstrument: 'The melody is written on piano and adapts to the chosen instrument automatically'
             }
         };
 
@@ -2059,6 +2135,52 @@ html,body{overscroll-behavior-y:contain;}
                 ]
             }
         ];
+        // Свои мелодии — сохраняются в localStorage, идут в общем списке после встроенных.
+        // name у встроенных мелодий — объект {ru,en}, у своих — просто строка (как ввёл
+        // пользователь, без перевода).
+        let customReadingMelodies = [];
+        try { customReadingMelodies = JSON.parse(localStorage.getItem('musicapp_notation_customMelodies') || '[]'); } catch(e) { customReadingMelodies = []; }
+
+        function saveCustomReadingMelodies() {
+            localStorage.setItem('musicapp_notation_customMelodies', JSON.stringify(customReadingMelodies));
+        }
+
+        function getAllReadingMelodies() {
+            return READING_MELODIES.concat(customReadingMelodies);
+        }
+
+        function readingMelodyName(m) {
+            return typeof m.name === 'string' ? m.name : m.name[lang];
+        }
+
+        // Клавишный клавиатурный ключ инструмента для показа мелодии в "Чтении" —
+        // виолончель/контрабас всегда в басовом (мелодии короткие, узкого диапазона,
+        // так что упрощённая "auto"-логика Теории здесь не нужна); пианино — null (грандстан).
+        const READING_CLEF = Object.assign({}, CLEF_ONLY, { cello: 'bass', contrabass: 'bass' });
+        function getReadingClef(mode) {
+            return READING_CLEF[mode] !== undefined ? READING_CLEF[mode] : null;
+        }
+
+        // Подгоняем мелодию под диапазон инструмента, сдвигая её целиком на N октав —
+        // интервалы между нотами (и, соответственно, сложность мелодии) не меняются,
+        // меняется только регистр. Перебираем сдвиги -4..+4 октавы и берём тот, при
+        // котором меньше всего нот вылезает за пределы практического диапазона инструмента.
+        function transposeNotesForInstrument(notes, mode) {
+            if (!notes.length) return notes;
+            const { minMidi, maxMidi } = getInstrTestRange(mode, 2); // 2 = самый широкий (продвинутый) диапазон
+            const midis = notes.map(n => noteToMidi(n.note, n.octave));
+            const melMin = Math.min(...midis), melMax = Math.max(...midis);
+            let bestShift = 0, bestScore = Infinity;
+            for (let k = -4; k <= 4; k++) {
+                const shiftedMin = melMin + 12 * k, shiftedMax = melMax + 12 * k;
+                const below = Math.max(0, minMidi - shiftedMin);
+                const above = Math.max(0, shiftedMax - maxMidi);
+                const score = below + above;
+                if (score < bestScore) { bestScore = score; bestShift = k; }
+            }
+            return notes.map(n => Object.assign({}, n, { octave: n.octave + bestShift }));
+        }
+
         let readingTimeSig = '4/4';
         let readingMelodyIdx = 0;
         let readingTempo = 90; // BPM
@@ -2068,9 +2190,27 @@ html,body{overscroll-behavior-y:contain;}
         let readingStepTimer = null;
         let readingPlayingIdx = -1;      // для подсветки при "Прослушать"
 
+        // ── Редактор своих мелодий ──
+        let readingEditorOpen = false;
+        let readingEditorNotes = [];
+        let readingEditTimeSig = '4/4';
+        let readingEditDuration = 'quarter';
+
+        function getReadingMelody() {
+            return getAllReadingMelodies()[readingMelodyIdx] || null;
+        }
+
+        // Ноты текущей мелодии, транспонированные под выбранный инструмент (instrMode) —
+        // именно их нужно показывать на стане и сверять с микрофоном.
+        function getReadingActiveNotes() {
+            const m = getReadingMelody();
+            if (!m) return [];
+            return transposeNotesForInstrument(m.notes, instrMode);
+        }
+
         function readingCurrentNote() {
-            const m = READING_MELODIES[readingMelodyIdx];
-            return (readingRunning && readingCursor < m.notes.length) ? m.notes[readingCursor] : null;
+            const notes = getReadingActiveNotes();
+            return (readingRunning && readingCursor < notes.length) ? notes[readingCursor] : null;
         }
         let audioCtx = null;
         let micEnabled = false;
@@ -2318,13 +2458,16 @@ html,body{overscroll-behavior-y:contain;}
             return ledgers;
         }
 
-        function drawStaff(svgId, note, octave, isComposer = false, composerNotesList = [], highlightIdxOverride = null, resultsOverride = null, barBeats = null) {
+        function drawStaff(svgId, note, octave, isComposer = false, composerNotesList = [], highlightIdxOverride = null, resultsOverride = null, barBeats = null, forcedClef = undefined) {
             const svg = document.getElementById(svgId);
             // singleClef: 'treble' | 'alto' | 'tenor' | 'bass' — только один стан; null — дуальный режим (пианино и т.п.), как в composer
             let singleClef = isComposer ? null : (CLEF_ONLY[instrMode] || null);
             if (!isComposer && (instrMode === 'cello' || instrMode === 'contrabass') && clefMode !== 'auto') {
                 singleClef = clefMode;
             }
+            // Вкладка "Чтение" передаёт нужный ключ явно (зависит от выбранного там
+            // инструмента), не полагаясь на глобальный instrMode/clefMode Теории.
+            if (forcedClef !== undefined) singleClef = forcedClef;
             const staffWidth = isComposer ? Math.max(300, 120 + composerNotesList.length * 70) : 300;
             // Treble staff starts at y=120, bass at y=220 — gives 120px headroom for high notes
             svg.setAttribute('viewBox', `0 0 ${staffWidth} 300`);
@@ -2598,6 +2741,12 @@ html,body{overscroll-behavior-y:contain;}
                 updateComposerStaff();
             }
 
+            if (activeTab === 'reading' && readingEditorOpen) {
+                const d = DURATIONS.find(dur => dur.id === readingEditDuration);
+                readingEditorNotes.push({ note, octave, duration: d.val, type: d.id, isPause: false });
+                updateReadingEditorStaff();
+            }
+
             if (activeTab === 'theory' && isTestMode && testNote) {
                 if (note === testNote.note && octave === testNote.octave) {
                     showFeedback(TRANSLATIONS[lang].correct, true);
@@ -2736,16 +2885,21 @@ html,body{overscroll-behavior-y:contain;}
             viola: { note: 'E', octave: 6 },
         };
 
-        function getInstrTestRange() {
-            if (instrMode === 'balalaika' || instrMode === 'domra') {
+        // modeOverride/levelOverride позволяют запросить диапазон произвольного инструмента
+        // (например, для адаптации мелодий чтения под инструмент, не переключая глобальный
+        // instrMode/testLevel Теории). Без аргументов работает как раньше.
+        function getInstrTestRange(modeOverride, levelOverride) {
+            const mode = modeOverride !== undefined ? modeOverride : instrMode;
+            const level = levelOverride !== undefined ? levelOverride : testLevel;
+            if (mode === 'balalaika' || mode === 'domra') {
                 // Lowest open string: E4; cap per level
                 const maxMidis = [noteToMidi('B', 4), noteToMidi('E', 5), noteToMidi('B', 5)];
-                return { minMidi: noteToMidi('E', 4), maxMidi: maxMidis[testLevel] };
-            } else if (instrMode === 'guitar') {
+                return { minMidi: noteToMidi('E', 4), maxMidi: maxMidis[level] };
+            } else if (mode === 'guitar') {
                 // Lowest open string: E3; cap per level
                 const maxMidis = [noteToMidi('B', 3), noteToMidi('B', 4), noteToMidi('B', 5)];
-                return { minMidi: noteToMidi('E', 3), maxMidi: maxMidis[testLevel] };
-            } else if (instrMode === 'contrabass') {
+                return { minMidi: noteToMidi('E', 3), maxMidi: maxMidis[level] };
+            } else if (mode === 'contrabass') {
                 // Реальный диапазон контрабаса — около 4 октав, E1-h1 звучания = E2-B5 написано
                 // (контрабас звучит на октаву ниже написанного)
                 const ranges = [
@@ -2753,23 +2907,23 @@ html,body{overscroll-behavior-y:contain;}
                     { minMidi: noteToMidi('E', 2), maxMidi: noteToMidi('E', 4) },  // средний
                     { minMidi: noteToMidi('E', 2), maxMidi: noteToMidi('B', 4) },  // продвинутый — до си 1-й октавы (конец грифа)
                 ];
-                return ranges[testLevel];
-            } else if (instrMode === 'cello') {
+                return ranges[level];
+            } else if (mode === 'cello') {
                 // Реальный практический диапазон виолончели — до большой октавы до ля первой (C2-A4)
                 const ranges = [
                     { minMidi: noteToMidi('C', 2), maxMidi: noteToMidi('G', 2) },  // начальный
                     { minMidi: noteToMidi('C', 2), maxMidi: noteToMidi('C', 4) },  // средний
                     { minMidi: noteToMidi('C', 2), maxMidi: noteToMidi('A', 4) },  // продвинутый (весь диапазон)
                 ];
-                return ranges[testLevel];
-            } else if (STRING_TEST_RANGE[instrMode]) {
+                return ranges[level];
+            } else if (STRING_TEST_RANGE[mode]) {
                 // Смычковые и укулеле: диапазон от нижней открытой струны, +7/+12 п/т по уровню
-                const { note, octave } = STRING_TEST_RANGE[instrMode];
+                const { note, octave } = STRING_TEST_RANGE[mode];
                 const minMidi = noteToMidi(note, octave);
-                const override = ADVANCED_CAP_OVERRIDE[instrMode];
+                const override = ADVANCED_CAP_OVERRIDE[mode];
                 const advancedMax = override ? noteToMidi(override.note, override.octave) : minMidi + 24;
                 const maxMidis = [minMidi + 7, minMidi + 12, advancedMax];
-                return { minMidi, maxMidi: maxMidis[testLevel] };
+                return { minMidi, maxMidi: maxMidis[level] };
             } else {
                 // Piano: диапазон по уровню
                 const ranges = [
@@ -2777,7 +2931,7 @@ html,body{overscroll-behavior-y:contain;}
                     { minMidi: noteToMidi('C', 3), maxMidi: noteToMidi('B', 4) }, // средний: малая + 1-я
                     { minMidi: noteToMidi('C', 3), maxMidi: noteToMidi('B', 5) }, // продвинутый: + 2-я
                 ];
-                return ranges[testLevel];
+                return ranges[level];
             }
         }
 
@@ -2851,12 +3005,20 @@ html,body{overscroll-behavior-y:contain;}
         function renderReadingMelodyRow() {
             const row = document.getElementById('readingMelodyRow');
             if (!row) return;
-            const matching = READING_MELODIES.filter(m => m.timeSig === readingTimeSig);
+            const all = getAllReadingMelodies();
+            const matching = all.filter(m => m.timeSig === readingTimeSig);
             row.innerHTML = matching.map(m => {
-                const idx = READING_MELODIES.indexOf(m);
-                return `<button type="button" data-idx="${idx}" class="level-btn ${idx === readingMelodyIdx ? 'active' : ''}" style="flex:0 0 auto;padding:8px 14px;">${m.name[lang]}</button>`;
+                const idx = all.indexOf(m);
+                const label = readingMelodyName(m);
+                if (m.custom) {
+                    return `<span style="display:inline-flex;align-items:center;gap:2px;">
+                        <button type="button" data-idx="${idx}" class="level-btn ${idx === readingMelodyIdx ? 'active' : ''}" style="flex:0 0 auto;padding:8px 10px;border-radius:10px 0 0 10px;">✏️ ${label}</button>
+                        <button type="button" data-delid="${m.id}" style="flex:0 0 auto;padding:8px 8px;border-radius:0 10px 10px 0;border:1px solid var(--color-border);border-left:none;background:var(--color-bg-card);color:var(--color-red-500);cursor:pointer;font-size:11px;">✕</button>
+                    </span>`;
+                }
+                return `<button type="button" data-idx="${idx}" class="level-btn ${idx === readingMelodyIdx ? 'active' : ''}" style="flex:0 0 auto;padding:8px 14px;">${label}</button>`;
             }).join('');
-            row.querySelectorAll('button').forEach(btn => {
+            row.querySelectorAll('button[data-idx]').forEach(btn => {
                 btn.addEventListener('click', () => {
                     if (readingRunning) readingStop();
                     readingMelodyIdx = parseInt(btn.dataset.idx);
@@ -2864,14 +3026,23 @@ html,body{overscroll-behavior-y:contain;}
                     updateReadingUI();
                 });
             });
+            row.querySelectorAll('button[data-delid]').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    deleteCustomMelody(btn.dataset.delid);
+                });
+            });
         }
 
         function updateReadingStaff() {
-            const m = READING_MELODIES[readingMelodyIdx];
+            const m = getReadingMelody();
+            if (!m) return;
+            const activeNotes = getReadingActiveNotes();
             const hlIdx = readingRunning ? readingCursor : readingPlayingIdx;
             const resultsForDraw = readingResults.length ? readingResults : null;
             const barBeats = parseInt(m.timeSig.split('/')[0]);
-            drawStaff('readingStaffSvg', 'C', 4, true, m.notes, hlIdx, resultsForDraw, barBeats);
+            const clef = getReadingClef(instrMode);
+            drawStaff('readingStaffSvg', 'C', 4, true, activeNotes, hlIdx, resultsForDraw, barBeats, clef);
         }
 
         function updateReadingUI() {
@@ -2879,8 +3050,9 @@ html,body{overscroll-behavior-y:contain;}
             renderReadingTimeSigRow();
             renderReadingMelodyRow();
             updateReadingStaff();
-            const m = READING_MELODIES[readingMelodyIdx];
-            document.getElementById('readingStaffLabel').textContent = m.name[lang] + ' · ' + m.timeSig;
+            const m = getReadingMelody();
+            if (!m) return;
+            document.getElementById('readingStaffLabel').textContent = readingMelodyName(m) + ' · ' + m.timeSig;
             document.getElementById('readingTempoLabel').textContent = readingTempo + ' BPM';
             document.getElementById('readingTempoSlider').value = readingTempo;
             document.getElementById('readingPreviewText').textContent = (readingPlayingIdx >= 0 && !readingRunning) ? t.stop : t.readingPreview;
@@ -2898,6 +3070,15 @@ html,body{overscroll-behavior-y:contain;}
                     scoreBox.textContent = `${t.readingScore}: ${correct}/${readingResults.length}`;
                 }
             }
+
+            // Редактор своих мелодий — статичные подписи тоже переводим при смене языка
+            const editorBtn = document.getElementById('readingEditorBtn');
+            if (editorBtn) editorBtn.textContent = readingEditorOpen ? t.readingEditorClose : t.readingEditorBtn;
+            const undoBtn = document.getElementById('readingEditorUndoBtn'); if (undoBtn) undoBtn.textContent = t.readingEditorUndo;
+            const clearBtn = document.getElementById('readingEditorClearBtn'); if (clearBtn) clearBtn.textContent = t.readingEditorClear;
+            const saveBtn = document.getElementById('readingEditorSaveBtn'); if (saveBtn) saveBtn.textContent = t.readingEditorSave;
+            const nameInput = document.getElementById('readingEditorNameInput'); if (nameInput) nameInput.placeholder = t.readingEditorNamePlaceholder;
+            if (readingEditorOpen) { renderReadingEditorDurationGrid(); updateReadingEditorStaff(); }
         }
 
         // Прослушать мелодию целиком на текущем темпе (не тест, просто аудио-превью).
@@ -2906,15 +3087,16 @@ html,body{overscroll-behavior-y:contain;}
         async function readingPreview() {
             if (readingPlayingIdx >= 0) { stopPlayback = true; readingPlayingIdx = -1; updateReadingUI(); return; }
             if (readingRunning) readingStop();
-            const m = READING_MELODIES[readingMelodyIdx];
+            const notes = getReadingActiveNotes();
+            if (!notes.length) return;
             stopPlayback = false;
             const msPerBeat = 60000 / readingTempo;
-            for (let i = 0; i < m.notes.length; i++) {
+            for (let i = 0; i < notes.length; i++) {
                 if (stopPlayback) break;
                 readingPlayingIdx = i;
                 updateReadingUI();
-                const msThisNote = msPerBeat * (m.notes[i].duration || 1);
-                playFrequency(m.notes[i].note, m.notes[i].octave, msThisNote / 1000 * 0.85);
+                const msThisNote = msPerBeat * (notes[i].duration || 1);
+                playFrequency(notes[i].note, notes[i].octave, msThisNote / 1000 * 0.85);
                 await new Promise(r => setTimeout(r, msThisNote));
             }
             readingPlayingIdx = -1;
@@ -2928,8 +3110,8 @@ html,body{overscroll-behavior-y:contain;}
         // чтобы держать темп чтения, а не превращать упражнение в бесконечное ожидание.
         function readingStart() {
             if (readingRunning) { readingStop(); return; }
-            const m = READING_MELODIES[readingMelodyIdx];
-            if (!m || m.notes.length === 0) return;
+            const notes = getReadingActiveNotes();
+            if (!notes.length) return;
             if (readingPlayingIdx >= 0) { stopPlayback = true; readingPlayingIdx = -1; }
             readingRunning = true;
             readingCursor = 0;
@@ -2941,8 +3123,8 @@ html,body{overscroll-behavior-y:contain;}
 
         function readingScheduleStep() {
             if (readingStepTimer) clearTimeout(readingStepTimer);
-            const m = READING_MELODIES[readingMelodyIdx];
-            const note = m.notes[readingCursor];
+            const notes = getReadingActiveNotes();
+            const note = notes[readingCursor];
             // Время на ноту масштабируется её длительностью — на половинную даётся вдвое
             // больше времени, чем на четвертную, на восьмую — вдвое меньше, как в чтении с листа.
             const msForThisNote = (60000 / readingTempo) * ((note && note.duration) || 1);
@@ -2958,8 +3140,8 @@ html,body{overscroll-behavior-y:contain;}
             if (readingStepTimer) { clearTimeout(readingStepTimer); readingStepTimer = null; }
             readingResults[readingCursor] = isCorrect;
             readingCursor++;
-            const m = READING_MELODIES[readingMelodyIdx];
-            if (readingCursor >= m.notes.length) {
+            const notes = getReadingActiveNotes();
+            if (readingCursor >= notes.length) {
                 readingRunning = false;
                 updateReadingUI();
                 return;
@@ -2971,6 +3153,120 @@ html,body{overscroll-behavior-y:contain;}
         function readingStop() {
             readingRunning = false;
             if (readingStepTimer) { clearTimeout(readingStepTimer); readingStepTimer = null; }
+            updateReadingUI();
+        }
+
+        // ── Редактор своих мелодий ────────────────────────────────────────
+        // Ноты набираются на пианино (как в "Композиторе") и сохраняются в исходном
+        // виде — октавы, в которых написал ученик/учитель. Адаптация под конкретный
+        // инструмент (transposeNotesForInstrument) применяется уже при чтении/показе,
+        // так что одна и та же своя мелодия одинаково хорошо звучит и на гитаре, и на
+        // виолончели — не нужно писать её заново под каждый инструмент.
+        function renderReadingEditTimeSigRow() {
+            const row = document.getElementById('readingEditTimeSigRow');
+            if (!row) return;
+            row.querySelectorAll('.time-sig-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.sig === readingEditTimeSig);
+            });
+        }
+
+        function renderReadingEditorDurationGrid() {
+            const grid = document.getElementById('readingEditorDurationGrid');
+            if (!grid) return;
+            const t = TRANSLATIONS[lang];
+            grid.innerHTML = DURATIONS.map(d => `
+                <button class="duration-btn ${readingEditDuration === d.id ? 'active' : ''}" data-duration="${d.id}">
+                    <div class="duration-symbol">${d.label}</div>
+                    <div class="duration-label">${t.durations[d.id]}</div>
+                </button>
+            `).join('');
+            grid.querySelectorAll('.duration-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    readingEditDuration = btn.dataset.duration;
+                    grid.querySelectorAll('.duration-btn').forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                });
+            });
+        }
+
+        function updateReadingEditorStaff() {
+            const svg = document.getElementById('readingEditorStaffSvg');
+            if (!svg) return;
+            const barBeats = parseInt(readingEditTimeSig.split('/')[0]);
+            drawStaff('readingEditorStaffSvg', 'C', 4, true, readingEditorNotes, -1, null, barBeats, null);
+            const t = TRANSLATIONS[lang];
+            const beats = readingEditorNotes.reduce((a, n) => a + (n.duration || 1), 0);
+            const hint = document.getElementById('readingEditorBeatsHint');
+            if (hint) hint.textContent = readingEditorNotes.length ? t.readingEditorBeatsHint(beats, barBeats) : t.readingEditorPickInstrument;
+        }
+
+        function toggleReadingEditor() {
+            readingEditorOpen = !readingEditorOpen;
+            const panel = document.getElementById('readingEditorPanel');
+            const btn = document.getElementById('readingEditorBtn');
+            const t = TRANSLATIONS[lang];
+            if (panel) panel.classList.toggle('hidden', !readingEditorOpen);
+            if (btn) { btn.textContent = readingEditorOpen ? t.readingEditorClose : t.readingEditorBtn; btn.classList.toggle('active', readingEditorOpen); }
+            if (readingEditorOpen) {
+                if (readingRunning) readingStop();
+                renderReadingEditTimeSigRow();
+                renderReadingEditorDurationGrid();
+                updateReadingEditorStaff();
+                createPiano('readingEditorPianoKeys', null);
+            }
+        }
+
+        function readingEditorUndo() {
+            readingEditorNotes.pop();
+            updateReadingEditorStaff();
+        }
+
+        function readingEditorClear() {
+            readingEditorNotes = [];
+            updateReadingEditorStaff();
+        }
+
+        function saveReadingMelody() {
+            const t = TRANSLATIONS[lang];
+            const nameInput = document.getElementById('readingEditorNameInput');
+            const name = (nameInput ? nameInput.value : '').trim();
+            if (!name) { alert(t.readingEditorNameRequired); return; }
+            if (readingEditorNotes.length === 0) { alert(t.readingEditorEmpty); return; }
+            const melody = {
+                id: 'custom_' + Date.now(),
+                name,
+                timeSig: readingEditTimeSig,
+                custom: true,
+                notes: readingEditorNotes.map(n => Object.assign({}, n))
+            };
+            customReadingMelodies.push(melody);
+            saveCustomReadingMelodies();
+            readingEditorNotes = [];
+            if (nameInput) nameInput.value = '';
+            updateReadingEditorStaff();
+            // Сразу переключаемся на только что сохранённую мелодию, чтобы было видно результат
+            readingTimeSig = melody.timeSig;
+            readingMelodyIdx = getAllReadingMelodies().indexOf(melody);
+            readingResults = [];
+            updateReadingUI();
+        }
+
+        function deleteCustomMelody(id) {
+            const t = TRANSLATIONS[lang];
+            if (!confirm(t.readingEditorDeleteConfirm + '?')) return;
+            const selectedId = (getReadingMelody() || {}).id;
+            if (readingRunning) readingStop();
+            customReadingMelodies = customReadingMelodies.filter(m => m.id !== id);
+            saveCustomReadingMelodies();
+            // Индексы в общем списке могли сдвинуться — ищем прежде выбранную мелодию по id,
+            // а если удалили именно её — берём первую подходящую под текущий размер такта.
+            const all = getAllReadingMelodies();
+            let newIdx = all.findIndex(m => m.id === selectedId);
+            if (newIdx < 0) {
+                newIdx = all.findIndex(m => m.timeSig === readingTimeSig);
+                readingResults = [];
+            }
+            readingMelodyIdx = newIdx >= 0 ? newIdx : 0;
             updateReadingUI();
         }
 
@@ -3283,6 +3579,11 @@ html,body{overscroll-behavior-y:contain;}
             document.getElementById('catKeysBtn').textContent = t.catKeys;
             document.getElementById('catBowedBtn').textContent = t.catBowed;
             document.getElementById('catPluckedBtn').textContent = t.catPlucked;
+            // Дубли селектора инструмента на вкладке "Чтение"
+            const rInstrIds = { pianoBtnR: t.piano, guitarBtnR: t.guitar, balalaikaBtnR: t.balalaika, domraBtnR: t.domra,
+                violinBtnR: t.violin, violaBtnR: t.viola, celloBtnR: t.cello, contrabassBtnR: t.contrabass, ukuleleBtnR: t.ukulele,
+                catKeysBtnR: t.catKeys, catBowedBtnR: t.catBowed, catPluckedBtnR: t.catPlucked };
+            Object.keys(rInstrIds).forEach(id => { const el = document.getElementById(id); if (el) el.textContent = rInstrIds[id]; });
             document.getElementById('testModeText').textContent = isTestMode ? t.exit : t.testMode;
             document.getElementById('hintBtnText').textContent = t.hint;
             document.getElementById('labelsBtnText').textContent = t.noteLabels;
@@ -3568,36 +3869,55 @@ html,body{overscroll-behavior-y:contain;}
                 });
             });
 
-            document.querySelectorAll('.instrument-btn').forEach(btn => {
-                btn.addEventListener('click', () => {
-                    instrMode = btn.dataset.instr;
-                    document.querySelectorAll('.instrument-btn').forEach(b => b.classList.remove('active'));
-                    btn.classList.add('active');
-                    updateUI();
-                });
-            });
-
+            // Вкладки "Теория" и "Чтение" используют один и тот же instrMode — у каждой
+            // своя копия селектора инструмента (свои id), но переключение в любой из
+            // них должно сразу отражаться в другой. .instrument-btn/.instr-cat-tab —
+            // общие классы для обоих наборов кнопок, поэтому querySelectorAll ниже
+            // видит и Теорию, и Чтение сразу.
             const INSTR_CATEGORIES = {
                 keys: ['piano'],
                 bowed: ['violin', 'viola', 'cello', 'contrabass'],
                 plucked: ['guitar', 'balalaika', 'domra', 'ukulele']
             };
+
+            function syncInstrumentSelectors() {
+                document.querySelectorAll('.instrument-btn').forEach(b => b.classList.toggle('active', b.dataset.instr === instrMode));
+                const cat = Object.keys(INSTR_CATEGORIES).find(c => INSTR_CATEGORIES[c].includes(instrMode)) || 'keys';
+                document.querySelectorAll('.instr-cat-tab').forEach(b => b.classList.toggle('active', b.dataset.cat === cat));
+                const pairs = [
+                    ['instrSelKeys', 'keys'], ['instrSelBowed', 'bowed'], ['instrSelPlucked', 'plucked'],
+                    ['readingInstrSelKeys', 'keys'], ['readingInstrSelBowed', 'bowed'], ['readingInstrSelPlucked', 'plucked']
+                ];
+                pairs.forEach(([id, c]) => {
+                    const el = document.getElementById(id);
+                    if (el) el.classList.toggle('hidden', c !== cat);
+                });
+            }
+
+            function chooseInstrument(mode) {
+                instrMode = mode;
+                syncInstrumentSelectors();
+                updateUI();
+                if (activeTab === 'reading') updateReadingUI();
+            }
+
+            document.querySelectorAll('.instrument-btn').forEach(btn => {
+                btn.addEventListener('click', () => chooseInstrument(btn.dataset.instr));
+            });
+
             document.querySelectorAll('.instr-cat-tab').forEach(btn => {
                 btn.addEventListener('click', () => {
                     const cat = btn.dataset.cat;
-                    document.querySelectorAll('.instr-cat-tab').forEach(b => b.classList.toggle('active', b === btn));
-                    document.getElementById('instrSelKeys').classList.toggle('hidden', cat !== 'keys');
-                    document.getElementById('instrSelBowed').classList.toggle('hidden', cat !== 'bowed');
-                    document.getElementById('instrSelPlucked').classList.toggle('hidden', cat !== 'plucked');
                     if (!INSTR_CATEGORIES[cat].includes(instrMode)) {
                         instrMode = INSTR_CATEGORIES[cat][0];
-                        document.querySelectorAll('.instrument-btn').forEach(b =>
-                            b.classList.toggle('active', b.dataset.instr === instrMode)
-                        );
                     }
+                    syncInstrumentSelectors();
                     updateUI();
+                    if (activeTab === 'reading') updateReadingUI();
                 });
             });
+
+            syncInstrumentSelectors();
 
             document.getElementById('testModeBtn').addEventListener('click', () => {
                 isTestMode = !isTestMode;
@@ -3667,6 +3987,18 @@ html,body{overscroll-behavior-y:contain;}
                 document.getElementById('readingTempoLabel').textContent = readingTempo + ' BPM';
                 // Если тренажёр уже идёт, новый темп применится к следующему шагу
                 if (readingRunning) readingScheduleStep();
+            });
+
+            document.getElementById('readingEditorBtn').addEventListener('click', toggleReadingEditor);
+            document.getElementById('readingEditorUndoBtn').addEventListener('click', readingEditorUndo);
+            document.getElementById('readingEditorClearBtn').addEventListener('click', readingEditorClear);
+            document.getElementById('readingEditorSaveBtn').addEventListener('click', saveReadingMelody);
+            document.querySelectorAll('#readingEditTimeSigRow .time-sig-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    readingEditTimeSig = btn.dataset.sig;
+                    renderReadingEditTimeSigRow();
+                    updateReadingEditorStaff();
+                });
             });
 
             document.querySelectorAll('#clefModeRow .cello-clef-btn').forEach(btn => {
