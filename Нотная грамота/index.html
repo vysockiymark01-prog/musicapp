@@ -1571,6 +1571,7 @@ html,body{overscroll-behavior-y:contain;}
 
             <div class="test-level-row hidden" id="noteSetToggleRow">
                 <button class="level-btn" id="noteSetBtn">🎯 Набор нот</button>
+                <button class="level-btn" id="sharpsToggleBtn">♯ Диезы</button>
             </div>
 
             <div class="hidden" id="noteSetPanel" style="background:var(--color-bg-card);border:1px solid var(--color-border);border-radius:16px;padding:16px;margin-bottom:16px;box-shadow:var(--shadow-sm);">
@@ -1648,6 +1649,12 @@ html,body{overscroll-behavior-y:contain;}
                 <button class="instrument-btn reading-instrument-btn" data-instr="ukulele" id="ukuleleBtnR">Укулеле</button>
             </div>
 
+            <div class="test-level-row" id="readingLevelRow" style="margin-bottom:12px;">
+                <button class="level-btn" data-level="0">Начальный</button>
+                <button class="level-btn active" data-level="1">Средний</button>
+                <button class="level-btn" data-level="2">Продвинутый</button>
+            </div>
+
             <div class="time-sig-selector" id="readingTimeSigRow" style="margin-bottom:12px;">
                 <button class="time-sig-btn" data-sig="2/4">2/4</button>
                 <button class="time-sig-btn" data-sig="3/4">3/4</button>
@@ -1663,7 +1670,7 @@ html,body{overscroll-behavior-y:contain;}
                 </div>
             </div>
 
-            <div class="scroll-control">
+            <div class="scroll-control" id="readingTempoRow">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <polyline points="5 9 2 12 5 15"></polyline>
                     <polyline points="9 5 12 2 15 5"></polyline>
@@ -1675,6 +1682,11 @@ html,body{overscroll-behavior-y:contain;}
                 <input type="range" class="scroll-slider" id="readingTempoSlider" min="20" max="160" value="90" step="1">
                 <span id="readingTempoLabel" style="font-size:11px;font-weight:900;color:var(--color-text-secondary);min-width:70px;text-align:right;">90 BPM</span>
             </div>
+
+            <label style="display:flex;align-items:center;gap:8px;padding:10px 4px;margin-bottom:16px;font-size:11px;font-weight:800;color:var(--color-text-secondary);cursor:pointer;">
+                <input type="checkbox" id="readingUntimedChk" style="width:17px;height:17px;cursor:pointer;flex-shrink:0;">
+                <span id="readingUntimedLabel">Без ограничения по времени (для маленьких детей)</span>
+            </label>
 
             <div class="control-grid" style="grid-template-columns: repeat(2, 1fr);">
                 <button class="control-btn" id="readingPreviewBtn">
@@ -1733,6 +1745,7 @@ html,body{overscroll-behavior-y:contain;}
                 </div>
 
                 <div class="duration-grid" id="readingEditorDurationGrid" style="margin-top:12px;"></div>
+                <div class="duration-grid" id="readingEditorRestGrid" style="margin-top:12px;padding-top:16px;border-top:1px solid var(--color-border);"></div>
 
                 <div style="display:flex;gap:8px;margin-top:12px;">
                     <button class="action-btn dark" id="readingEditorUndoBtn" style="flex:1;">Удалить</button>
@@ -1938,6 +1951,7 @@ html,body{overscroll-behavior-y:contain;}
                 noteSetAll: 'Все',
                 noteSetClear: 'Очистить',
                 noteSetClose: 'Свернуть',
+                sharpsToggle: 'Диезы',
                 reading: 'Чтение',
                 readingPreview: 'Прослушать',
                 readingStart: 'Начать чтение',
@@ -1953,7 +1967,10 @@ html,body{overscroll-behavior-y:contain;}
                 readingEditorEmpty: 'Добавьте хотя бы одну ноту',
                 readingEditorBeatsHint: (beats, bar) => `Долей в мелодии: ${beats}. По ${bar} на такт — ${Math.abs(beats % bar) < 0.001 ? 'ровно ложится в такты ✓' : 'не кратно размеру, такты сдвинутся'}`,
                 readingEditorDeleteConfirm: 'Удалить мелодию',
-                readingEditorPickInstrument: 'Мелодия пишется на пианино и адаптируется под выбранный инструмент автоматически'
+                readingEditorPickInstrument: 'Мелодия пишется на пианино и адаптируется под выбранный инструмент автоматически',
+                readingUntimedLabel: 'Без ограничения по времени (для маленьких детей)',
+                readingLevelLabel: 'Уровень',
+                readingRestLabel: 'Пауза'
             },
             en: {
                 appTitle: 'Music Theory',
@@ -2021,6 +2038,7 @@ html,body{overscroll-behavior-y:contain;}
                 noteSetAll: 'All',
                 noteSetClear: 'Clear',
                 noteSetClose: 'Collapse',
+                sharpsToggle: 'Sharps',
                 reading: 'Reading',
                 readingPreview: 'Preview',
                 readingStart: 'Start reading',
@@ -2036,7 +2054,10 @@ html,body{overscroll-behavior-y:contain;}
                 readingEditorEmpty: 'Add at least one note',
                 readingEditorBeatsHint: (beats, bar) => `Beats in melody: ${beats}. At ${bar} per bar — ${Math.abs(beats % bar) < 0.001 ? 'fits bars exactly ✓' : 'not a multiple of the meter, bars will shift'}`,
                 readingEditorDeleteConfirm: 'Delete melody',
-                readingEditorPickInstrument: 'The melody is written on piano and adapts to the chosen instrument automatically'
+                readingEditorPickInstrument: 'The melody is written on piano and adapts to the chosen instrument automatically',
+                readingUntimedLabel: 'No time limit (for young children)',
+                readingLevelLabel: 'Level',
+                readingRestLabel: 'Rest'
             }
         };
 
@@ -2064,6 +2085,9 @@ html,body{overscroll-behavior-y:contain;}
         let useCustomNoteSet = localStorage.getItem('musicapp_notation_useCustomSet') === '1';
         let customNoteSet = new Set(JSON.parse(localStorage.getItem('musicapp_notation_customSet') || '[]'));
         let noteSetPanelOpen = false;
+        // Диезы в тест-режиме — по умолчанию выключены (тест только натуральными нотами,
+        // как и раньше), включаются отдельной кнопкой рядом с "Набором нот".
+        let useSharpsInTest = localStorage.getItem('musicapp_notation_useSharps') === '1';
 
         // ── ЧТЕНИЕ С ЛИСТА (готовые мелодии, регулировка скорости, проверка микрофоном) ──
         // Все мелодии ниже написаны с нуля специально для этого раздела (не заимствованы
@@ -2076,9 +2100,62 @@ html,body{overscroll-behavior-y:contain;}
             const val = { whole: 4, half: 2, quarter: 1, eighth: 0.5 }[dur];
             return { note, octave, duration: val, type: dur, isPause: false };
         }
+        // level: 0=начальный (узкий диапазон до-ре-ми, только целые/половинные/четвертные),
+        // 1=средний, 2=продвинутый (шире диапазон, восьмые, скачки по трезвучию).
         const READING_MELODIES = [
+            // ── Начальный (level 0) ──────────────────────────────────────
             {
-                id: 'm1', timeSig: '4/4',
+                id: 'm7', timeSig: '4/4', level: 0,
+                name: { ru: 'Для начинающих №1 (4/4)', en: 'For beginners #1 (4/4)' },
+                notes: [
+                    rn('C',4,'quarter'), rn('C',4,'quarter'), rn('D',4,'quarter'), rn('D',4,'quarter'),
+                    rn('E',4,'quarter'), rn('E',4,'quarter'), rn('D',4,'half')
+                ]
+            },
+            {
+                id: 'm8', timeSig: '4/4', level: 0,
+                name: { ru: 'Для начинающих №2 (4/4)', en: 'For beginners #2 (4/4)' },
+                notes: [
+                    rn('C',4,'half'), rn('D',4,'half'),
+                    rn('E',4,'half'), rn('C',4,'half')
+                ]
+            },
+            {
+                id: 'm9', timeSig: '3/4', level: 0,
+                name: { ru: 'Для начинающих №3 (3/4)', en: 'For beginners #3 (3/4)' },
+                notes: [
+                    rn('C',4,'quarter'), rn('D',4,'quarter'), rn('E',4,'quarter'),
+                    rn('E',4,'quarter'), rn('D',4,'quarter'), rn('C',4,'quarter')
+                ]
+            },
+            {
+                id: 'm10', timeSig: '3/4', level: 0,
+                name: { ru: 'Для начинающих №4 (3/4)', en: 'For beginners #4 (3/4)' },
+                notes: [
+                    rn('C',4,'half'), rn('D',4,'quarter'),
+                    rn('E',4,'half'), rn('C',4,'quarter')
+                ]
+            },
+            {
+                id: 'm11', timeSig: '2/4', level: 0,
+                name: { ru: 'Для начинающих №5 (2/4)', en: 'For beginners #5 (2/4)' },
+                notes: [
+                    rn('C',4,'quarter'), rn('D',4,'quarter'),
+                    rn('E',4,'quarter'), rn('D',4,'quarter'),
+                    rn('C',4,'half')
+                ]
+            },
+            {
+                id: 'm12', timeSig: '2/4', level: 0,
+                name: { ru: 'Для начинающих №6 (2/4)', en: 'For beginners #6 (2/4)' },
+                notes: [
+                    rn('C',4,'half'), rn('D',4,'half'),
+                    rn('E',4,'half'), rn('C',4,'half')
+                ]
+            },
+            // ── Средний (level 1) ────────────────────────────────────────
+            {
+                id: 'm1', timeSig: '4/4', level: 1,
                 name: { ru: 'Попевка №1 (4/4)', en: 'Tune #1 (4/4)' },
                 notes: [
                     rn('C',4,'quarter'), rn('D',4,'quarter'), rn('E',4,'quarter'), rn('F',4,'quarter'),
@@ -2087,7 +2164,7 @@ html,body{overscroll-behavior-y:contain;}
                 ]
             },
             {
-                id: 'm2', timeSig: '4/4',
+                id: 'm2', timeSig: '4/4', level: 1,
                 name: { ru: 'Попевка №2 (4/4, с восьмыми)', en: 'Tune #2 (4/4, with eighths)' },
                 notes: [
                     rn('C',4,'eighth'), rn('D',4,'eighth'), rn('E',4,'eighth'), rn('F',4,'eighth'), rn('G',4,'quarter'), rn('G',4,'quarter'),
@@ -2096,7 +2173,7 @@ html,body{overscroll-behavior-y:contain;}
                 ]
             },
             {
-                id: 'm3', timeSig: '3/4',
+                id: 'm3', timeSig: '3/4', level: 1,
                 name: { ru: 'Попевка №3 (3/4)', en: 'Tune #3 (3/4)' },
                 notes: [
                     rn('C',4,'quarter'), rn('E',4,'quarter'), rn('G',4,'quarter'),
@@ -2105,7 +2182,7 @@ html,body{overscroll-behavior-y:contain;}
                 ]
             },
             {
-                id: 'm4', timeSig: '3/4',
+                id: 'm4', timeSig: '3/4', level: 1,
                 name: { ru: 'Попевка №4 (3/4, с восьмыми)', en: 'Tune #4 (3/4, with eighths)' },
                 notes: [
                     rn('C',4,'eighth'), rn('D',4,'eighth'), rn('E',4,'quarter'), rn('F',4,'quarter'),
@@ -2114,7 +2191,7 @@ html,body{overscroll-behavior-y:contain;}
                 ]
             },
             {
-                id: 'm5', timeSig: '2/4',
+                id: 'm5', timeSig: '2/4', level: 1,
                 name: { ru: 'Попевка №5 (2/4)', en: 'Tune #5 (2/4)' },
                 notes: [
                     rn('C',4,'quarter'), rn('D',4,'quarter'),
@@ -2124,12 +2201,71 @@ html,body{overscroll-behavior-y:contain;}
                 ]
             },
             {
-                id: 'm6', timeSig: '2/4',
+                id: 'm6', timeSig: '2/4', level: 1,
                 name: { ru: 'Попевка №6 (2/4, с восьмыми)', en: 'Tune #6 (2/4, with eighths)' },
                 notes: [
                     rn('C',4,'eighth'), rn('D',4,'eighth'), rn('E',4,'quarter'),
                     rn('F',4,'eighth'), rn('G',4,'eighth'), rn('A',4,'quarter'),
                     rn('G',4,'half'),
+                    rn('F',4,'quarter'), rn('E',4,'quarter'),
+                    rn('D',4,'quarter'), rn('C',4,'quarter')
+                ]
+            },
+            // ── Продвинутый (level 2) ─────────────────────────────────────
+            {
+                id: 'm13', timeSig: '4/4', level: 2,
+                name: { ru: 'Продвинутая №1 (4/4)', en: 'Advanced #1 (4/4)' },
+                notes: [
+                    rn('C',4,'eighth'), rn('D',4,'eighth'), rn('E',4,'eighth'), rn('F',4,'eighth'),
+                    rn('G',4,'eighth'), rn('A',4,'eighth'), rn('B',4,'eighth'), rn('C',5,'eighth'),
+                    rn('C',5,'quarter'), rn('B',4,'eighth'), rn('A',4,'eighth'), rn('G',4,'quarter'), rn('F',4,'eighth'), rn('E',4,'eighth'),
+                    rn('E',4,'eighth'), rn('D',4,'eighth'), rn('C',4,'eighth'), rn('D',4,'eighth'), rn('E',4,'quarter'), rn('C',4,'quarter')
+                ]
+            },
+            {
+                id: 'm14', timeSig: '4/4', level: 2,
+                name: { ru: 'Продвинутая №2 (4/4, скачки)', en: 'Advanced #2 (4/4, leaps)' },
+                notes: [
+                    rn('C',4,'eighth'), rn('E',4,'eighth'), rn('G',4,'eighth'), rn('C',5,'eighth'), rn('G',4,'quarter'), rn('E',4,'quarter'),
+                    rn('C',4,'quarter'), rn('G',3,'quarter'), rn('C',4,'quarter'), rn('E',4,'quarter'),
+                    rn('F',4,'eighth'), rn('A',4,'eighth'), rn('C',5,'eighth'), rn('A',4,'eighth'), rn('F',4,'quarter'), rn('C',4,'quarter')
+                ]
+            },
+            {
+                id: 'm15', timeSig: '3/4', level: 2,
+                name: { ru: 'Продвинутая №3 (3/4)', en: 'Advanced #3 (3/4)' },
+                notes: [
+                    rn('C',4,'eighth'), rn('D',4,'eighth'), rn('E',4,'eighth'), rn('F',4,'eighth'), rn('G',4,'quarter'),
+                    rn('A',4,'half'), rn('G',4,'quarter'),
+                    rn('F',4,'eighth'), rn('E',4,'eighth'), rn('D',4,'eighth'), rn('C',4,'eighth'), rn('C',4,'quarter')
+                ]
+            },
+            {
+                id: 'm16', timeSig: '3/4', level: 2,
+                name: { ru: 'Продвинутая №4 (3/4, скачки)', en: 'Advanced #4 (3/4, leaps)' },
+                notes: [
+                    rn('C',4,'quarter'), rn('E',4,'quarter'), rn('G',4,'quarter'),
+                    rn('C',5,'eighth'), rn('B',4,'eighth'), rn('A',4,'eighth'), rn('G',4,'eighth'), rn('F',4,'quarter'),
+                    rn('E',4,'half'), rn('C',4,'quarter')
+                ]
+            },
+            {
+                id: 'm17', timeSig: '2/4', level: 2,
+                name: { ru: 'Продвинутая №5 (2/4)', en: 'Advanced #5 (2/4)' },
+                notes: [
+                    rn('C',4,'eighth'), rn('D',4,'eighth'), rn('E',4,'eighth'), rn('F',4,'eighth'),
+                    rn('G',4,'eighth'), rn('A',4,'eighth'), rn('G',4,'quarter'),
+                    rn('F',4,'eighth'), rn('E',4,'eighth'), rn('D',4,'eighth'), rn('C',4,'eighth'),
+                    rn('C',4,'half')
+                ]
+            },
+            {
+                id: 'm18', timeSig: '2/4', level: 2,
+                name: { ru: 'Продвинутая №6 (2/4, скачки)', en: 'Advanced #6 (2/4, leaps)' },
+                notes: [
+                    rn('C',4,'quarter'), rn('E',4,'quarter'),
+                    rn('G',4,'quarter'), rn('C',5,'quarter'),
+                    rn('B',4,'eighth'), rn('A',4,'eighth'), rn('G',4,'quarter'),
                     rn('F',4,'quarter'), rn('E',4,'quarter'),
                     rn('D',4,'quarter'), rn('C',4,'quarter')
                 ]
@@ -2171,7 +2307,10 @@ html,body{overscroll-behavior-y:contain;}
         function transposeNotesForInstrument(notes, mode) {
             if (!notes.length) return notes;
             const { minMidi, maxMidi } = getInstrTestRange(mode, 2); // 2 = самый широкий (продвинутый) диапазон
-            const midis = notes.map(n => noteToMidi(n.note, n.octave));
+            // Паузы — не настоящая высота звука, их не учитываем при расчёте диапазона
+            // мелодии, иначе дефолтная октава паузы (4-я) могла бы случайно сместить оценку.
+            const pitchedNotes = notes.filter(n => !n.isPause);
+            const midis = (pitchedNotes.length ? pitchedNotes : notes).map(n => noteToMidi(n.note, n.octave));
             const melMin = Math.min(...midis), melMax = Math.max(...midis);
             let bestShift = 0, bestScore = Infinity;
             for (let k = -4; k <= 4; k++) {
@@ -2185,11 +2324,20 @@ html,body{overscroll-behavior-y:contain;}
         }
 
         let readingTimeSig = '4/4';
-        let readingMelodyIdx = 0;
+        let readingLevel = 1; // 0=начальный,1=средний,2=продвинутый — фильтр встроенных мелодий (свои показываются всегда)
+        // Индекс должен сразу указывать на мелодию, подходящую под дефолтные timeSig/level
+        // выше (иначе при первом открытии вкладки ни одна кнопка в списке не подсветится).
+        let readingMelodyIdx = (() => {
+            const idx = READING_MELODIES.findIndex(m => m.timeSig === readingTimeSig && m.level === readingLevel);
+            return idx >= 0 ? idx : 0;
+        })();
         let readingTempo = 90; // BPM
+        // "Без ограничения по времени" — для маленьких детей, которым рано играть на скорость:
+        // курсор ждёт правильную ноту сколько нужно, не отмечая ошибку по таймауту.
+        let readingUntimed = localStorage.getItem('musicapp_notation_readingUntimed') === '1';
         let readingRunning = false;      // идёт ли тренировка (авто-курсор + проверка микрофоном)
         let readingCursor = 0;           // индекс текущей ноты в readingMelody.notes
-        let readingResults = [];         // true/false по каждой пройденной ноте
+        let readingResults = [];         // true/false/null по каждой пройденной ноте (null = пауза)
         let readingStepTimer = null;
         let readingPlayingIdx = -1;      // для подсветки при "Прослушать"
 
@@ -2213,7 +2361,11 @@ html,body{overscroll-behavior-y:contain;}
 
         function readingCurrentNote() {
             const notes = getReadingActiveNotes();
-            return (readingRunning && readingCursor < notes.length) ? notes[readingCursor] : null;
+            if (!readingRunning || readingCursor >= notes.length) return null;
+            const n = notes[readingCursor];
+            // Пауза — играть нечего, микрофон её не слушает (см. readingScheduleStep — она
+            // идёт по своему таймеру независимо от untimed-режима).
+            return (n && n.isPause) ? null : n;
         }
         let audioCtx = null;
         let micEnabled = false;
@@ -2940,10 +3092,10 @@ html,body{overscroll-behavior-y:contain;}
 
         function generateNewTestNote() {
             const { minMidi, maxMidi } = getInstrTestRange();
-            const natural = NOTES.filter(n => !n.includes('#'));
+            const pool = useSharpsInTest ? NOTES : NOTES.filter(n => !n.includes('#'));
             let candidates = [];
             for (let oct = 2; oct <= 6; oct++) {
-                for (const note of natural) {
+                for (const note of pool) {
                     const midi = noteToMidi(note, oct);
                     if (midi >= minMidi && midi <= maxMidi) candidates.push({ note, octave: oct });
                 }
@@ -2962,19 +3114,20 @@ html,body{overscroll-behavior-y:contain;}
         }
 
         // Рисуем сетку чекбоксов "нота × октава" для выбора своего набора.
-        // Строится по октавам 2–6 (те же, что использует generateNewTestNote),
-        // только натуральные ноты — тест по нотной грамоте не включает диезы.
+        // Строится по октавам 2–6 (те же, что использует generateNewTestNote). Диезы
+        // показываются в сетке, только если включён тумблер "Диезы" — иначе список
+        // нот совпадает с пулом теста и не перегружает интерфейс лишними кнопками.
         function renderNoteSetGrid() {
             const grid = document.getElementById('noteSetGrid');
             if (!grid) return;
             const t = TRANSLATIONS[lang];
-            const natural = NOTES.filter(n => !n.includes('#'));
+            const pool = useSharpsInTest ? NOTES : NOTES.filter(n => !n.includes('#'));
             let html = '';
             for (let oct = 6; oct >= 2; oct--) {
                 html += `<div style="display:flex;align-items:center;gap:6px;margin-bottom:6px;">
                     <span style="width:52px;flex-shrink:0;font-size:9px;font-weight:900;color:var(--color-text-muted);text-transform:uppercase;">${t.octaves[oct] || oct}</span>
                     <div style="display:flex;gap:4px;flex-wrap:wrap;">`;
-                for (const note of natural) {
+                for (const note of pool) {
                     const key = note + oct;
                     const checked = customNoteSet.has(key);
                     html += `<button type="button" data-notekey="${key}" style="min-width:38px;padding:6px 4px;border-radius:8px;border:1px solid var(--color-border);cursor:pointer;font-size:10px;font-weight:900;transition:all .15s;background:${checked ? 'var(--color-blue-600)' : 'var(--color-bg-primary)'};color:${checked ? '#fff' : 'var(--color-text-secondary)'};border-color:${checked ? 'var(--color-blue-600)' : 'var(--color-border)'};">${t.notes[note]}</button>`;
@@ -3005,11 +3158,24 @@ html,body{overscroll-behavior-y:contain;}
             });
         }
 
+        function renderReadingLevelRow() {
+            const row = document.getElementById('readingLevelRow');
+            if (!row) return;
+            const t = TRANSLATIONS[lang];
+            row.querySelectorAll('.level-btn').forEach(btn => {
+                const lv = parseInt(btn.dataset.level);
+                btn.classList.toggle('active', lv === readingLevel);
+                btn.textContent = t.testLevels[lv];
+            });
+        }
+
         function renderReadingMelodyRow() {
             const row = document.getElementById('readingMelodyRow');
             if (!row) return;
             const all = getAllReadingMelodies();
-            const matching = all.filter(m => m.timeSig === readingTimeSig);
+            // Свои мелодии показываются всегда (у них нет уровня сложности); встроенные —
+            // только те, что совпадают и по размеру такта, и по выбранному уровню.
+            const matching = all.filter(m => m.timeSig === readingTimeSig && (m.custom || m.level === readingLevel));
             row.innerHTML = matching.map(m => {
                 const idx = all.indexOf(m);
                 const label = readingMelodyName(m);
@@ -3050,6 +3216,7 @@ html,body{overscroll-behavior-y:contain;}
 
         function updateReadingUI() {
             const t = TRANSLATIONS[lang];
+            renderReadingLevelRow();
             renderReadingTimeSigRow();
             renderReadingMelodyRow();
             updateReadingStaff();
@@ -3064,13 +3231,21 @@ html,body{overscroll-behavior-y:contain;}
             document.getElementById('readingPreviewBtn').classList.toggle('active', readingPlayingIdx >= 0 && !readingRunning);
             document.getElementById('readingMicToggleText').textContent = micEnabled ? t.micOn : t.micOff;
 
+            // "Без ограничения по времени" — темп-слайдер нужен только для прослушивания
+            // (задаёт скорость показа мелодии), в самом упражнении при untimed он не участвует.
+            const untimedChk = document.getElementById('readingUntimedChk'); if (untimedChk) untimedChk.checked = readingUntimed;
+            const untimedLabelEl = document.getElementById('readingUntimedLabel'); if (untimedLabelEl) untimedLabelEl.textContent = t.readingUntimedLabel;
+
             const scoreBox = document.getElementById('readingScoreBox');
             if (scoreBox) {
-                if (readingResults.length === 0) {
+                // Паузы (null) — нейтральный результат, не входит ни в числитель, ни в
+                // знаменатель, иначе счёт выглядел бы заниженным без причины.
+                const counted = readingResults.filter(r => r !== null && r !== undefined);
+                if (counted.length === 0) {
                     scoreBox.textContent = t.readingScoreEmpty;
                 } else {
-                    const correct = readingResults.filter(r => r).length;
-                    scoreBox.textContent = `${t.readingScore}: ${correct}/${readingResults.length}`;
+                    const correct = counted.filter(r => r).length;
+                    scoreBox.textContent = `${t.readingScore}: ${correct}/${counted.length}`;
                 }
             }
 
@@ -3081,7 +3256,7 @@ html,body{overscroll-behavior-y:contain;}
             const clearBtn = document.getElementById('readingEditorClearBtn'); if (clearBtn) clearBtn.textContent = t.readingEditorClear;
             const saveBtn = document.getElementById('readingEditorSaveBtn'); if (saveBtn) saveBtn.textContent = t.readingEditorSave;
             const nameInput = document.getElementById('readingEditorNameInput'); if (nameInput) nameInput.placeholder = t.readingEditorNamePlaceholder;
-            if (readingEditorOpen) { renderReadingEditorDurationGrid(); updateReadingEditorStaff(); }
+            if (readingEditorOpen) { renderReadingEditorDurationGrid(); renderReadingEditorRestGrid(); updateReadingEditorStaff(); }
         }
 
         // Прослушать мелодию целиком на текущем темпе (не тест, просто аудио-превью).
@@ -3099,7 +3274,7 @@ html,body{overscroll-behavior-y:contain;}
                 readingPlayingIdx = i;
                 updateReadingUI();
                 const msThisNote = msPerBeat * (notes[i].duration || 1);
-                playFrequency(notes[i].note, notes[i].octave, msThisNote / 1000 * 0.85);
+                if (!notes[i].isPause) playFrequency(notes[i].note, notes[i].octave, msThisNote / 1000 * 0.85);
                 await new Promise(r => setTimeout(r, msThisNote));
             }
             readingPlayingIdx = -1;
@@ -3128,13 +3303,21 @@ html,body{overscroll-behavior-y:contain;}
             if (readingStepTimer) clearTimeout(readingStepTimer);
             const notes = getReadingActiveNotes();
             const note = notes[readingCursor];
+            const isPause = !!(note && note.isPause);
+            // В режиме "без ограничения по времени" ждём совпадения микрофона сколько нужно —
+            // таймаут не ставим вообще (для маленьких детей, которым рано играть на скорость).
+            // Исключение — пауза: там играть нечего, поэтому она всегда идёт по времени,
+            // даже в untimed-режиме, иначе упражнение зависнет намертво.
+            if (readingUntimed && !isPause) return;
             // Время на ноту масштабируется её длительностью — на половинную даётся вдвое
             // больше времени, чем на четвертную, на восьмую — вдвое меньше, как в чтении с листа.
             const msForThisNote = (60000 / readingTempo) * ((note && note.duration) || 1);
             readingStepTimer = setTimeout(() => {
                 if (!readingRunning) return;
-                // время на текущую ноту вышло без совпадения — засчитываем как ошибку
-                readingRegisterResult(false);
+                // Пауза — просто идём дальше, это не ошибка (нейтральный результат, не
+                // учитывается в счёте). Обычная нота — время вышло без совпадения, засчитываем
+                // как ошибку.
+                readingRegisterResult(isPause ? null : false);
             }, msForThisNote);
         }
 
@@ -3192,6 +3375,27 @@ html,body{overscroll-behavior-y:contain;}
             });
         }
 
+        // Паузы — отдельный ряд кнопок под длительностями, как в "Композиторе". Клик сразу
+        // добавляет паузу нужной длины в мелодию (без выбора ноты — играть тут нечего).
+        function renderReadingEditorRestGrid() {
+            const grid = document.getElementById('readingEditorRestGrid');
+            if (!grid) return;
+            const t = TRANSLATIONS[lang];
+            grid.innerHTML = DURATIONS.map(d => `
+                <button class="duration-btn" data-rest="${d.id}">
+                    <div class="duration-symbol">${d.restLabel}</div>
+                    <div class="duration-label">${t.rests[d.id]}</div>
+                </button>
+            `).join('');
+            grid.querySelectorAll('.duration-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const d = DURATIONS.find(dur => dur.id === btn.dataset.rest);
+                    readingEditorNotes.push({ note: 'PAUSE', octave: 4, duration: d.val, type: d.id, isPause: true });
+                    updateReadingEditorStaff();
+                });
+            });
+        }
+
         function updateReadingEditorStaff() {
             const svg = document.getElementById('readingEditorStaffSvg');
             if (!svg) return;
@@ -3214,6 +3418,7 @@ html,body{overscroll-behavior-y:contain;}
                 if (readingRunning) readingStop();
                 renderReadingEditTimeSigRow();
                 renderReadingEditorDurationGrid();
+                renderReadingEditorRestGrid();
                 updateReadingEditorStaff();
                 createPiano('readingEditorPianoKeys', null);
             }
@@ -3266,7 +3471,7 @@ html,body{overscroll-behavior-y:contain;}
             const all = getAllReadingMelodies();
             let newIdx = all.findIndex(m => m.id === selectedId);
             if (newIdx < 0) {
-                newIdx = all.findIndex(m => m.timeSig === readingTimeSig);
+                newIdx = all.findIndex(m => m.timeSig === readingTimeSig && (m.custom || m.level === readingLevel));
                 readingResults = [];
             }
             readingMelodyIdx = newIdx >= 0 ? newIdx : 0;
@@ -3639,6 +3844,11 @@ html,body{overscroll-behavior-y:contain;}
             const noteSetClearBtn = document.getElementById('noteSetClearBtn'); if (noteSetClearBtn) noteSetClearBtn.textContent = t.noteSetClear;
             const noteSetEnableChk = document.getElementById('noteSetEnableChk');
             if (noteSetEnableChk) noteSetEnableChk.checked = useCustomNoteSet;
+            const sharpsToggleBtn = document.getElementById('sharpsToggleBtn');
+            if (sharpsToggleBtn) {
+                sharpsToggleBtn.textContent = '♯ ' + t.sharpsToggle;
+                sharpsToggleBtn.classList.toggle('active', useSharpsInTest);
+            }
             if (isTestMode && noteSetPanelOpen) renderNoteSetGrid();
             const micPanel = document.getElementById('micPanel');
             if (micPanel) micPanel.classList.toggle('hidden', !isTestMode);
@@ -3950,9 +4160,9 @@ html,body{overscroll-behavior-y:contain;}
             });
 
             document.getElementById('noteSetAllBtn').addEventListener('click', () => {
-                const natural = NOTES.filter(n => !n.includes('#'));
+                const pool = useSharpsInTest ? NOTES : NOTES.filter(n => !n.includes('#'));
                 customNoteSet.clear();
-                for (let oct = 2; oct <= 6; oct++) for (const note of natural) customNoteSet.add(note + oct);
+                for (let oct = 2; oct <= 6; oct++) for (const note of pool) customNoteSet.add(note + oct);
                 localStorage.setItem('musicapp_notation_customSet', JSON.stringify([...customNoteSet]));
                 if (isTestMode && useCustomNoteSet) generateNewTestNote();
                 updateUI();
@@ -3965,6 +4175,13 @@ html,body{overscroll-behavior-y:contain;}
                 updateUI();
             });
 
+            document.getElementById('sharpsToggleBtn').addEventListener('click', () => {
+                useSharpsInTest = !useSharpsInTest;
+                localStorage.setItem('musicapp_notation_useSharps', useSharpsInTest ? '1' : '0');
+                if (isTestMode) generateNewTestNote();
+                updateUI();
+            });
+
             document.getElementById('micToggleBtn').addEventListener('click', toggleMic);
             document.getElementById('readingMicToggleBtn').addEventListener('click', toggleMic);
 
@@ -3973,9 +4190,27 @@ html,body{overscroll-behavior-y:contain;}
                     if (readingRunning) readingStop();
                     readingTimeSig = btn.dataset.sig;
                     // Если текущая мелодия не подходит под новый размер — берём первую подходящую
-                    const m = READING_MELODIES[readingMelodyIdx];
-                    if (m.timeSig !== readingTimeSig) {
-                        const firstMatch = READING_MELODIES.findIndex(mm => mm.timeSig === readingTimeSig);
+                    // (по размеру и уровню; свои мелодии считаются подходящими всегда).
+                    const all = getAllReadingMelodies();
+                    const m = all[readingMelodyIdx];
+                    if (!m || m.timeSig !== readingTimeSig) {
+                        const firstMatch = all.findIndex(mm => mm.timeSig === readingTimeSig && (mm.custom || mm.level === readingLevel));
+                        readingMelodyIdx = firstMatch >= 0 ? firstMatch : readingMelodyIdx;
+                    }
+                    readingResults = [];
+                    updateReadingUI();
+                });
+            });
+
+            document.querySelectorAll('#readingLevelRow .level-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    if (readingRunning) readingStop();
+                    readingLevel = parseInt(btn.dataset.level);
+                    // Если текущая мелодия не подходит под новый уровень — берём первую подходящую
+                    const all = getAllReadingMelodies();
+                    const m = all[readingMelodyIdx];
+                    if (!m || (!m.custom && m.level !== readingLevel)) {
+                        const firstMatch = all.findIndex(mm => mm.timeSig === readingTimeSig && (mm.custom || mm.level === readingLevel));
                         readingMelodyIdx = firstMatch >= 0 ? firstMatch : readingMelodyIdx;
                     }
                     readingResults = [];
@@ -3989,6 +4224,13 @@ html,body{overscroll-behavior-y:contain;}
                 readingTempo = parseInt(e.target.value);
                 document.getElementById('readingTempoLabel').textContent = readingTempo + ' BPM';
                 // Если тренажёр уже идёт, новый темп применится к следующему шагу
+                if (readingRunning) readingScheduleStep();
+            });
+
+            document.getElementById('readingUntimedChk').addEventListener('change', (e) => {
+                readingUntimed = e.target.checked;
+                localStorage.setItem('musicapp_notation_readingUntimed', readingUntimed ? '1' : '0');
+                // Если тренажёр уже идёт — применяем новый режим сразу же к текущему шагу
                 if (readingRunning) readingScheduleStep();
             });
 

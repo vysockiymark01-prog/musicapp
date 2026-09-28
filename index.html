@@ -111,6 +111,13 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
 .ach-badge.unlocked .ach-ico{filter:none;opacity:1;}
 .ach-name{font-size:10px;font-weight:800;color:var(--text);}
 .ach-desc{font-size:9px;color:var(--muted);line-height:1.3;}
+.search-box{position:relative;margin-bottom:18px;}
+.search-box input{width:100%;padding:12px 38px 12px 16px;border-radius:16px;border:1px solid var(--border);
+  background:var(--card);color:var(--text);font-size:14px;box-shadow:var(--shadow);}
+.search-box input:focus{outline:none;border-color:var(--blue);}
+.search-box .search-clear{position:absolute;right:10px;top:50%;transform:translateY(-50%);
+  background:none;border:none;color:var(--muted);cursor:pointer;font-size:17px;padding:4px;display:none;}
+.search-box .search-clear.show{display:block;}
 .section{margin-bottom:24px;}
 .section-title{font-size:10px;font-weight:900;text-transform:uppercase;
   letter-spacing:.8px;color:var(--muted);margin-bottom:10px;padding-left:2px;}
@@ -299,6 +306,12 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
   <div class="ach-grid" id="achGrid"></div>
 </div>
 
+<div class="search-box">
+  <input type="text" id="moduleSearchInp" placeholder="Поиск по разделам…" autocomplete="off">
+  <button class="search-clear" id="moduleSearchClearBtn">✕</button>
+</div>
+<div id="moduleSearchEmpty" style="display:none;text-align:center;padding:24px 12px;color:var(--muted);font-size:13px;"></div>
+
 <div class="section">
   <div class="grid">
     <a class="mcard cat-fav" href="./избранное/index.html">
@@ -471,6 +484,7 @@ const T={
   ru:{
     title:'Музыкальное приложение',sub:'Музыкальная школа · 16 модулей',
     dark:'Тёмная',light:'Светлая',progress:'Ваш прогресс',progressOf:'из',installBtnText:'Установить',
+    searchPlaceholder:'Поиск по разделам…',searchNoResults:'Ничего не найдено. Попробуйте другой запрос.',
     sec1:'🎼 Сольфеджио и теория',sec2:'📖 Теория',sec3:'🎭 История и культура',sec4:'🎸 Инструменты',sec5:'🤝 Сотрудничество',
     mFav:'Избранное',mFavD:'Сохранённые композиторы, инструменты, термины и цитаты',mFavT:'Моё',
     dataTitle:'💾 Данные приложения',dataDesc:'Прогресс и избранное хранятся локально на этом устройстве. Сохраните файл, чтобы не потерять их при смене устройства или очистке данных.',
@@ -514,6 +528,7 @@ const T={
   en:{
     title:'Music App',sub:'Music School · 16 modules',
     dark:'Dark',light:'Light',progress:'Your Progress',progressOf:'of',installBtnText:'Install',
+    searchPlaceholder:'Search sections…',searchNoResults:'Nothing found. Try a different search.',
     sec1:'🎼 Solfège & Theory',sec2:'📖 Theory',sec3:'🎭 History & Culture',sec4:'🎸 Instruments',sec5:'🤝 Collaboration',
     mFav:'Favorites',mFavD:'Saved composers, instruments, terms and quotes',mFavT:'Mine',
     dataTitle:'💾 App data',dataDesc:'Progress and favorites are stored locally on this device. Save a file so you don\'t lose them if you switch devices or clear your data.',
@@ -584,6 +599,8 @@ function applyLang(){
   document.getElementById('installBtnText').textContent=L.installBtnText;
   document.getElementById('progLabel').textContent=L.progress;
   document.getElementById('achTitle').textContent=L.achTitle;
+  const searchInpEl=document.getElementById('moduleSearchInp'); if(searchInpEl)searchInpEl.placeholder=L.searchPlaceholder;
+  const searchEmptyEl=document.getElementById('moduleSearchEmpty'); if(searchEmptyEl)searchEmptyEl.textContent=L.searchNoResults;
   const tourBtnEl=document.getElementById('tourBtn');
   if(tourBtnEl){tourBtnEl.title=L.tourBtn;tourBtnEl.setAttribute('aria-label',L.tourBtn);}
   updateProgress();
@@ -938,6 +955,45 @@ function renderAchievements(){
 document.getElementById('langBtn').addEventListener('click',()=>{
   lang=lang==='ru'?'en':'ru';localStorage.setItem('musicapp_lang',lang);applyLang();
 });
+// Поиск по разделам — фильтрует карточки модулей по названию и описанию (RU/EN — какой
+// сейчас язык интерфейса, тот и ищем), прячет пустые секции целиком (вместе с заголовком),
+// показывает заглушку, если совпадений нет.
+function filterModules(query){
+  const q=query.trim().toLowerCase();
+  const sections=document.querySelectorAll('.section');
+  let totalVisible=0;
+  sections.forEach(sec=>{
+    const cards=sec.querySelectorAll('.mcard');
+    let visibleInSection=0;
+    cards.forEach(card=>{
+      const nameEl=card.querySelector('.mcard-name'), descEl=card.querySelector('.mcard-desc');
+      const name=(nameEl?nameEl.textContent:'').toLowerCase();
+      const desc=(descEl?descEl.textContent:'').toLowerCase();
+      const match=!q||name.includes(q)||desc.includes(q);
+      card.style.display=match?'':'none';
+      if(match)visibleInSection++;
+    });
+    sec.style.display=visibleInSection>0?'':'none';
+    totalVisible+=visibleInSection;
+  });
+  const emptyEl=document.getElementById('moduleSearchEmpty');
+  if(emptyEl)emptyEl.style.display=(q&&totalVisible===0)?'':'none';
+}
+(function initModuleSearch(){
+  const inp=document.getElementById('moduleSearchInp');
+  const clearBtn=document.getElementById('moduleSearchClearBtn');
+  if(!inp)return;
+  inp.addEventListener('input',()=>{
+    filterModules(inp.value);
+    if(clearBtn)clearBtn.classList.toggle('show',inp.value.length>0);
+  });
+  if(clearBtn)clearBtn.addEventListener('click',()=>{
+    inp.value='';
+    filterModules('');
+    clearBtn.classList.remove('show');
+    inp.focus();
+  });
+})();
 // Кнопка установки PWA — показываем только если браузер реально предлагает установку
 // (Safari/iOS не поддерживает beforeinstallprompt — там кнопка просто не появится).
 let deferredInstallPrompt=null;
