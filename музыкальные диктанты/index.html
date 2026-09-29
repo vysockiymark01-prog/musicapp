@@ -269,6 +269,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
 }
 </style>
 <script src="../hw.js"></script>
+<script src="../audio-in.js"></script>
 </head>
 <body>
 <div class="wrap">
@@ -2461,6 +2462,16 @@ function printResult(){ window.print(); }
       if(profileGrade && GRADE_LIST.indexOf(profileGrade)!==-1) switchGrade(profileGrade);
     }catch(e){}
   }
+})();
+</script>
+<script>
+// ── 🎹 MIDI-клавиатура (../audio-in.js): ввод нот в одноголосном и двухголосном диктанте ──
+(function(){
+  if(!window.AIN) return;
+  AIN.midi.button(document.querySelector('.wrap'), document.querySelector('.progress-bar'), ev => {
+    if(tab === 'melodic' && mEx) mPianoClick(ev.midi);
+    else if(tab === 'twovoice' && tvEx) tvPianoClick(ev.midi);
+  });
 })();
 </script>
 <script>

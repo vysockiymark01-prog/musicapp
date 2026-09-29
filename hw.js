@@ -296,6 +296,9 @@
   // c — код предмета, если раздел умеет тренировать конкретный список (ноты, термины).
   var KEY_STATS = 'musicapp_stats';
   var MAX_ITEMS = 400, MAX_DAYS = 60;
+  // Через сколько дней вернуть предмет на повторение после 1-го, 2-го… верного ответа.
+  // Индекс = номер коробки; после последней коробки предмет считается выученным.
+  var SRS_DAYS = [0, 1, 3, 7, 16, 35];
   function dayKey(d) { d = d || new Date(); return d.getFullYear() + '-' + (d.getMonth() + 1) + '-' + d.getDate(); }
   function dayTs(k) { var a = k.split('-').map(Number); return new Date(a[0], a[1] - 1, a[2]).getTime(); }
   function statsGet() {
@@ -318,15 +321,24 @@
         var key = mod + '|' + label, it = s.items[key];
         if (!it && !ok) it = s.items[key] = { m: mod, l: label, r: 0, w: 0, e: 0 };
         if (it) {
-          if (ok) { it.r++; it.e = Math.max(0, it.e - 0.5); }
-          else {
-            it.w++; it.e += 1;
+          if (ok) {
+            it.r++; it.e = Math.max(0, it.e - 0.5);
+            // Интервальное повторение (коробки Лейтнера): коробка растёт, только если ответ
+            // пришёл, когда повторение уже «созрело» — несколько верных ответов подряд в один
+            // день не перепрыгивают сразу через все интервалы.
+            if (!it.due || now >= it.due - 3600000) {
+              it.b = Math.min(SRS_DAYS.length, (it.b || 0) + 1);
+              it.due = now + (SRS_DAYS[it.b] || 0) * 86400000;
+            }
+          } else {
+            it.w++; it.e += 1; it.b = 0; it.due = now;
             var ctx = null;
             try { ctx = ctxFn ? ctxFn() : null; } catch (e) { ctx = null; }
             if (ctx) { it.k = ctx.k; it.u = ctx.u; it.p = ctx.p; it.n = ctx.n; }
           }
           it.ts = now;
           if (code != null) it.c = String(code);
+          if (it.b >= SRS_DAYS.length && it.e < 1) delete s.items[key]; // выучено — прошло все интервалы
         }
       }
       var dks = Object.keys(s.days);
@@ -348,6 +360,23 @@
       .filter(function (it) { return it.e >= 1 && MODULES[it.m]; })
       .sort(function (a, b) { return (b.e - a.e) || (b.ts - a.ts); })
       .slice(0, limit || 50);
+  }
+  // Пора повторить: слабым местом уже не является, но срок следующего повторения наступил.
+  function due(limit) {
+    var s = statsGet(), now = Date.now();
+    return Object.keys(s.items).map(function (k) { return s.items[k]; })
+      .filter(function (it) { return it.e < 1 && it.due && it.due <= now && MODULES[it.m]; })
+      .sort(function (a, b) { return a.due - b.due; })
+      .slice(0, limit || 50);
+  }
+  // Что раздел должен предлагать чаще: подписи и коды слабых и «созревших» предметов.
+  function focus(mod) {
+    var labels = new Set(), codes = new Set();
+    weak(200).concat(due(200)).forEach(function (it) {
+      if (it.m !== mod) return;
+      labels.add(it.l); if (it.c) codes.add(it.c);
+    });
+    return { labels: labels, codes: codes };
   }
   function summary(days) {
     var s = statsGet(), from = Date.now() - (days || 7) * 86400000, r = 0, w = 0, active = 0;
@@ -764,7 +793,7 @@
 
   window.MHW = {
     MODULES: MODULES,
-    stat: stat, recorder: recorder, weak: weak, summary: summary, clearWeak: clearWeak, practiceHref: practiceHref,
+    stat: stat, recorder: recorder, weak: weak, due: due, focus: focus, summary: summary, clearWeak: clearWeak, practiceHref: practiceHref,
     isPractice: function () { return !!(current && current.practice); },
     tr: tr, esc: esc, lang: lang, goalText: goalText, octName: octName,
     addButton: addButton, lock: lock, tracker: tracker, answer: answer,

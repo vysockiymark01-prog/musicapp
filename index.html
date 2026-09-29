@@ -1304,10 +1304,10 @@ const HWT={
     untitled:'Домашнее задание',
     wnTitle:'Что нового',wnOk:'Понятно',
     wn:[
-      ['📝','<b>Домашние задания.</b> Учитель собирает упражнения из тренажёров и викторин (Нотная грамота, Сольфеджио, Ритм, Слух, Диктанты, Тональности, Цифровка и др.) и отправляет ученику ссылку или QR-код, а ученик возвращает отчёт с результатами.'],
-      ['🎼','<b>Чтение нот:</b> 18 мелодий по трём уровням, режим без скорости для малышей, паузы в своих мелодиях, темп от 20 BPM.'],
-      ['🧠','<b>Мои слабые места.</b> Приложение запоминает ошибки во всех разделах и показывает на главной, что стоит подтянуть, — с кнопкой «Потренировать».'],
-      ['👤','<b>Профили учеников.</b> Если на одном устройстве занимаются несколько человек, у каждого свой прогресс — кнопка 👤 вверху.']
+      ['👏','<b>Ритм хлопками.</b> В Ритмическом тренажёре новая вкладка «Прохлопай»: хлопай ритм в ладоши — микрофон проверит, ровно ли получилось.'],
+      ['🎤','<b>Пение интервалов.</b> В Слуховом анализе → «Интервалы» → «Спеть»: звучит нижняя нота, поёшь верхнюю.'],
+      ['🎹','<b>MIDI-клавиатура.</b> Подключи клавиатуру к телефону и отвечай с неё в Нотной грамоте, Диктантах, Цифровке и Джазе.'],
+      ['🔁','<b>Интервальные повторения.</b> Ошибки чаще попадаются снова, а на главной появляется «Пора повторить».']
     ]
   },
   en:{
@@ -1330,10 +1330,10 @@ const HWT={
     untitled:'Homework',
     wnTitle:"What's new",wnOk:'Got it',
     wn:[
-      ['📝','<b>Homework.</b> A teacher builds exercises from the trainers and quizzes (Music notation, Solfege, Rhythm, Ear training, Dictations, Keys, Figured bass and more) and sends a link or QR code; the student sends back a report.'],
-      ['🎼','<b>Note reading:</b> 18 melodies in three levels, an untimed mode for little ones, rests in custom melodies, tempo from 20 BPM.'],
-      ['🧠','<b>My weak spots.</b> The app remembers mistakes in every section and shows on the home page what to work on, with a “Practise” button.'],
-      ['👤','<b>Student profiles.</b> Several people on one device each get their own progress — the 👤 button at the top.']
+      ['👏','<b>Clapping rhythms.</b> The Rhythm trainer has a new “Clap” tab: clap the rhythm and the microphone checks how steady it is.'],
+      ['🎤','<b>Singing intervals.</b> Ear training → Intervals → Sing: the lower note plays, you sing the upper one.'],
+      ['🎹','<b>MIDI keyboard.</b> Connect a keyboard to your phone and answer with it in Music notation, Dictations, Figured bass and Jazz.'],
+      ['🔁','<b>Spaced repetition.</b> Mistakes come back more often, and the home page shows “Time to review”.']
     ]
   }
 };
@@ -1524,7 +1524,7 @@ function handleIncoming(){
 }
 
 /* ── «Что нового» — один раз после обновления, только тем, кто уже пользовался приложением ── */
-const WN_KEY='musicapp_whatsnew_seen',WN_VER='st1';
+const WN_KEY='musicapp_whatsnew_seen',WN_VER='st2';
 function maybeShowWhatsNew(cameWithLink){
   if(localStorage.getItem(WN_KEY)===WN_VER)return;
   if(!localStorage.getItem(TOUR_KEY)){localStorage.setItem(WN_KEY,WN_VER);return;} // новый пользователь — ему покажут тур
@@ -1545,14 +1545,16 @@ window.addEventListener('pageshow',e=>{if(e.persisted){renderStudent();renderTea
 const WT={
   ru:{sum:(n,p,d)=>`За 7 дней: ${n} ${n%10===1&&n%100!==11?'ответ':(n%10>=2&&n%10<=4&&(n%100<12||n%100>14)?'ответа':'ответов')} · ${p}% верно · дней с занятиями: ${d}`,
       none:'✅ Слабых мест нет — так держать!',go:'🎯 Потренировать',practice:'Тренировка',
+      dueTitle:'🔁 Пора повторить',dueGo:'🔁 Повторить',review:'Повторение',
       due:(names)=>'Пора повторить термины: '+names},
   en:{sum:(n,p,d)=>`Last 7 days: ${n} answers · ${p}% correct · active days: ${d}`,
       none:'✅ No weak spots — keep it up!',go:'🎯 Practise',practice:'Practice',
+      dueTitle:'🔁 Time to review',dueGo:'🔁 Review',review:'Review',
       due:(names)=>'Time to review terms: '+names}
 };
 const DEFAULT_GOAL={notes:10,ans:10,ex:5,dict:1,pairs:6,times:1};
 // Упражнение-тренировка для группы слабых мест одного раздела (и одного вида упражнения).
-function practiceItem(group){
+function practiceItem(group,isReview){
   const base=group.slice().filter(it=>it.k).sort((a,b)=>b.ts-a.ts)[0];
   if(!base)return null;
   const labels=group.slice(0,3).map(it=>it.l);
@@ -1566,7 +1568,8 @@ function practiceItem(group){
     if(codes.length>=4){item.k='quiz';item.u='ans';item.g=Math.max(10,codes.length*2);}
     else {item.k='match';item.u='pairs';item.g=6;}
   }
-  item.n=WT[lang==='en'?'en':'ru'].practice+': '+labels.join(', ')+(group.length>3?'…':'');
+  const W0=WT[lang==='en'?'en':'ru'];
+  item.n=(isReview?W0.review:W0.practice)+': '+labels.join(', ')+(group.length>3?'…':'');
   return item;
 }
 window.renderReview=function(){
@@ -1574,21 +1577,25 @@ window.renderReview=function(){
   if(!card||!list)return;
   const W=WT[lang==='en'?'en':'ru'];
   const sm=MHW.summary(7),total=sm.r+sm.w;
-  const groups={},order=[];
-  MHW.weak(60).forEach(it=>{const key=it.m+'|'+(it.k||'');if(!groups[key]){groups[key]=[];order.push(key);}groups[key].push(it);});
-  let html='';
-  if(total)html+=`<div class="weak-sum">${W.sum(total,Math.round(sm.r/total*100),sm.days)}</div>`;
-  const rows=order.slice(0,5).map(key=>{
-    const g=groups[key],m=MHW.MODULES[g[0].m];
-    const pi=practiceItem(g);
-    const chips=g.slice(0,5).map(it=>`<b>${esc(it.l)}</b>`+(it.w>1?` <span class="weak-cnt">×${it.w}</span>`:'')).join(', ')+(g.length>5?' …':'');
+  // Группы по разделу и виду упражнения: у каждой своя кнопка тренировки.
+  const groupBy=list=>{const groups={},order=[];list.forEach(it=>{const key=it.m+'|'+(it.k||'');if(!groups[key]){groups[key]=[];order.push(key);}groups[key].push(it);});return order.map(k=>groups[k]);};
+  const rowHtml=(g,isReview)=>{
+    const m=MHW.MODULES[g[0].m];
+    const pi=practiceItem(g,isReview);
+    const chips=g.slice(0,5).map(it=>`<b>${esc(it.l)}</b>`+(!isReview&&it.w>1?` <span class="weak-cnt">×${it.w}</span>`:'')).join(', ')+(g.length>5?' …':'');
     const sub=g[0].n?esc(String(g[0].n).split(' · ').filter(x=>x!==m.ru&&x!==m.en)[0]||''):''; // вид упражнения без названия раздела
     return `<div class="weak-row"><span class="review-ico">${m.ico}</span><div class="weak-main">`+
       `<div class="weak-name">${esc(lang==='en'?m.en:m.ru)}${sub?' · '+sub:''}</div><div class="weak-items">${chips}</div></div>`+
-      (pi?`<a class="hbtn data-btn-primary weak-go" href="${esc(MHW.practiceHref(pi,'./'))}">${W.go}</a>`:'')+`</div>`;
-  });
+      (pi?`<a class="hbtn${isReview?'':' data-btn-primary'} weak-go" href="${esc(MHW.practiceHref(pi,'./'))}">${isReview?W.dueGo:W.go}</a>`:'')+`</div>`;
+  };
+  let html='';
+  if(total)html+=`<div class="weak-sum">${W.sum(total,Math.round(sm.r/total*100),sm.days)}</div>`;
+  const rows=groupBy(MHW.weak(60)).slice(0,5).map(g=>rowHtml(g,false));
   html+=rows.join('');
   if(total&&!rows.length)html+=`<div class="weak-ok">${W.none}</div>`;
+  // Интервальное повторение: то, что уже получалось, но пора проверить снова.
+  const dueRows=groupBy(MHW.due(60)).slice(0,4).map(g=>rowHtml(g,true));
+  if(dueRows.length)html+=`<div class="weak-name" style="margin:6px 0 0;">${W.dueTitle}</div>`+dueRows.join('');
   // Термины словарика, у которых подошёл срок интервального повторения.
   try{
     const srs=JSON.parse(localStorage.getItem('musicapp_glossary_srs')||'{}');

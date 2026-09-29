@@ -178,6 +178,20 @@ html,body{overscroll-behavior-y:contain;}
     .score-row{flex-wrap:wrap;}
     .score-pill{min-width:calc(50% - 6px);}
   }
+  /* Ритм хлопками */
+  .clap-tempo{display:flex;align-items:center;gap:10px;margin:0 0 14px;font-size:10px;font-weight:900;text-transform:uppercase;color:var(--color-text-muted);}
+  .clap-tempo input{flex:1;}
+  #clapTempoVal{min-width:34px;text-align:right;color:var(--color-text-primary);}
+  .clap-pad{width:100%;min-height:130px;border-radius:24px;border:2px dashed var(--color-border);background:var(--color-bg-primary);color:var(--color-text-muted);
+    display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;font-size:11px;font-weight:800;cursor:pointer;margin-bottom:12px;
+    touch-action:manipulation;user-select:none;-webkit-user-select:none;transition:transform .06s,background .1s;}
+  .clap-pad .clap-ico{font-size:40px;line-height:1;}
+  .clap-pad.hit{transform:scale(.97);background:rgba(37,99,235,.12);border-color:var(--color-blue-600);}
+  .clap-pad.live{border-style:solid;border-color:var(--color-blue-600);}
+  .clap-status{text-align:center;font-size:13px;font-weight:800;min-height:20px;margin-bottom:12px;color:var(--color-text-secondary);}
+  .clap-status.ok{color:#10b981;} .clap-status.err{color:#ef4444;}
+  .clap-mic{display:flex;align-items:center;justify-content:center;gap:8px;margin-top:12px;font-size:11px;font-weight:700;color:var(--color-text-muted);cursor:pointer;}
+  #clapDisplay .divider{pointer-events:none;}
   @keyframes musicappShake{
     10%,90%{transform:translateX(-1px);}
     20%,80%{transform:translateX(2px);}
@@ -202,6 +216,7 @@ html,body{overscroll-behavior-y:contain;}
   }
 </style>
 <script src="../hw.js"></script>
+<script src="../audio-in.js"></script>
 </head>
 <body>
 <div class="container">
@@ -236,6 +251,7 @@ html,body{overscroll-behavior-y:contain;}
     <button class="tab active" id="tab0" onclick="switchTab('group')">✏️ Сгруппируй</button>
     <button class="tab" id="tab1" onclick="switchTab('find')">🔍 Найди ошибку</button>
     <button class="tab" id="tab2" onclick="switchTab('rules')">📖 Правила</button>
+    <button class="tab" id="tab3" onclick="switchTab('clap')">👏 Прохлопай</button>
   </div>
 
   <!-- TIME SIG + DIFFICULTY -->
@@ -252,7 +268,7 @@ html,body{overscroll-behavior-y:contain;}
   </div>
 
   <!-- SCORE -->
-  <div class="score-row">
+  <div class="score-row" id="scoreRow">
     <div class="score-pill"><div class="score-val green" id="scoreOk">0</div><div class="score-label">Верно</div></div>
     <div class="score-pill"><div class="score-val red" id="scoreErr">0</div><div class="score-label">Ошибок</div></div>
     <div class="score-pill"><div class="score-val" id="scoreTot">0</div><div class="score-label">Всего</div></div>
@@ -260,6 +276,33 @@ html,body{overscroll-behavior-y:contain;}
 
   <!-- MAIN CONTENT -->
   <div id="mainContent"></div>
+
+  <!-- CLAP TAB CONTENT (ритм хлопками: микрофон или касания экрана) -->
+  <div id="clapContent" class="hidden">
+    <div class="rule-card">
+      <div class="rule-icon">👏</div>
+      <div>
+        <div class="rule-title" id="clapTitle">Прохлопай ритм</div>
+        <div class="rule-text" id="clapInfo"></div>
+      </div>
+    </div>
+    <div class="ex-box">
+      <div class="note-display" id="clapDisplay"></div>
+      <div class="clap-tempo">
+        <span id="clapTempoLbl">Темп</span>
+        <input type="range" id="clapTempo" min="40" max="120" step="5" value="70">
+        <span id="clapTempoVal">70</span>
+      </div>
+      <button class="clap-pad" id="clapPad" type="button"><span class="clap-ico">👏</span><span id="clapPadTxt">Хлопай здесь или в ладоши</span></button>
+      <div class="clap-status" id="clapStatus"></div>
+      <div class="actions">
+        <button class="action-btn secondary" id="clapListenBtn" onclick="clapListen()">🔊 <span id="clapListenTxt">Прослушать</span></button>
+        <button class="action-btn primary" id="clapStartBtn" onclick="clapStart()">▶ <span id="clapStartTxt">Старт</span></button>
+        <button class="action-btn dark" id="clapNextBtn" onclick="clapNext()"><span id="clapNextTxt">Далее →</span></button>
+      </div>
+      <label class="clap-mic"><input type="checkbox" id="clapMicChk" checked> <span id="clapMicTxt">Слушать хлопки через микрофон</span></label>
+    </div>
+  </div>
 
   <!-- RULES TAB CONTENT -->
   <div id="rulesContent" class="hidden rules-grid"></div>
@@ -273,7 +316,7 @@ const L = {
   ru: {
     title: 'Группировка длительностей',
     dark: 'Тёмная', light: 'Светлая',
-    tabs: ['✏️ Сгруппируй', '🔍 Найди ошибку', '📖 Правила'],
+    tabs: ['✏️ Сгруппируй', '🔍 Найди ошибку', '📖 Правила', '👏 Прохлопай'],
     diff: ['Лёгкий', 'Средний', 'Сложный'],
     correct: 'Верно', errors: 'Ошибок', total: 'Всего',
     reset: 'Сброс', check: 'Проверить', next: 'Далее →', hint: '💡 Подсказка',
@@ -289,7 +332,7 @@ const L = {
   en: {
     title: 'Rhythm Beaming',
     dark: 'Dark', light: 'Light',
-    tabs: ['✏️ Group', '🔍 Find Error', '📖 Rules'],
+    tabs: ['✏️ Group', '🔍 Find Error', '📖 Rules', '👏 Clap'],
     diff: ['Easy', 'Medium', 'Hard'],
     correct: 'Correct', errors: 'Errors', total: 'Total',
     reset: 'Reset', check: 'Check', next: 'Next →', hint: '💡 Hint',
@@ -312,12 +355,13 @@ function toggleLang() {
   localStorage.setItem('musicapp_lang', lang);
   document.getElementById('langText').textContent = lang === 'ru' ? 'RU' : 'EN';
   applyStaticLabels();
-  renderExercise();
+  if (currentTab === 'clap') renderClap(false); else renderExercise();
 }
 function applyStaticLabels() {
   document.getElementById('appTitle').textContent = T('title');
   document.getElementById('themeText').textContent = isDark ? T('light') : T('dark');
-  ['group','find','rules'].forEach((t,i) => document.getElementById('tab'+i).textContent = T('tabs')[i]);
+  ['group','find','rules','clap'].forEach((t,i) => document.getElementById('tab'+i).textContent = T('tabs')[i]);
+  if (typeof clapLabels === 'function') clapLabels();
   document.querySelectorAll('.sel-btn[data-diff]').forEach((b,i) => b.textContent = T('diff')[i]);
   document.querySelectorAll('.score-label').forEach((el, i) => {
     el.textContent = [T('correct'), T('errors'), T('total')][i];
@@ -596,25 +640,28 @@ const RULES = [
 // ── TABS ──────────────────────────────────────────────────────
 function switchTab(tab) {
   currentTab = tab;
-  document.querySelectorAll('.tab').forEach((b,i)=>b.classList.toggle('active',['group','find','rules'][i]===tab));
+  document.querySelectorAll('.tab').forEach((b,i)=>b.classList.toggle('active',['group','find','rules','clap'][i]===tab));
   document.getElementById('timeSigRow').style.display = tab === 'rules' ? 'none' : '';
   document.getElementById('diffRow').style.display = tab === 'rules' ? 'none' : '';
-  document.getElementById('scoreRow') && (document.getElementById('scoreRow').style.display = tab === 'rules' ? 'none' : '');
-  document.getElementById('mainContent').classList.toggle('hidden', tab === 'rules');
+  document.getElementById('scoreRow') && (document.getElementById('scoreRow').style.display = (tab === 'rules' || tab === 'clap') ? 'none' : '');
+  document.getElementById('mainContent').classList.toggle('hidden', tab === 'rules' || tab === 'clap');
   document.getElementById('rulesContent').classList.toggle('hidden', tab !== 'rules');
+  document.getElementById('clapContent').classList.toggle('hidden', tab !== 'clap');
+  if (tab !== 'clap' && typeof clapStop === 'function') clapStop();
   if (tab === 'rules') renderRules();
+  else if (tab === 'clap') renderClap(true);
   else renderExercise();
 }
 
 function setTimeSig(ts) {
   timeSig = ts;
   document.querySelectorAll('.sel-btn[data-ts]').forEach(b=>b.classList.toggle('active',b.dataset.ts===ts));
-  renderExercise();
+  if (currentTab === 'clap') renderClap(true); else renderExercise();
 }
 function setDiff(d) {
   difficulty = d;
   document.querySelectorAll('.sel-btn[data-diff]').forEach(b=>b.classList.toggle('active',+b.dataset.diff===d));
-  renderExercise();
+  if (currentTab === 'clap') renderClap(true); else renderExercise();
 }
 
 // ── NOTE SVG ──────────────────────────────────────────────────
@@ -1261,6 +1308,166 @@ renderExercise();
 setTimeout(drawBeams, 0);
 </script>
 <script>
+// ── 👏 Прохлопай: ритм хлопками ───────────────────────────────
+// Показываем ритм из тех же упражнений (размер и сложность — сверху), звучит отсчёт в один
+// такт, потом ученик хлопает в ладоши (микрофон, ../audio-in.js) или стучит по кругу.
+// Каждый хлопок сравнивается со временем ноты. Задержку звука/микрофона на конкретном
+// телефоне не угадать, поэтому общий сдвиг всех хлопков вычитаем (медиана отклонений) —
+// проверяется ровность ритма, а не миллисекунды реакции.
+const CLAP_L = {
+  ru: { title:'Прохлопай ритм', info:'Нажми «Старт»: прозвучит отсчёт в один такт, затем хлопай ритм в ладоши или стучи по кругу — в темпе отсчёта. Длинная нота — один хлопок.',
+        tempo:'Темп', pad:'Хлопай здесь или в ладоши', listen:'Прослушать', start:'Старт', again:'Ещё раз', next:'Далее →',
+        mic:'Слушать хлопки через микрофон', count:n=>'Отсчёт… '+n, go:'Хлопай!', ok:'✅ Ровно! Все доли на месте.',
+        res:(m,n,x)=>'Попал: '+m+' из '+n+(x?' · лишних хлопков: '+x:''), noMic:'Микрофон недоступен — стучи по кругу.', empty:'Нет упражнений для выбранных параметров' },
+  en: { title:'Clap the rhythm', info:'Press Start: you will hear a one-bar count-in, then clap the rhythm (or tap the circle) in that tempo. A long note is one clap.',
+        tempo:'Tempo', pad:'Tap here or clap your hands', listen:'Listen', start:'Start', again:'Again', next:'Next →',
+        mic:'Listen to claps with the microphone', count:n=>'Count-in… '+n, go:'Clap!', ok:'✅ Steady! Every beat in place.',
+        res:(m,n,x)=>'Hit: '+m+' of '+n+(x?' · extra claps: '+x:''), noMic:'Microphone unavailable — tap the circle.', empty:'No exercises for these settings' }
+};
+const CL = k => CLAP_L[lang==='en'?'en':'ru'][k];
+let clapEx = null, clapIdx = 0, clapInst = 0, clapRunning = false, clapTimers = [], clapTimes = [], clapT0 = 0, clapResult = null, clapCtx = null;
+
+function clapLabels(){
+  const set = (id, v) => { const el = document.getElementById(id); if(el) el.textContent = v; };
+  set('clapTitle', CL('title')); set('clapInfo', CL('info')); set('clapTempoLbl', CL('tempo')); set('clapPadTxt', CL('pad'));
+  set('clapListenTxt', CL('listen')); set('clapStartTxt', clapResult ? CL('again') : CL('start')); set('clapNextTxt', CL('next')); set('clapMicTxt', CL('mic'));
+}
+function clapPool(){ return VALID_EXERCISES.filter(e => e.ts === timeSig && e.diff === difficulty); }
+function renderClap(newEx){
+  const pool = clapPool();
+  const disp = document.getElementById('clapDisplay');
+  if(!pool.length){ disp.innerHTML = `<div style="color:rgba(255,255,255,.6);font-size:12px;font-weight:800;">${CL('empty')}</div>`; clapEx = null; return; }
+  if(newEx || !clapEx || !pool.includes(clapEx)){ clapIdx = clapIdx % pool.length; clapEx = pool[clapIdx]; clapResult = null; clapInst++; }
+  clapLabels();
+  clapDraw();
+  if(!clapRunning) clapStatus('', '');
+}
+// Нотная строка: та же отрисовка, что в «Сгруппируй», с правильными рёбрами и цветом попаданий.
+function clapDraw(){
+  if(!clapEx) return;
+  const notes = clapEx.notes, beams = computeCorrectBeams(notes, clapEx.ts), bl = beatLen(clapEx.ts);
+  const bb = new Set(); let pos = 0;
+  for(let i=0;i<notes.length-1;i++){ pos += DUR_VAL[notes[i]]; if(Math.abs(pos % bl) < 0.001 || Math.abs(pos % bl - bl) < 0.001) bb.add(i); }
+  const res = clapResult ? clapResult.states : null;
+  const html = buildNoteRow(notes, beams, beams, res, noteColor(), bb, false, clapEx.ts)
+    .replace('id="noteRowWrap"', 'class="clap-row"').replace('id="beamOverlayPlaceholder"', 'class="clap-beams"');
+  const disp = document.getElementById('clapDisplay');
+  disp.innerHTML = `<div class="note-outer"><div style="display:inline-block;">${html}</div></div>`;
+  setTimeout(() => clapDrawBeams(disp), 0);
+}
+function clapDrawBeams(root){
+  const ph = root.querySelector('.clap-beams'), wrap = root.querySelector('.clap-row');
+  if(!ph || !wrap) return;
+  const groups = JSON.parse(ph.dataset.groups || '[]'), notes = JSON.parse(ph.dataset.notes || '[]');
+  const cells = wrap.querySelectorAll('.note-cell'), wr = wrap.getBoundingClientRect(), nc = noteColor();
+  wrap.style.position = 'relative';
+  const bar = (a, b, y) => {
+    if(!cells[a] || !cells[b]) return;
+    const x1 = cells[a].getBoundingClientRect().left - wr.left + 32, x2 = cells[b].getBoundingClientRect().left - wr.left + 32;
+    const d = document.createElement('div');
+    d.style.cssText = `position:absolute;left:${x1}px;top:${y}px;width:${x2-x1}px;height:6px;background:${nc};border-radius:2px;pointer-events:none;`;
+    wrap.appendChild(d);
+  };
+  groups.forEach(([st, en]) => {
+    bar(st, en, 27);
+    let sc = -1;
+    for(let k = st; k <= en + 1; k++){
+      const isS = k <= en && notes[k] === 's';
+      if(isS){ if(sc === -1) sc = k; } else { if(sc !== -1 && sc < k - 1) bar(sc, k - 1, 35); sc = -1; }
+    }
+  });
+}
+function clapStatus(text, cls){ const el = document.getElementById('clapStatus'); el.textContent = text; el.className = 'clap-status' + (cls ? ' ' + cls : ''); }
+function clapAudio(){
+  if(!clapCtx){ try{ clapCtx = new (window.AudioContext || window.webkitAudioContext)(); }catch(e){ return null; } }
+  if(clapCtx.state === 'suspended' && clapCtx.resume) clapCtx.resume();
+  return clapCtx;
+}
+function clapBeep(at, strong, freq){
+  const ctx = clapAudio(); if(!ctx) return;
+  const t = ctx.currentTime + Math.max(0, at) / 1000;
+  const o = ctx.createOscillator(), g = ctx.createGain();
+  o.type = 'square'; o.frequency.value = freq || (strong ? 1320 : 880);
+  o.connect(g); g.connect(ctx.destination);
+  g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(strong ? 0.25 : 0.15, t + 0.005); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.06);
+  o.start(t); o.stop(t + 0.08);
+}
+const clapBeatMs = () => 60000 / (+document.getElementById('clapTempo').value || 70); // четверть
+function clapOnsetsMs(){ let pos = 0; return clapEx.notes.map(d => { const t = pos; pos += DUR_VAL[d]; return t * clapBeatMs(); }); }
+function clapClear(){ clapTimers.forEach(clearTimeout); clapTimers = []; }
+function clapStop(){
+  clapClear();
+  clapRunning = false;
+  if(window.AIN) AIN.mic.stop();
+  const pad = document.getElementById('clapPad'); if(pad) pad.classList.remove('live');
+}
+function clapListen(){
+  if(!clapEx || clapRunning) return;
+  clapOnsetsMs().forEach((t, i) => clapBeep(t + 150, i === 0, 660));
+}
+function clapHit(t){
+  if(!clapRunning) return;
+  if(t < clapT0 - 150) return; // щелчки отсчёта и эхо до начала ритма не считаем
+  clapTimes.push(t);
+  const pad = document.getElementById('clapPad'); pad.classList.add('hit'); setTimeout(() => pad.classList.remove('hit'), 90);
+}
+function clapStart(){
+  if(!clapEx) return;
+  clapStop();
+  clapResult = null; clapDraw(); clapLabels();
+  const beat = clapBeatMs(), bl = beatLen(clapEx.ts), bpb = beatsPerBar(clapEx.ts);
+  const countStep = beat * bl, lead = 300;
+  const expected = clapOnsetsMs();
+  const total = clapEx.notes.reduce((a, d) => a + DUR_VAL[d], 0) * beat;
+  clapTimes = []; clapRunning = true;
+  const now = performance.now();
+  clapT0 = now + lead + bpb * countStep;
+  for(let i = 0; i < bpb; i++){
+    clapBeep(lead + i * countStep, i === 0);
+    clapTimers.push(setTimeout(() => clapStatus(CL('count')(bpb - i), ''), lead + i * countStep));
+  }
+  clapTimers.push(setTimeout(() => { clapStatus(CL('go'), ''); document.getElementById('clapPad').classList.add('live'); }, clapT0 - now));
+  const useMic = document.getElementById('clapMicChk').checked && window.AIN;
+  if(useMic) AIN.mic.start({ onOnset: t => clapHit(t) }).then(ok => { if(!ok && clapRunning) clapStatus(CL('noMic'), ''); });
+  const shortest = Math.min.apply(null, clapEx.notes.map(d => DUR_VAL[d])) * beat;
+  clapTimers.push(setTimeout(() => clapFinish(expected, shortest), clapT0 - now + total + Math.max(400, beat * 0.6)));
+}
+function clapFinish(expected, shortest){
+  const hits = clapTimes.map(t => t - clapT0);
+  clapStop();
+  // Общий сдвиг (задержка динамика/микрофона/реакции): медиана отклонений до ближайшего хлопка.
+  const devs = expected.map(e => { let best = null; hits.forEach(h => { if(Math.abs(h - e) < 300 && (best === null || Math.abs(h - e) < Math.abs(best))) best = h - e; }); return best; }).filter(x => x !== null).sort((a, b) => a - b);
+  const offset = devs.length ? Math.max(-200, Math.min(250, devs[Math.floor(devs.length / 2)])) : 0;
+  const tol = Math.max(70, Math.min(140, shortest * 0.4));
+  const used = new Array(hits.length).fill(false);
+  const states = {}; let matched = 0;
+  expected.forEach((e, i) => {
+    let bi = -1, bd = Infinity;
+    hits.forEach((h, j) => { if(used[j]) return; const d = Math.abs(h - offset - e); if(d <= tol && d < bd){ bd = d; bi = j; } });
+    if(bi >= 0){ used[bi] = true; matched++; states[i] = 'correct'; } else states[i] = 'wrong';
+  });
+  const extra = used.filter(u => !u).length;
+  const ok = matched === expected.length && extra === 0;
+  clapResult = { states, ok, matched, total: expected.length, extra, pct: Math.round(matched / (expected.length + extra) * 100) };
+  clapDraw(); clapLabels();
+  if(ok) clapStatus(CL('ok'), 'ok'); else clapStatus(CL('res')(matched, expected.length, extra), 'err');
+  if(typeof answerFeedback === 'function') answerFeedback(ok, document.getElementById('clapDisplay'));
+  clapReport(clapResult, clapEx, clapInst);
+}
+// Точка для статистики и заданий (см. блок «Домашнее задание и статистика» ниже).
+function clapReport(result, ex, inst){}
+function clapNext(){ clapStop(); clapIdx++; renderClap(true); }
+(function(){
+  const pad = document.getElementById('clapPad');
+  pad.addEventListener('pointerdown', e => { e.preventDefault(); clapHit(performance.now()); });
+  const tempo = document.getElementById('clapTempo');
+  try { const saved = +localStorage.getItem('musicapp_clap_tempo'); if(saved >= 40 && saved <= 120) tempo.value = saved; } catch(e) {}
+  document.getElementById('clapTempoVal').textContent = tempo.value;
+  tempo.addEventListener('input', () => { document.getElementById('clapTempoVal').textContent = tempo.value; try{ localStorage.setItem('musicapp_clap_tempo', tempo.value); }catch(e){} });
+  clapLabels();
+})();
+</script>
+<script>
 // ── Домашнее задание и статистика (см. ../hw.js) ─────────────
 // Каждый ответ пишется в общую статистику («Мои слабые места» на главной).
 // Учитель: «➕ В задание» сохраняет режим (Сгруппируй / Найди ошибку), размер и сложность.
@@ -1272,15 +1479,20 @@ setTimeout(drawBeams, 0);
   const en = () => lang === 'en';
   const modName = () => MHW.MODULES[MOD][en() ? 'en' : 'ru'];
   const curTab = () => currentTab === 'rules' ? 'group' : currentTab;
+  const TAB_BTN = { group:'tab0', find:'tab1', clap:'tab3' };
   const cfg = () => {
     const tab = curTab();
-    const tabBtn = document.getElementById(tab==='find' ? 'tab1' : 'tab0');
+    const tabBtn = document.getElementById(TAB_BTN[tab] || 'tab0');
     const diffBtn = document.querySelector('.sel-btn[data-diff="'+difficulty+'"]');
-    const n = [modName(), tabBtn.textContent.replace(/^\S+\s/,'').trim(), timeSig, diffBtn ? diffBtn.textContent.trim() : ''].filter(Boolean).join(' · ');
-    return { k: tab, u: 'ex', n, p: { ts: timeSig, df: difficulty } };
+    const tempo = +document.getElementById('clapTempo').value;
+    const n = [modName(), tabBtn.textContent.replace(/^\S+\s/,'').trim(), timeSig, diffBtn ? diffBtn.textContent.trim() : '',
+      tab === 'clap' ? tempo + ' BPM' : ''].filter(Boolean).join(' · ');
+    const p = { ts: timeSig, df: difficulty };
+    if(tab === 'clap') p.tp = tempo;
+    return { k: tab, u: 'ex', n, p };
   };
-  // Подпись для статистики — что именно тренируется: группировка/поиск ошибки в размере.
-  const statLabel = (ex) => (curTab()==='find' ? (en() ? 'Find the error ' : 'Найди ошибку ') : (en() ? 'Beaming ' : 'Группировка ')) + ex.ts;
+  // Подпись для статистики — что именно тренируется: группировка/поиск ошибки/хлопки в размере.
+  const statLabel = (ex) => ({ find: en() ? 'Find the error ' : 'Найди ошибку ', clap: en() ? 'Clapping ' : 'Хлопки ' }[curTab()] || (en() ? 'Beaming ' : 'Группировка ')) + ex.ts;
 
   let inst = 0; // номер показанного упражнения (одно и то же упражнение может выпасть снова)
   const origRender = window.renderExercise;
@@ -1324,18 +1536,30 @@ setTimeout(drawBeams, 0);
     return r;
   };
 
+  const origClap = window.clapReport;
+  window.clapReport = function(res, ex, cinst){
+    const r = origClap.apply(this, arguments);
+    const key = 'clap' + cinst;
+    if(res.ok) tr.right(key, statLabel(ex));
+    else tr.wrong(key, statLabel(ex), null, ex.ts + ': ' + (en() ? 'hit ' : 'попал ') + res.matched + '/' + res.total + (res.extra ? (en() ? ', extra ' : ', лишних ') + res.extra : ''));
+    return r;
+  };
+
   const tk = MHW.task(MOD);
   if(!tk) return;
   add.row.style.display = 'none';
   const p = tk.item.p || {};
-  const tab = tk.item.k === 'find' ? 'find' : 'group';
+  const tab = ['find','clap'].includes(tk.item.k) ? tk.item.k : 'group';
+  if(tab === 'clap' && p.tp >= 40 && p.tp <= 120){
+    const tEl = document.getElementById('clapTempo'); tEl.value = p.tp; document.getElementById('clapTempoVal').textContent = p.tp;
+  }
   const ts = ['2/4','3/4','4/4','6/8'].includes(p.ts) ? p.ts : '2/4';
   const df = [1,2,3].includes(p.df) ? p.df : 1;
   timeSig = ts; difficulty = df;
   document.querySelectorAll('.sel-btn[data-ts]').forEach(b=>b.classList.toggle('active',b.dataset.ts===ts));
   document.querySelectorAll('.sel-btn[data-diff]').forEach(b=>b.classList.toggle('active',+b.dataset.diff===df));
   switchTab(tab);
-  MHW.lock(['.tabs', '#timeSigRow', '#diffRow', '[onclick="showHintBeams()"]', '.mhw-addrow']);
+  MHW.lock(['.tabs', '#timeSigRow', '#diffRow', '[onclick="showHintBeams()"]', '.clap-tempo', '.mhw-addrow']);
   MHW.mountBar(document.querySelector('.container'), '../index.html');
 })();
 </script><script>

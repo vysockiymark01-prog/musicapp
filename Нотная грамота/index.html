@@ -1460,6 +1460,7 @@ html,body{overscroll-behavior-y:contain;}
         .postr-keysig-opt.wrong { background: #dc2626; color: #fff; border-color: #b91c1c; }
     </style>
 <script src="../hw.js"></script>
+<script src="../audio-in.js"></script>
 </head>
 <body>
     <div class="container">
@@ -3154,6 +3155,14 @@ html,body{overscroll-behavior-y:contain;}
             if (useCustomNoteSet && customNoteSet.size > 0) {
                 const filtered = candidates.filter(c => customNoteSet.has(c.note + c.octave));
                 if (filtered.length > 0) candidates = filtered;
+            }
+            // Интервальное повторение: примерно каждая третья нота — из тех, на которых ученик
+            // ошибался или которые пора повторить (см. «Мои слабые места» на главной). В задании
+            // учителя пул не трогаем — там свои условия.
+            if (!hwTask && window.MHW && Math.random() < 0.35) {
+                const fc = MHW.focus('notation').codes;
+                const f = candidates.filter(c => fc.has(c.note + c.octave));
+                if (f.length) candidates = f;
             }
             testNote = candidates[Math.floor(Math.random() * candidates.length)];
             showHint = false;
@@ -5443,7 +5452,26 @@ html,body{overscroll-behavior-y:contain;}
             });
             generateExercise();
         }
-    </script><script>
+    </script>
+<script>
+// ── 🎹 MIDI-клавиатура (../audio-in.js) ─────────────────────────
+// «Теория» (тест и просмотр), «Композитор», редактор своих мелодий — как нажатие клавиши на
+// экранном пианино. «Чтение» — нота мелодии засчитывается, как если бы её услышал микрофон.
+(function(){
+  if(!window.AIN) return;
+  AIN.midi.button(document.querySelector('.container'), document.querySelector('.tabs'), ev => {
+    if(activeTab === 'reading' && readingRunning && !readingEditorOpen){
+      playFrequency(ev.note, ev.octave);
+      const t = readingCurrentNote();
+      if(t && t.note === ev.note && t.octave === ev.octave) readingRegisterResult(true);
+      return;
+    }
+    if(activeTab === 'theory' || activeTab === 'composer' || (activeTab === 'reading' && readingEditorOpen)) handleNoteClick(ev.note, ev.octave);
+    else playFrequency(ev.note, ev.octave);
+  });
+})();
+</script>
+<script>
 /* Клавиатурная доступность: элементы с onclick (не <button>/<a>/полям форм)
    становятся фокусируемыми и активируются Enter/Space — включая те,
    что добавляются в DOM динамически (пианино, варианты викторин и т.п.). */

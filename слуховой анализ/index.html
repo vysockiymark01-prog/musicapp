@@ -238,6 +238,7 @@ html,body{overscroll-behavior-y:contain;}
 }
 </style>
 <script src="../hw.js"></script>
+<script src="../audio-in.js"></script>
 </head>
 <body>
 <div class="container">
@@ -2546,6 +2547,137 @@ function printResult(){ window.print(); }
 })();
 </script>
 <script>
+// ── 🎤 Спой интервал (вкладка «Интервалы») ─────────────────────
+// Звучит нижняя нота, ученик поёт верхнюю ноту названного интервала; высоту слушает
+// микрофон (../audio-in.js). Октава голоса не важна — мальчики, девочки и взрослые поют
+// в разных регистрах, поэтому сравниваем звук с нужной нотой с точностью до октавы.
+const SING_L = {
+  ru: { pick:'👆 Выбрать ответ', sing:'🎤 Спеть', task:(n)=>'Спой вверх: <b>'+n+'</b>', root:'🔊 Нижняя нота', mic:'🎤 Слушать меня', micOn:'🎤 Слушаю…',
+        hint:'💡 Верхняя нота', skip:'Следующий', idle:'Нажми «Слушать меня» и пой верхнюю ноту', hear:'Слышу', ok:(n)=>'✓ Верно! '+n, wrong:'Не та нота — попробуй ещё',
+        noMic:'Микрофон недоступен', suffix:' — пение' },
+  en: { pick:'👆 Choose answer', sing:'🎤 Sing', task:(n)=>'Sing up: <b>'+n+'</b>', root:'🔊 Lower note', mic:'🎤 Listen to me', micOn:'🎤 Listening…',
+        hint:'💡 Upper note', skip:'Next', idle:'Press “Listen to me” and sing the upper note', hear:'Hearing', ok:(n)=>'✓ Correct! '+n, wrong:'Not that note — try again',
+        noMic:'Microphone unavailable', suffix:' — singing' }
+};
+const SL = k => SING_L[lang==='en'?'en':'ru'][k];
+let singMode = false, singQ = null, singN = 0, singMissed = false, singHold = 0, singWrongHold = 0, singWrongPc = null, singCool = 0, singMicOn = false;
+const SING_NOTE_RU = ['до','до#','ре','ре#','ми','фа','фа#','соль','соль#','ля','ля#','си'];
+const SING_NOTE_EN = ['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
+function singNoteName(m){ const pc = ((Math.round(m) % 12) + 12) % 12; return (lang==='en' ? SING_NOTE_EN : SING_NOTE_RU)[pc]; }
+function singIvName(iv){ return lang==='ru' ? iv.ruFull : iv.enFull; }
+function singInit(){
+  const cont = document.getElementById('intervalsContent');
+  const panel = cont.querySelector('.play-panel');
+  const tabs = document.createElement('div');
+  tabs.className = 'sub-tabs'; tabs.id = 'iModeTabs';
+  tabs.innerHTML = `<button class="sub-tab active" id="iModePick" type="button"></button><button class="sub-tab" id="iModeSing" type="button"></button>`;
+  panel.parentNode.insertBefore(tabs, panel);
+  const sp = document.createElement('div');
+  sp.id = 'iSingPanel'; sp.className = 'hidden';
+  sp.innerHTML = `<div class="play-panel"><div class="play-label" id="iSingTask"></div><div class="play-answer" id="iSingDet" style="font-size:18px;">—</div></div>
+    <div class="btn-row"><button class="btn btn-secondary" id="iSingRootBtn" type="button"></button><button class="btn btn-primary" id="iSingMicBtn" type="button"></button></div>
+    <div class="btn-row"><button class="btn btn-secondary" id="iSingHintBtn" type="button"></button><button class="btn btn-secondary" id="iSingNextBtn" type="button"></button></div>
+    <div class="status-bar" id="iSingStatus"></div>`;
+  panel.parentNode.insertBefore(sp, panel.nextSibling);
+  document.getElementById('iModePick').addEventListener('click', () => setSingMode(false));
+  document.getElementById('iModeSing').addEventListener('click', () => setSingMode(true));
+  document.getElementById('iSingRootBtn').addEventListener('click', () => singPlay(false));
+  document.getElementById('iSingHintBtn').addEventListener('click', () => singPlay(true));
+  document.getElementById('iSingNextBtn').addEventListener('click', () => singNew());
+  document.getElementById('iSingMicBtn').addEventListener('click', singToggleMic);
+  document.getElementById('langBtn').addEventListener('click', () => setTimeout(singLabels, 0));
+  singLabels();
+}
+function singLabels(){
+  const set = (id, v, html) => { const el = document.getElementById(id); if(!el) return; if(html) el.innerHTML = v; else el.textContent = v; };
+  set('iModePick', SL('pick')); set('iModeSing', SL('sing')); set('iSingRootBtn', SL('root'));
+  set('iSingMicBtn', singMicOn ? SL('micOn') : SL('mic')); set('iSingHintBtn', SL('hint')); set('iSingNextBtn', SL('skip'));
+  if(singQ) set('iSingTask', SL('task')(singIvName(singQ.iv)), true);
+}
+function setSingMode(on){
+  singMode = !!on;
+  document.getElementById('iModePick').classList.toggle('active', !singMode);
+  document.getElementById('iModeSing').classList.toggle('active', singMode);
+  const cont = document.getElementById('intervalsContent');
+  ['iListenBtn','iAnswerGrid','iStatus'].forEach(id => { const el = document.getElementById(id); if(el) el.style.display = singMode ? 'none' : ''; });
+  const bRow = document.getElementById('iHintBtn').closest('.btn-row'); if(bRow) bRow.style.display = singMode ? 'none' : '';
+  cont.querySelector('.play-panel').style.display = singMode ? 'none' : '';
+  document.getElementById('iSingPanel').classList.toggle('hidden', !singMode);
+  if(singMode){ singNew(); } else singStopMic();
+}
+function singNew(){
+  iNewQuestion();
+  const iv = iCurrent;
+  const root = getRootMidi(iRoot);
+  singQ = { iv, root, target: root + iv.semi };
+  singN++; singMissed = false; singHold = 0; singWrongHold = 0; singWrongPc = null;
+  document.getElementById('iSingDet').textContent = '—';
+  document.getElementById('iSingDet').className = 'play-answer';
+  singStatus(singMicOn ? '' : SL('idle'));
+  singLabels();
+  setTimeout(() => singPlay(false), 250);
+}
+function singPlay(both){
+  if(!singQ) return;
+  const ctx = getCtx(), now = ctx.currentTime + 0.05;
+  playTone(singQ.root, now, 0.9);
+  if(both) playTone(singQ.target, now + 1.0, 0.9);
+  singCool = performance.now() + (both ? 2200 : 1100); // пока играет подсказка — микрофон не слушаем
+}
+function singStatus(t){ document.getElementById('iSingStatus').textContent = t || ''; }
+function singToggleMic(){ if(singMicOn) singStopMic(); else singStartMic(); }
+function singStartMic(){
+  if(!window.AIN) return;
+  AIN.mic.start({ onPitch: singPitch }).then(ok => {
+    singMicOn = ok; singLabels();
+    singStatus(ok ? '' : SL('noMic'));
+  });
+}
+function singStopMic(){ if(window.AIN) AIN.mic.stop(); singMicOn = false; singLabels(); }
+function singPitch(f){
+  if(!singMode || !singQ || activeTab !== 'intervals' || performance.now() < singCool) return;
+  const det = document.getElementById('iSingDet');
+  if(!f){ singHold = Math.max(0, singHold - 1); return; }
+  const m = AIN.freqToMidi(f);
+  let cents = ((m - singQ.target) * 100) % 1200; // с точностью до октавы
+  if(cents > 600) cents -= 1200; if(cents < -600) cents += 1200;
+  det.textContent = SL('hear') + ': ' + singNoteName(m) + (Math.abs(cents) <= 100 ? '  ' + (cents >= 0 ? '+' : '') + Math.round(cents) + '¢' : '');
+  if(Math.abs(cents) <= 45){
+    det.className = 'play-answer correct';
+    singHold++; singWrongHold = 0;
+    if(singHold >= 12) singCorrect();
+  } else {
+    det.className = 'play-answer';
+    singHold = Math.max(0, singHold - 2);
+    const pc = ((Math.round(m) % 12) + 12) % 12;
+    if(pc === singWrongPc) singWrongHold++; else { singWrongPc = pc; singWrongHold = 1; }
+    if(singWrongHold >= 55){ singWrongHold = 0; singWrong(); } // ~1 с уверенно не та нота
+  }
+}
+function singCorrect(){
+  const q = singQ; singQ = null;
+  iCorrect++; document.getElementById('iCorrect').textContent = iCorrect;
+  showFeedback(T[lang].correct, true);
+  singStatus(SL('ok')(singIvName(q.iv)));
+  const ctx = getCtx(), now = ctx.currentTime + 0.05;
+  playTone(q.root, now, 0.9); playTone(q.target, now, 0.9);
+  singCool = performance.now() + 1600;
+  singReport(true, q.iv, singN);
+  setTimeout(() => { if(singMode) singNew(); }, 1600);
+}
+function singWrong(){
+  if(!singQ) return;
+  iWrong++; document.getElementById('iWrong').textContent = iWrong;
+  showFeedback(T[lang].wrong, false);
+  singStatus(SL('wrong'));
+  singCool = performance.now() + 800;
+  singReport(false, singQ.iv, singN);
+}
+// Точка для статистики и заданий (см. блок «Домашнее задание и статистика» ниже).
+function singReport(ok, iv, n){}
+document.addEventListener('DOMContentLoaded', singInit);
+</script>
+<script>
 // ── Домашнее задание и статистика (см. ../hw.js) ─────────────
 // Каждый ответ пишется в общую статистику («Мои слабые места» на главной).
 // Учитель: «➕ В задание» сохраняет текущую вкладку и все её настройки (уровень, звучание,
@@ -2577,18 +2709,35 @@ function printResult(){ window.print(); }
     const p = {};
     c.sel.forEach(id => { const s=document.getElementById(id); if(s) p[id]=s.value; });
     const tabBtn = document.querySelector('.tab[data-tab="'+tab+'"]');
-    const n = [modName(), tabBtn ? tabBtn.textContent.trim() : tab].concat(c.sel.map(optText)).filter(Boolean).join(' · ');
+    const parts = [modName(), tabBtn ? tabBtn.textContent.trim() : tab];
+    if(tab === 'intervals' && singMode){ p.iSing = '1'; parts.push(SL('sing').replace(/^\S+\s/,'')); }
+    const n = parts.concat(c.sel.map(optText)).filter(Boolean).join(' · ');
     return { k: tab, u: 'ans', n, p };
   };
 
   // Номер вопроса в каждой вкладке — один и тот же интервал может выпасть два раза подряд,
   // а ошибка должна считаться отдельно для каждого вопроса.
   const qn = {};
+  // Интервальное повторение: примерно каждый третий вопрос — из того, что ученик путал или
+  // пора повторить (кроме заданий учителя). Подменяем текущий вопрос сразу после генерации:
+  // варианты ответа от этого не меняются, а звук играется только по кнопке «Слушать».
+  const SET_CUR = { intervals:x=>{iCurrent=x;}, chords:x=>{cCurrent=x;}, resolution:x=>{rCurrent=x;}, modes:x=>{mCurrent=x;}, scales:x=>{seCurrent=x;} };
+  const POOL = { intervals:()=>iGetPool(), chords:()=>cGetPool(), resolution:()=>rGetPool(), modes:()=>mGetPool(), scales:()=>seGetPool() };
+  let inTask = false, focusRate = 0.35; // в тренировке слабых мест с главной — чаще
   Object.keys(TABS).forEach(tab => {
     const c = TABS[tab]; if(!c.nq) return;
     qn[tab] = 0;
     const orig = window[c.nq];
-    window[c.nq] = function(){ qn[tab]++; return orig.apply(this, arguments); };
+    window[c.nq] = function(){
+      qn[tab]++;
+      const r = orig.apply(this, arguments);
+      if(!inTask && Math.random() < focusRate){
+        const fl = MHW.focus(MOD).labels;
+        const f = fl.size ? POOL[tab]().filter(x => x && fl.has(c.name(x))) : [];
+        if(f.length) SET_CUR[tab](f[Math.floor(Math.random()*f.length)]);
+      }
+      return r;
+    };
   });
 
   const add = MHW.addButton(document.querySelector('.container'), document.getElementById('intervalsContent'), async () => {
@@ -2634,13 +2783,24 @@ function printResult(){ window.print(); }
     };
   });
 
+  // Пение интервалов: подпись отличается (« — пение»), чтобы в «Моих слабых местах» не
+  // смешивать «не узнаю на слух» и «не могу спеть».
+  const origSing = window.singReport;
+  window.singReport = function(ok, iv, n){
+    const r = origSing.apply(this, arguments);
+    const lbl = TABS.intervals.name(iv) + SL('suffix');
+    if(ok) trackers.intervals.right('sing' + n, lbl); else trackers.intervals.wrong('sing' + n, lbl);
+    return r;
+  };
+
   const tk = MHW.task(MOD);
   if(!tk) return;
+  if(tk.practice) focusRate = 0.7; else inTask = true;
   add.row.style.display = 'none';
   const tab = TABS[tk.item.k] ? tk.item.k : 'intervals';
   const c = TABS[tab], p = tk.item.p || {};
   MHW.lock(['.tabs', '.settings-row', '.card:has(> .settings-row)', '.sub-tabs', '#assignBtn', '#shareResultBtn', '#assignBanner',
-            '#iHintBtn', '#cHintBtn', '#chHintBtn', '#rHintBtn', '#mHintBtn', '#seHintBtn', '.mhw-addrow']);
+            '#iHintBtn', '#cHintBtn', '#chHintBtn', '#rHintBtn', '#mHintBtn', '#seHintBtn', '#iSingHintBtn', '.mhw-addrow']);
   MHW.mountBar(document.querySelector('.container'), '../index.html');
   document.addEventListener('DOMContentLoaded', () => {
     c.sel.forEach(id => {
@@ -2652,6 +2812,7 @@ function printResult(){ window.print(); }
       }
     });
     saSwitchTab(tab);
+    if(tab === 'intervals' && p.iSing === '1') setSingMode(true);
   });
 })();
 </script>
