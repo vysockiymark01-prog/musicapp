@@ -1757,15 +1757,18 @@ renderCards();
 })();
 </script>
 <script>
-// ── Домашнее задание (см. ../hw.js) ──────────────────────────
-// Учитель: во вкладке «Задания» «➕ В задание» сохраняет вид упражнения. Ученик (?hwx=N):
-// переключатели и подсказки скрыты. В «Аккорде», «Цепочках», «На слух», «Стиле» и
-// «Цифровке» можно исправлять ответ — «верно», если с первой попытки; в «Вопросах» одна
-// попытка на вопрос, засчитывается каждый ответ.
+// ── Домашнее задание и статистика (см. ../hw.js) ─────────────
+// Каждый ответ пишется в общую статистику («Мои слабые места» на главной).
+// Учитель: во вкладке «Задания» «➕ В задание» сохраняет вид упражнения. Ученик (?hwx=N
+// или тренировка ?px=…): переключатели и подсказки скрыты. В «Аккорде», «Цепочках»,
+// «На слух», «Стиле» и «Цифровке» можно исправлять ответ — «верно», если с первой
+// попытки; в «Вопросах» одна попытка на вопрос, засчитывается каждый ответ.
 (function(){
   if(!window.MHW) return;
-  const modName = () => MHW.MODULES.jazz[lang==='en'?'en':'ru'];
+  const MOD = 'jazz';
+  const modName = () => MHW.MODULES[MOD][lang==='en'?'en':'ru'];
   const exLabel = id => { const d = EX_TABS_DEF.find(x=>x.id===id); return d ? (d.label[lang]||d.label.ru).replace(/^\S+\s/,'') : id; };
+  const cfgFor = k => ({ k, u: k==='quiz' ? 'ans' : 'ex', n: [modName(), exLabel(k)].join(' · '), p: {} });
   const add = MHW.addButton(document.getElementById('exercisesSection'), document.getElementById('exContent'), async () => {
     const isQuiz = activeEx === 'quiz';
     const g = await MHW.askGoal({
@@ -1774,52 +1777,54 @@ renderCards();
       options: [5, 10, 15, 20]
     });
     if(!g) return;
-    MHW.addFromModule({ m:'jazz', k:activeEx, u: isQuiz ? 'ans' : 'ex', g, n:[modName(), exLabel(activeEx)].join(' · '), p:{} }, '../index.html');
+    MHW.addFromModule(Object.assign({ m: MOD, g }, cfgFor(activeEx)), '../index.html');
   });
   document.getElementById('langBtn').addEventListener('click', () => setTimeout(add.relabel, 0));
 
-  const tk = MHW.task('jazz');
-  if(!tk) return;
-  const k = EX_TABS_DEF.some(x=>x.id===tk.item.k) ? tk.item.k : 'build';
-  showMainTab('exercises');
-  switchEx(k);
-  add.row.style.display = 'none';
-  MHW.lock(['#mtStyles', '#mtExercises', '#exTabsRow', '.hint-btn']);
-  MHW.mountBar(document.querySelector('.wrap'), '../index.html');
-
-  const tr = MHW.tracker();
-  const CUR = {
-    build:    () => buildEx,
-    chains:   () => chainsEx,
-    ear:      () => earEx,
-    style:    () => styleIdEx,
-    notation: () => notationEx
-  };
+  // Перехват ответов — всегда (статистика); в задании ещё и прогресс.
+  const CUR = { build:()=>buildEx, chains:()=>chainsEx, ear:()=>earEx, style:()=>styleIdEx, notation:()=>notationEx };
   const LABEL = {
-    build:    ex => ex.rootNote + ex.chord.label + ' — ' + (ex.chord.desc[lang] || ex.chord.desc.ru),
+    build:    ex => ex.chord.label + ' — ' + (ex.chord.desc[lang] || ex.chord.desc.ru),
     chains:   ex => ex.correctLabel,
     ear:      ex => ex.chord.label + ' — ' + (ex.chord.desc[lang] || ex.chord.desc.ru),
-    style:    ex => { const s = ex.style; return (s.name && (s.name[lang] || s.name.ru)) || s.title && (s.title[lang] || s.title.ru) || s.id; },
+    style:    ex => { const s = ex.style; return (s.name && (s.name[lang] || s.name.ru)) || s.id; },
     notation: ex => ex.chords.map(c=>c.label).join(' – ')
   };
+  const MIS = { build: ex => ex.rootNote + LABEL.build(ex) };
   const CHECK = { build:'checkBuild', chains:'checkChains', ear:'checkEar', style:'checkStyleId', notation:'checkNotation', quiz:'quizPick' };
   // Результат проверки берём из answerFeedback(ok, …), который вызывает каждая проверка.
   let lastOk = null;
   const origFb = window.answerFeedback;
   window.answerFeedback = function(ok){ lastOk = !!ok; return origFb.apply(this, arguments); };
-  const orig = window[CHECK[k]];
-  window[CHECK[k]] = function(){
-    lastOk = null;
-    let ex = null, q = '';
-    if(k === 'quiz'){ if(quizAnswered || !quizShuffled) return orig.apply(this, arguments); q = quizShuffled.q.q[lang] || quizShuffled.q.q.ru; }
-    else ex = CUR[k]();
-    const r = orig.apply(this, arguments);
-    if(lastOk === null) return r; // проверка не состоялась
-    if(k === 'quiz') MHW.update(lastOk ? { done:1, ok:1 } : { done:1, bad:1, mis:[q + ' → ' + quizShuffled.opts[quizShuffled.ans]] });
-    else if(lastOk) tr.right(ex);
-    else tr.wrong(ex, (() => { try { return LABEL[k](ex); } catch(e){ return ''; } })());
-    return r;
-  };
+  const safe = f => { try { return f(); } catch(e) { return ''; } };
+  Object.keys(CHECK).forEach(k => {
+    const tr = k === 'quiz' ? null : MHW.tracker(MOD, () => cfgFor(k));
+    const ans = k === 'quiz' ? MHW.answer(MOD, () => cfgFor(k)) : null;
+    const orig = window[CHECK[k]];
+    window[CHECK[k]] = function(){
+      lastOk = null;
+      let ex = null, q = '';
+      if(k === 'quiz'){ if(quizAnswered || !quizShuffled) return orig.apply(this, arguments); q = quizShuffled.q.q[lang] || quizShuffled.q.q.ru; }
+      else ex = CUR[k]();
+      const r = orig.apply(this, arguments);
+      if(lastOk === null) return r; // проверка не состоялась
+      if(k === 'quiz') ans(lastOk, q, { mis: q + ' → ' + quizShuffled.opts[quizShuffled.ans] });
+      else if(ex){
+        const lbl = safe(() => LABEL[k](ex));
+        if(lastOk) tr.right(ex, lbl);
+        else tr.wrong(ex, lbl, null, MIS[k] ? safe(() => MIS[k](ex)) : lbl);
+      }
+      return r;
+    };
+  });
+
+  const tk = MHW.task(MOD);
+  if(!tk) return;
+  const k = EX_TABS_DEF.some(x=>x.id===tk.item.k) ? tk.item.k : 'build';
+  showMainTab('exercises');
+  switchEx(k);
+  MHW.lock(['#mtStyles', '#mtExercises', '#exTabsRow', '.hint-btn', '.mhw-addrow']);
+  MHW.mountBar(document.querySelector('.wrap'), '../index.html');
 })();
 </script>
 <script>

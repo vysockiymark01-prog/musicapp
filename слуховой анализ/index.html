@@ -252,7 +252,7 @@ html,body{overscroll-behavior-y:contain;}
             <span id="appTitle">Слуховой анализ</span>
         </div>
         <div class="header-actions">
-            <button class="icon-btn" id="assignBtn" onclick="openAssignModal()">📋 <span id="assignBtnText">Создать задание</span></button>
+            <button class="icon-btn" id="assignBtn" style="display:none" onclick="openAssignModal()">📋 <span id="assignBtnText">Создать задание</span></button>
             <button class="icon-btn" id="shareResultBtn" style="display:none" onclick="openShareResultModal()">📤 <span id="shareResultBtnText">Результат</span></button>
             <button class="icon-btn" id="soundBtn" title="Звук"><span id="soundIco">🔊</span></button>
             <button class="icon-btn" id="themeBtn">
@@ -2546,13 +2546,15 @@ function printResult(){ window.print(); }
 })();
 </script>
 <script>
-// ── Домашнее задание (см. ../hw.js) ──────────────────────────
+// ── Домашнее задание и статистика (см. ../hw.js) ─────────────
+// Каждый ответ пишется в общую статистику («Мои слабые места» на главной).
 // Учитель: «➕ В задание» сохраняет текущую вкладку и все её настройки (уровень, звучание,
-// тоника, скорость…). Ученик (?hwx=N): настройки из задания, переключатели и подсказки
-// скрыты. Засчитывается каждый верно определённый вопрос («верно» — с первой попытки);
-// в цепочках — каждый элемент цепочки (верно или нет, как и в самом тренажёре).
+// тоника, скорость…). Ученик (?hwx=N или тренировка ?px=…): настройки из задания,
+// переключатели и подсказки скрыты. Засчитывается каждый верно определённый вопрос
+// («верно» — с первой попытки); в цепочках — каждый элемент цепочки.
 (function(){
   if(!window.MHW) return;
+  const MOD = 'ear';
   const TABS = {
     intervals:  { sel:['iLevel','iMode','iRoot','iSpeed'],     sw:'iSelectAnswer',  nq:'iNewQuestion',  ok:()=>iCorrect,  bad:()=>iWrong,  cur:()=>iCurrent,  name:x=>lang==='ru'?x.ruFull:x.enFull },
     chords:     { sel:['cLevel','cMode','cRoot','cSpeed'],     sw:'cSelectAnswer',  nq:'cNewQuestion',  ok:()=>cCorrect,  bad:()=>cWrong,  cur:()=>cCurrent,  name:x=>lang==='ru'?x.ruFull:x.enFull },
@@ -2561,7 +2563,7 @@ function printResult(){ window.print(); }
     modes:      { sel:['mLevel','mSpeed','mDir'],              sw:'mSelectAnswer',  nq:'mNewQuestion',  ok:()=>mCorrect,  bad:()=>mWrong,  cur:()=>mCurrent,  name:x=>lang==='ru'?T.ru.scales[x.id].ru:T.en.scales[x.id].en },
     scales:     { sel:['seLevel','seSpeed','seDir'],           sw:'seSelectAnswer', nq:'seNewQuestion', ok:()=>seCorrect, bad:()=>seWrong, cur:()=>seCurrent, name:x=>seScaleName(x.id) }
   };
-  const modName = () => MHW.MODULES.ear[lang==='en'?'en':'ru'];
+  const modName = () => MHW.MODULES[MOD][lang==='en'?'en':'ru'];
   const optText = id => {
     const s=document.getElementById(id);
     if(!s || s.selectedIndex<0) return '';
@@ -2569,6 +2571,14 @@ function printResult(){ window.print(); }
     if(!/^\d+$/.test(txt)) return txt;
     const lbl=s.parentElement && s.parentElement.querySelector('.sg-label'); // «Длина 5», а не просто «5»
     return (lbl ? lbl.textContent.trim().toLowerCase()+' ' : '') + txt;
+  };
+  const cfgFor = tab => {
+    const c = TABS[tab]; if(!c) return null;
+    const p = {};
+    c.sel.forEach(id => { const s=document.getElementById(id); if(s) p[id]=s.value; });
+    const tabBtn = document.querySelector('.tab[data-tab="'+tab+'"]');
+    const n = [modName(), tabBtn ? tabBtn.textContent.trim() : tab].concat(c.sel.map(optText)).filter(Boolean).join(' · ');
+    return { k: tab, u: 'ans', n, p };
   };
 
   // Номер вопроса в каждой вкладке — один и тот же интервал может выпасть два раза подряд,
@@ -2583,7 +2593,7 @@ function printResult(){ window.print(); }
 
   const add = MHW.addButton(document.querySelector('.container'), document.getElementById('intervalsContent'), async () => {
     const tab = activeTab;
-    const c = TABS[tab]; if(!c) return;
+    if(!TABS[tab]) return;
     const g = await MHW.askGoal({
       title: lang==='en' ? 'How many correct answers?' : 'Сколько верных ответов нужно дать?',
       text: tab==='chains'
@@ -2592,45 +2602,46 @@ function printResult(){ window.print(); }
       options: [10, 20, 30, 50]
     });
     if(!g) return;
-    const p = {};
-    c.sel.forEach(id => { const s=document.getElementById(id); if(s) p[id]=s.value; });
-    const tabBtn = document.querySelector('.tab[data-tab="'+tab+'"]');
-    const n = [modName(), tabBtn ? tabBtn.textContent.trim() : tab].concat(c.sel.map(optText)).filter(Boolean).join(' · ');
-    MHW.addFromModule({ m:'ear', k:tab, u:'ans', g, n, p }, '../index.html');
+    MHW.addFromModule(Object.assign({ m: MOD, g }, cfgFor(tab)), '../index.html');
   });
   // setTimeout — наш обработчик срабатывает раньше, чем раздел успевает переключить язык.
   document.getElementById('langBtn').addEventListener('click', () => setTimeout(add.relabel, 0));
 
-  const tk = MHW.task('ear');
+  // Перехват ответов — всегда (статистика); в задании ещё и прогресс.
+  const trackers = {};
+  Object.keys(TABS).forEach(tab => { trackers[tab] = MHW.tracker(MOD, () => cfgFor(tab)); });
+  const chainAns = MHW.answer(MOD, () => cfgFor('chains'));
+  const origCh = window.chSelectAnswer;
+  window.chSelectAnswer = function(){
+    const cur = chChain[chStep], c0 = chCorrect, w0 = chWrong;
+    const r = origCh.apply(this, arguments);
+    if(cur){
+      const nm = lang==='ru' ? cur.data.ruFull : cur.data.enFull;
+      if(chCorrect > c0) chainAns(true, nm);
+      else if(chWrong > w0) chainAns(false, nm);
+    }
+    return r;
+  };
+  Object.keys(TABS).forEach(tab => {
+    const c = TABS[tab]; if(!c.sw) return;
+    const orig = window[c.sw];
+    window[c.sw] = function(){
+      const cur = c.cur(), key = tab+':'+qn[tab], c0 = c.ok(), w0 = c.bad();
+      const r = orig.apply(this, arguments);
+      if(cur && c.ok() > c0) trackers[tab].right(key, c.name(cur));
+      else if(cur && c.bad() > w0) trackers[tab].wrong(key, c.name(cur));
+      return r;
+    };
+  });
+
+  const tk = MHW.task(MOD);
   if(!tk) return;
   add.row.style.display = 'none';
   const tab = TABS[tk.item.k] ? tk.item.k : 'intervals';
   const c = TABS[tab], p = tk.item.p || {};
   MHW.lock(['.tabs', '.settings-row', '.card:has(> .settings-row)', '.sub-tabs', '#assignBtn', '#shareResultBtn', '#assignBanner',
-            '#iHintBtn', '#cHintBtn', '#chHintBtn', '#rHintBtn', '#mHintBtn', '#seHintBtn']);
+            '#iHintBtn', '#cHintBtn', '#chHintBtn', '#rHintBtn', '#mHintBtn', '#seHintBtn', '.mhw-addrow']);
   MHW.mountBar(document.querySelector('.container'), '../index.html');
-  const tr = MHW.tracker();
-
-  if(tab === 'chains'){
-    const orig = window.chSelectAnswer;
-    window.chSelectAnswer = function(){
-      const cur = chChain[chStep], c0 = chCorrect, w0 = chWrong;
-      const r = orig.apply(this, arguments);
-      if(cur && chCorrect > c0) MHW.update({ done:1, ok:1 });
-      else if(cur && chWrong > w0) MHW.update({ done:1, bad:1, mis:[lang==='ru'?cur.data.ruFull:cur.data.enFull] });
-      return r;
-    };
-  } else {
-    const orig = window[c.sw];
-    window[c.sw] = function(){
-      const cur = c.cur(), key = tab+':'+qn[tab], c0 = c.ok(), w0 = c.bad();
-      const r = orig.apply(this, arguments);
-      if(cur && c.ok() > c0) tr.right(key);
-      else if(cur && c.bad() > w0) tr.wrong(key, c.name(cur));
-      return r;
-    };
-  }
-
   document.addEventListener('DOMContentLoaded', () => {
     c.sel.forEach(id => {
       const s = document.getElementById(id);

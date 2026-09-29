@@ -3170,19 +3170,52 @@ html,body{overscroll-behavior-y:contain;}
 
         // Тест нот: цель — найти N нот. Верно с первой попытки = ok, была ошибка = bad
         // (одна на ноту, сколько бы раз ни промахнулись), так что ok+bad = найдено нот.
+        // Каждый ответ также пишется в общую статистику («Мои слабые места» на главной).
         function hwRecordNote(ok) {
-            if (!hwTask || hwTask.item.k !== 'notes' || !testNote || !window.MHW) return;
+            if (!testNote || !window.MHW) return;
+            const inTask = hwTask && hwTask.item.k === 'notes';
+            const code = testNote.note + testNote.octave;
             if (ok) {
-                MHW.update({ done: 1, ok: testNoteMissed ? 0 : 1 });
+                if (!testNoteMissed) MHW.stat('notation', true, hwNoteLabel(testNote), null, code);
+                if (inTask) MHW.update({ done: 1, ok: testNoteMissed ? 0 : 1 });
             } else if (!testNoteMissed) {
                 testNoteMissed = true;
-                MHW.update({ bad: 1, mis: [hwNoteLabel(testNote)] });
+                MHW.stat('notation', false, hwNoteLabel(testNote), hwNotesConfig, code);
+                if (inTask) MHW.update({ bad: 1, mis: [hwNoteLabel(testNote)] });
             }
+        }
+
+        // Текущие настройки как упражнение {k,u,p,n} — для «➕ В задание» и для статистики.
+        function hwNotesConfig() {
+            const t = TRANSLATIONS[lang];
+            const set = (useCustomNoteSet && customNoteSet.size > 0) ? [...customNoteSet] : [];
+            const parts = [t.hwNotesName, t[instrMode], t.testLevels[testLevel]];
+            if (useSharpsInTest) parts.push(t.hwSharps);
+            if (set.length) parts.push(t.hwOwnSet + ' (' + set.length + ')');
+            return { k: 'notes', u: 'notes', n: parts.join(' · '),
+                     p: { ins: instrMode, lv: testLevel, sh: useSharpsInTest ? 1 : 0, set: set.join(' '), cl: clefMode } };
+        }
+        function hwReadingConfig() {
+            const m = getReadingMelody();
+            if (!m || !m.notes.length) return null;
+            const t = TRANSLATIONS[lang];
+            const name = readingMelodyName(m);
+            return { k: 'reading', u: 'times',
+                     n: t.hwReadingName + ' «' + name + '» · ' + t[instrMode] + ' · ' + (readingUntimed ? t.hwUntimed : readingTempo + ' BPM'),
+                     p: { ins: instrMode, ts: m.timeSig, tp: readingTempo, un: readingUntimed ? 1 : 0, nm: name, mel: hwEncodeMelody(m.notes) } };
         }
 
         // Чтение: цель — сыграть мелодию N раз до конца.
         function hwRecordReadingRun(notes) {
-            if (!hwTask || hwTask.item.k !== 'reading' || !window.MHW) return;
+            if (!window.MHW) return;
+            // В режиме без скорости ошибок не бывает (курсор ждёт верную ноту) — в статистику не пишем.
+            if (!readingUntimed) {
+                readingResults.forEach((r, i) => {
+                    if (r === null || r === undefined || !notes[i]) return;
+                    MHW.stat('notation', !!r, hwNoteLabel(notes[i]), hwReadingConfig, notes[i].note + notes[i].octave);
+                });
+            }
+            if (!hwTask || hwTask.item.k !== 'reading') return;
             let ok = 0, total = 0;
             const mis = [];
             readingResults.forEach((r, i) => {
@@ -4505,14 +4538,7 @@ html,body{overscroll-behavior-y:contain;}
                 const t = TRANSLATIONS[lang];
                 const g = await MHW.askGoal({ title: t.hwNotesGoal, text: t.hwNotesGoalText, options: [10, 20, 30, 50] });
                 if (!g) return;
-                const set = (useCustomNoteSet && customNoteSet.size > 0) ? [...customNoteSet] : [];
-                const parts = [t.hwNotesName, t[instrMode], t.testLevels[testLevel]];
-                if (useSharpsInTest) parts.push(t.hwSharps);
-                if (set.length) parts.push(t.hwOwnSet + ' (' + set.length + ')');
-                MHW.addFromModule({
-                    m: 'notation', k: 'notes', u: 'notes', g, n: parts.join(' · '),
-                    p: { ins: instrMode, lv: testLevel, sh: useSharpsInTest ? 1 : 0, set: set.join(' '), cl: clefMode }
-                }, '../index.html');
+                MHW.addFromModule(Object.assign({ m: 'notation', g }, hwNotesConfig()), '../index.html');
             });
 
             document.getElementById('hwAddReadingBtn').addEventListener('click', async () => {
@@ -4523,12 +4549,7 @@ html,body{overscroll-behavior-y:contain;}
                 const t = TRANSLATIONS[lang];
                 const g = await MHW.askGoal({ title: t.hwReadingGoal, text: t.hwReadingGoalText, options: [1, 2, 3, 5] });
                 if (!g) return;
-                const name = readingMelodyName(m);
-                MHW.addFromModule({
-                    m: 'notation', k: 'reading', u: 'times', g,
-                    n: t.hwReadingName + ' «' + name + '» · ' + t[instrMode] + ' · ' + (readingUntimed ? t.hwUntimed : readingTempo + ' BPM'),
-                    p: { ins: instrMode, ts: m.timeSig, tp: readingTempo, un: readingUntimed ? 1 : 0, nm: name, mel: hwEncodeMelody(m.notes) }
-                }, '../index.html');
+                MHW.addFromModule(Object.assign({ m: 'notation', g }, hwReadingConfig()), '../index.html');
             });
 
             // ── Домашнее задание: ученик открыл упражнение (?hwx=N) ──

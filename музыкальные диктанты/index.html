@@ -2464,12 +2464,15 @@ function printResult(){ window.print(); }
 })();
 </script>
 <script>
-// ── Домашнее задание (см. ../hw.js) ──────────────────────────
-// Учитель: «➕ В задание» сохраняет вид диктанта, класс и темп. Ученик (?hwx=N): выбор
-// класса/вида/темпа, подсказки и «Показать ответ» скрыты. Каждый проверенный диктант —
-// одна попытка (в отчёт идёт процент совпадения); в «Размере» — каждый ответ.
+// ── Домашнее задание и статистика (см. ../hw.js) ─────────────
+// Каждый проверенный диктант пишется в общую статистику («Мои слабые места» на главной).
+// Учитель: «➕ В задание» сохраняет вид диктанта, класс и темп. Ученик (?hwx=N или
+// тренировка ?px=…): выбор класса/вида/темпа, подсказки и «Показать ответ» скрыты.
+// Каждый проверенный диктант — одна попытка (в отчёт идёт процент совпадения);
+// в «Размере» — каждый ответ.
 (function(){
   if(!window.MHW) return;
+  const MOD = 'dictation';
   const CFG = {
     melodic:  { check:'checkMelodic',  score:()=>mScore,  fb:'mFeedback',  tempo:'mTempo' },
     twovoice: { check:'checkTwoVoice', score:()=>tvScore, fb:'tvFeedback', tempo:'tvTempo' },
@@ -2477,7 +2480,17 @@ function printResult(){ window.print(); }
     errors:   { check:'checkErrors',   score:()=>eScore,  fb:'eFeedback' },
     meter:    { check:'checkMeter',    score:()=>mtScore, fb:'mtFeedback', tempo:'mtTempo' }
   };
-  const modName = () => MHW.MODULES.dictation[lang==='en'?'en':'ru'];
+  const modName = () => MHW.MODULES[MOD][lang==='en'?'en':'ru'];
+  const tabName = t => { const b = document.getElementById('mtab-'+t); return b ? b.textContent.replace(/^\S+\s/,'').trim() : t; };
+  const cfg = () => {
+    const c = CFG[tab];
+    const p = { gr: grade };
+    const tEl = c.tempo && document.getElementById(c.tempo);
+    if(tEl) p.tp = +tEl.value;
+    const n = [modName(), tabName(tab), grade.replace('-','–') + (lang==='en' ? ' grade' : ' класс'),
+      tEl ? (lang==='en' ? 'tempo ' : 'темп ') + tEl.value : ''].filter(Boolean).join(' · ');
+    return { k: tab, u: tab==='meter' ? 'ans' : 'dict', n, p };
+  };
 
   const add = MHW.addButton(document.querySelector('.wrap'), document.querySelector('.progress-bar'), async () => {
     const isMeter = tab === 'meter';
@@ -2487,20 +2500,36 @@ function printResult(){ window.print(); }
       options: isMeter ? [5, 10, 15, 20] : [1, 2, 3, 5]
     });
     if(!g) return;
-    const c = CFG[tab];
-    const p = { gr: grade };
-    const tEl = c.tempo && document.getElementById(c.tempo);
-    if(tEl) p.tp = +tEl.value;
-    const tabBtn = document.getElementById('mtab-'+tab);
-    const n = [modName(), tabBtn ? tabBtn.textContent.replace(/^\S+\s/,'').trim() : tab,
-      grade.replace('-','–') + (lang==='en' ? ' grade' : ' класс'),
-      tEl ? (lang==='en' ? 'tempo ' : 'темп ') + tEl.value : ''].filter(Boolean).join(' · ');
-    MHW.addFromModule({ m:'dictation', k:tab, u: isMeter ? 'ans' : 'dict', g, n, p }, '../index.html');
+    MHW.addFromModule(Object.assign({ m: MOD, g }, cfg()), '../index.html');
   });
   // setTimeout — наш обработчик срабатывает раньше, чем раздел успевает переключить язык.
   document.getElementById('langBtn').addEventListener('click', () => setTimeout(add.relabel, 0));
 
-  const tk = MHW.task('dictation');
+  // Перехват ответов — всегда (статистика); в задании ещё и прогресс.
+  const ans = MHW.answer(MOD, cfg);
+  Object.keys(CFG).forEach(k => {
+    const c = CFG[k];
+    const orig = window[c.check];
+    window[c.check] = function(){
+      const sc = c.score(), c0 = sc.c, w0 = sc.w;
+      const meterAns = k === 'meter' && mtEx ? mtEx.timeSig : null;
+      const r = orig.apply(this, arguments);
+      const good = sc.c > c0, bad = sc.w > w0;
+      if(!good && !bad) return r; // проверка не состоялась (пустой ответ и т.п.)
+      if(k === 'meter'){
+        ans(good, (lang==='en' ? 'meter ' : 'размер ') + meterAns + '/4');
+      } else {
+        const fbEl = document.getElementById(c.fb);
+        const m = /(\d+)%/.exec(fbEl ? fbEl.textContent : '');
+        const run = m ? { pct: +m[1] } : { pct: good ? 100 : 0 };
+        const lbl = tabName(k) + (lang==='en' ? ' dictation, ' : ' диктант, ') + grade.replace('-','–') + (lang==='en' ? ' grade' : ' кл.');
+        ans(good, lbl, { run, mis: false }); // проценты по попыткам и так видны в отчёте
+      }
+      return r;
+    };
+  });
+
+  const tk = MHW.task(MOD);
   if(!tk) return;
   add.row.style.display = 'none';
   const k = CFG[tk.item.k] ? tk.item.k : 'melodic';
@@ -2515,26 +2544,8 @@ function printResult(){ window.print(); }
   if(tab === k) refreshTab(); else switchTab(k);
   MHW.lock(['#gradeTabs', '#mainTabs', '.tempo-row', '#assignBtn', '#shareResultBtn', '#assignBanner',
             '[onclick="melodicHint()"]', '[onclick="showMAnswer()"]', '[onclick="twoVoiceHint()"]',
-            '[onclick="showTVAnswer()"]', '[onclick="showRAnswer()"]']);
+            '[onclick="showTVAnswer()"]', '[onclick="showRAnswer()"]', '.mhw-addrow']);
   MHW.mountBar(document.querySelector('.wrap'), '../index.html');
-
-  const orig = window[c.check];
-  window[c.check] = function(){
-    const sc = c.score(), c0 = sc.c, w0 = sc.w;
-    const meterAns = k === 'meter' && mtEx ? mtEx.timeSig : null;
-    const r = orig.apply(this, arguments);
-    const good = sc.c > c0, bad = sc.w > w0;
-    if(!good && !bad) return r; // проверка не состоялась (пустой ответ и т.п.)
-    if(k === 'meter'){
-      MHW.update(good ? { done:1, ok:1 } : { done:1, bad:1, mis:[(lang==='en' ? 'meter ' : 'размер ') + meterAns + '/4'] });
-    } else {
-      const fbEl = document.getElementById(c.fb);
-      const m = /(\d+)%/.exec(fbEl ? fbEl.textContent : '');
-      const run = m ? { pct: +m[1] } : { pct: good ? 100 : 0 };
-      MHW.update(good ? { done:1, ok:1, run } : { done:1, bad:1, run });
-    }
-    return r;
-  };
 })();
 </script>
 <script>

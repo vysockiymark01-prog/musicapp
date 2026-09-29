@@ -1261,36 +1261,70 @@ renderExercise();
 setTimeout(drawBeams, 0);
 </script>
 <script>
-// ── Домашнее задание (см. ../hw.js) ──────────────────────────
+// ── Домашнее задание и статистика (см. ../hw.js) ─────────────
+// Каждый ответ пишется в общую статистику («Мои слабые места» на главной).
 // Учитель: «➕ В задание» сохраняет режим (Сгруппируй / Найди ошибку), размер и сложность.
-// Ученик (?hwx=N): настройки из задания, переключатели и подсказка скрыты; засчитывается
-// каждое решённое упражнение, «верно» — если решено с первой попытки.
+// Ученик (?hwx=N или тренировка ?px=…): настройки из задания, переключатели и подсказка
+// скрыты; засчитывается каждое решённое упражнение, «верно» — если с первой попытки.
 (function(){
   if(!window.MHW) return;
-  const modName = () => MHW.MODULES.rhythm[lang==='en'?'en':'ru'];
+  const MOD = 'rhythm';
+  const en = () => lang === 'en';
+  const modName = () => MHW.MODULES[MOD][en() ? 'en' : 'ru'];
+  const curTab = () => currentTab === 'rules' ? 'group' : currentTab;
+  const cfg = () => {
+    const tab = curTab();
+    const tabBtn = document.getElementById(tab==='find' ? 'tab1' : 'tab0');
+    const diffBtn = document.querySelector('.sel-btn[data-diff="'+difficulty+'"]');
+    const n = [modName(), tabBtn.textContent.replace(/^\S+\s/,'').trim(), timeSig, diffBtn ? diffBtn.textContent.trim() : ''].filter(Boolean).join(' · ');
+    return { k: tab, u: 'ex', n, p: { ts: timeSig, df: difficulty } };
+  };
+  // Подпись для статистики — что именно тренируется: группировка/поиск ошибки в размере.
+  const statLabel = (ex) => (curTab()==='find' ? (en() ? 'Find the error ' : 'Найди ошибку ') : (en() ? 'Beaming ' : 'Группировка ')) + ex.ts;
+
   let inst = 0; // номер показанного упражнения (одно и то же упражнение может выпасть снова)
   const origRender = window.renderExercise;
   window.renderExercise = function(){ inst++; return origRender.apply(this, arguments); };
 
   const add = MHW.addButton(document.querySelector('.container'), document.getElementById('mainContent'), async () => {
-    const tab = currentTab === 'rules' ? 'group' : currentTab;
     const g = await MHW.askGoal({
-      title: lang==='en' ? 'How many exercises to solve?' : 'Сколько упражнений решить?',
-      text: lang==='en' ? 'The exercise keeps the mode, time signature and difficulty.' : 'Упражнение запомнит режим, размер и сложность.',
+      title: en() ? 'How many exercises to solve?' : 'Сколько упражнений решить?',
+      text: en() ? 'The exercise keeps the mode, time signature and difficulty.' : 'Упражнение запомнит режим, размер и сложность.',
       options: [5, 10, 15, 20]
     });
     if(!g) return;
-    const tabBtn = document.getElementById(tab==='find' ? 'tab1' : 'tab0');
-    const diffBtn = document.querySelector('.sel-btn[data-diff="'+difficulty+'"]');
-    const n = [modName(), tabBtn.textContent.replace(/^\S+\s/,'').trim(), timeSig, diffBtn ? diffBtn.textContent.trim() : ''].filter(Boolean).join(' · ');
-    MHW.addFromModule({ m:'rhythm', k:tab, u:'ex', g, n, p:{ ts: timeSig, df: difficulty } }, '../index.html');
+    MHW.addFromModule(Object.assign({ m: MOD, g }, cfg()), '../index.html');
   });
   const origSwitch = window.switchTab;
   window.switchTab = function(tab){ const r = origSwitch.apply(this, arguments); add.row.style.display = tab==='rules' ? 'none' : ''; return r; };
   const origLang = window.toggleLang;
   window.toggleLang = function(){ const r = origLang.apply(this, arguments); add.relabel(); return r; };
 
-  const tk = MHW.task('rhythm');
+  // Перехват ответов — всегда (статистика); в задании ещё и прогресс.
+  const tr = MHW.tracker(MOD, cfg);
+  const origCheck = window.checkAnswer;
+  window.checkAnswer = function(){
+    if(checked || !currentEx) return origCheck.apply(this, arguments);
+    const ex = currentEx, key = inst;
+    const correct = computeCorrectBeams(ex.notes, ex.ts);
+    const extra = beamState.some((b,i)=>b && !correct[i]);
+    const err0 = scoreErr;
+    const r = origCheck.apply(this, arguments);
+    if(scoreErr > err0) tr.wrong(key, statLabel(ex), null, ex.ts + ': ' + (en() ? (extra ? 'extra beam' : 'missing beam') : (extra ? 'лишнее ребро' : 'пропущено ребро')));
+    else tr.right(key, statLabel(ex));
+    return r;
+  };
+  const origFind = window.findErrorClick;
+  window.findErrorClick = function(){
+    if(checked || !currentEx) return origFind.apply(this, arguments);
+    const ex = currentEx, key = inst, err0 = scoreErr;
+    const r = origFind.apply(this, arguments);
+    if(scoreErr > err0) tr.wrong(key, statLabel(ex), null, ex.ts + ': ' + (en() ? 'error not found' : 'не нашёл ошибку'));
+    else tr.right(key, statLabel(ex));
+    return r;
+  };
+
+  const tk = MHW.task(MOD);
   if(!tk) return;
   add.row.style.display = 'none';
   const p = tk.item.p || {};
@@ -1301,32 +1335,8 @@ setTimeout(drawBeams, 0);
   document.querySelectorAll('.sel-btn[data-ts]').forEach(b=>b.classList.toggle('active',b.dataset.ts===ts));
   document.querySelectorAll('.sel-btn[data-diff]').forEach(b=>b.classList.toggle('active',+b.dataset.diff===df));
   switchTab(tab);
-  MHW.lock(['.tabs', '#timeSigRow', '#diffRow', '[onclick="showHintBeams()"]']);
+  MHW.lock(['.tabs', '#timeSigRow', '#diffRow', '[onclick="showHintBeams()"]', '.mhw-addrow']);
   MHW.mountBar(document.querySelector('.container'), '../index.html');
-
-  const tr = MHW.tracker();
-  const errLabel = (ex, extra) => ex.ts + ': ' + extra;
-  const origCheck = window.checkAnswer;
-  window.checkAnswer = function(){
-    if(checked || !currentEx) return origCheck.apply(this, arguments);
-    const ex = currentEx, key = inst;
-    const correct = computeCorrectBeams(ex.notes, ex.ts);
-    const extra = beamState.some((b,i)=>b && !correct[i]);
-    const err0 = scoreErr;
-    const r = origCheck.apply(this, arguments);
-    if(scoreErr > err0) tr.wrong(key, errLabel(ex, lang==='en' ? (extra ? 'extra beam' : 'missing beam') : (extra ? 'лишнее ребро' : 'пропущено ребро')));
-    else tr.right(key);
-    return r;
-  };
-  const origFind = window.findErrorClick;
-  window.findErrorClick = function(){
-    if(checked || !currentEx) return origFind.apply(this, arguments);
-    const ex = currentEx, key = inst, err0 = scoreErr;
-    const r = origFind.apply(this, arguments);
-    if(scoreErr > err0) tr.wrong(key, errLabel(ex, lang==='en' ? 'error not found' : 'не нашёл ошибку'));
-    else tr.right(key);
-    return r;
-  };
 })();
 </script><script>
 /* Клавиатурная доступность: элементы с onclick (не <button>/<a>/полям форм)

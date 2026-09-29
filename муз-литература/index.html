@@ -1731,14 +1731,22 @@ renderCards();
   },100);
 })();
 </script><script>
-// ── Домашнее задание (см. ../hw.js) ──────────────────────────
+// ── Домашнее задание и статистика (см. ../hw.js) ─────────────
+// Каждый ответ пишется в общую статистику («Мои слабые места» на главной).
 // Учитель: в «Викторине» «➕ В задание». Если в «Карточках» выбрана эпоха — вопросы будут
-// только о композиторах этой эпохи. Ученик (?hwx=N): вкладки скрыты; одна попытка на
-// вопрос, засчитывается каждый ответ.
+// только о композиторах этой эпохи. Ученик (?hwx=N или тренировка ?px=…): вкладки скрыты;
+// одна попытка на вопрос, засчитывается каждый ответ.
 (function(){
   if(!window.MHW) return;
+  const MOD = 'history';
   const L = () => lang==='en' ? 'en' : 'ru';
-  const modName = () => MHW.MODULES.history[L()];
+  const modName = () => MHW.MODULES[MOD][L()];
+  const cfg = () => {
+    const parts = [modName(), document.getElementById('t2').textContent.trim()];
+    const p = {};
+    if(eraFilter !== 'all'){ p.era = eraFilter; parts.push((ERA_LABELS[eraFilter]||{})[lang] || eraFilter); }
+    return { k: 'quiz', u: 'ans', n: parts.join(' · '), p };
+  };
   const panel = document.querySelector('#panel2 .quiz-wrap');
   const add = MHW.addButton(panel, document.getElementById('quizQ'), async () => {
     const g = await MHW.askGoal({
@@ -1749,37 +1757,34 @@ renderCards();
       options: [10, 20, 30]
     });
     if(!g) return;
-    const parts = [modName(), document.getElementById('t2').textContent.trim()];
-    const p = {};
-    if(eraFilter !== 'all'){ p.era = eraFilter; parts.push((ERA_LABELS[eraFilter]||{})[lang] || eraFilter); }
-    MHW.addFromModule({ m:'history', k:'quiz', u:'ans', g, n:parts.join(' · '), p }, '../index.html');
+    MHW.addFromModule(Object.assign({ m: MOD, g }, cfg()), '../index.html');
   });
   document.getElementById('langBtn').addEventListener('click', () => setTimeout(add.relabel, 0));
 
-  const tk = MHW.task('history');
-  if(!tk) return;
-  const era = (tk.item.p || {}).era;
-  const pool = era ? COMPOSERS.filter(c => c.era === era) : [];
-  if(pool.length){
-    const origPick = window.pickWeightedComposer;
-    window.pickWeightedComposer = function(){ return pool[Math.floor(Math.random() * pool.length)]; };
-  }
-  showTab(2);
-  document.getElementById('quizQ').textContent = '';
-  nextQuiz();
-  add.row.style.display = 'none';
-  MHW.lock(['.tabs']);
-  MHW.mountBar(document.querySelector('.wrap'), '../index.html');
-
+  // Перехват ответов — всегда (статистика); в задании ещё и прогресс. Подпись — композитор.
+  const ans = MHW.answer(MOD, cfg);
   const orig = window.answerQuiz;
   window.answerQuiz = function(btn, chosen, correct){
     const first = document.querySelector('#quizChoices .qc');
     if(first && first.disabled) return orig.apply(this, arguments);
     const q = (document.getElementById('quizQ').textContent + ' ' + document.getElementById('quizSub').textContent).trim();
+    const comp = COMPOSERS.find(c => c.id === quizCurrentComposer);
+    const lbl = comp ? (comp.name[lang] || comp.name.ru) : q;
     const r = orig.apply(this, arguments);
-    MHW.update(chosen === correct ? { done:1, ok:1 } : { done:1, bad:1, mis:[q + ' → ' + correct] });
+    ans(chosen === correct, lbl, { mis: q + ' → ' + correct });
     return r;
   };
+
+  const tk = MHW.task(MOD);
+  if(!tk) return;
+  const era = (tk.item.p || {}).era;
+  const pool = era ? COMPOSERS.filter(c => c.era === era) : [];
+  if(pool.length) window.pickWeightedComposer = function(){ return pool[Math.floor(Math.random() * pool.length)]; };
+  showTab(2);
+  document.getElementById('quizQ').textContent = '';
+  nextQuiz();
+  MHW.lock(['.tabs', '.mhw-addrow']);
+  MHW.mountBar(document.querySelector('.wrap'), '../index.html');
 })();
 </script>
 <script>

@@ -2187,14 +2187,23 @@ function printResult(){ window.print(); }
 })();
 </script>
 <script>
-// ── Домашнее задание (см. ../hw.js) ──────────────────────────
+// ── Домашнее задание и статистика (см. ../hw.js) ─────────────
+// Каждый ответ пишется в общую статистику («Мои слабые места» на главной).
 // Учитель: на вкладках «Определи», «Построй», «Последовательность» «➕ В задание» сохраняет
-// вкладку, класс и режим последовательности. Ученик (?hwx=N): переключатели и подсказки
-// скрыты. «Определи» и «Построй» — одна попытка на аккорд (засчитывается каждый ответ);
+// вкладку, класс и режим последовательности. Ученик (?hwx=N или тренировка ?px=…):
+// переключатели и подсказки скрыты. «Определи» и «Построй» — одна попытка на аккорд;
 // в «Последовательности» можно исправлять, «верно» — если с первой попытки.
 (function(){
   if(!window.MHW) return;
-  const modName = () => MHW.MODULES.figured[lang==='en'?'en':'ru'];
+  const MOD = 'figured';
+  const modName = () => MHW.MODULES[MOD][lang==='en'?'en':'ru'];
+  const cfg = () => {
+    const tb = document.getElementById('mtab-'+tab);
+    const parts = [modName(), tb ? tb.textContent.replace(/^\S+\s/,'').trim() : tab];
+    if(tab === 'sequence'){ const sb = document.getElementById(sqMode==='identify' ? 'sqModeI' : 'sqModeB'); if(sb) parts.push(sb.textContent.trim()); }
+    parts.push(grade.replace('-','–') + (lang==='en' ? ' grade' : ' класс'));
+    return { k: tab, u: tab==='sequence' ? 'ex' : 'ans', n: parts.join(' · '), p: { gr: grade, sm: sqMode } };
+  };
   const add = MHW.addButton(document.querySelector('.wrap'), document.querySelector('.progress-bar'), async () => {
     if(tab === 'theory') return;
     const g = await MHW.askGoal({
@@ -2203,11 +2212,7 @@ function printResult(){ window.print(); }
       options: [5, 10, 15, 20]
     });
     if(!g) return;
-    const tb = document.getElementById('mtab-'+tab);
-    const parts = [modName(), tb ? tb.textContent.replace(/^\S+\s/,'').trim() : tab];
-    if(tab === 'sequence'){ const sb = document.getElementById(sqMode==='identify' ? 'sqModeI' : 'sqModeB'); if(sb) parts.push(sb.textContent.trim()); }
-    parts.push(grade.replace('-','–') + (lang==='en' ? ' grade' : ' класс'));
-    MHW.addFromModule({ m:'figured', k:tab, u: tab==='sequence' ? 'ex' : 'ans', g, n:parts.join(' · '), p:{ gr:grade, sm:sqMode } }, '../index.html');
+    MHW.addFromModule(Object.assign({ m: MOD, g }, cfg()), '../index.html');
   });
   const origSwitch = window.switchTab;
   window.switchTab = function(t){ const r = origSwitch.apply(this, arguments); add.row.style.display = tab==='theory' ? 'none' : ''; return r; };
@@ -2215,7 +2220,45 @@ function printResult(){ window.print(); }
   // setTimeout — наш обработчик срабатывает раньше, чем раздел успевает переключить язык.
   document.getElementById('langBtn').addEventListener('click', () => setTimeout(add.relabel, 0));
 
-  const tk = MHW.task('figured');
+  // Перехват ответов — всегда (статистика); в задании ещё и прогресс.
+  const keyName = ex => ex && ex.key ? (ex.key[lang] || '') : '';
+  const cadName = ex => ex && ex.cad ? (lang==='ru' ? ex.cad.ru : ex.cad.en) : '';
+  const ans = MHW.answer(MOD, cfg);
+  const origId = window.checkIdentify;
+  window.checkIdentify = function(choice){
+    const ex = idEx, c0 = idScore.c, w0 = idScore.w;
+    const r = origId.apply(this, arguments);
+    if(!ex) return r;
+    const lbl = getChordLabel(ex.sym);
+    if(idScore.c > c0) ans(true, lbl);
+    else if(idScore.w > w0) ans(false, lbl, { mis: keyName(ex) + ': ' + lbl });
+    return r;
+  };
+  const origBd = window.checkBuild;
+  window.checkBuild = function(){
+    const ex = bdEx, c0 = bdScore.c, w0 = bdScore.w;
+    const chord = document.getElementById('bdChordName').textContent.trim();
+    const name = (chord + ' ' + document.getElementById('bdKeyName').textContent).trim();
+    const r = origBd.apply(this, arguments);
+    if(!ex) return r;
+    if(bdScore.c > c0) ans(true, chord);
+    else if(bdScore.w > w0) ans(false, chord, { mis: name });
+    return r;
+  };
+  const tr = MHW.tracker(MOD, cfg);
+  ['checkSeqComplete','checkCadType'].forEach(fn => {
+    const orig = window[fn];
+    window[fn] = function(){
+      const ex = sqEx, c0 = sqScore.c, w0 = sqScore.w;
+      const r = orig.apply(this, arguments);
+      if(!ex) return r;
+      if(sqScore.c > c0) tr.right(ex, cadName(ex));
+      else if(sqScore.w > w0) tr.wrong(ex, cadName(ex), null, keyName(ex) + ': ' + cadName(ex));
+      return r;
+    };
+  });
+
+  const tk = MHW.task(MOD);
   if(!tk) return;
   const k = ['identify','build','sequence'].includes(tk.item.k) ? tk.item.k : 'identify';
   const p = tk.item.p || {};
@@ -2223,44 +2266,9 @@ function printResult(){ window.print(); }
   document.querySelectorAll('.gtab').forEach(b=>b.classList.toggle('active', b.dataset.g===grade));
   if(tab === k) refreshTab(); else switchTab(k);
   if(k === 'sequence' && (p.sm === 'build' || p.sm === 'identify')) setSqMode(p.sm);
-  add.row.style.display = 'none';
   MHW.lock(['#gradeTabs', '#mainTabs', '#idHintBtn', '#bdHint', '#sqHintBtn', '#sqModeB', '#sqModeI',
-            '#assignBtn', '#shareResultBtn', '#assignBanner']);
+            '#assignBtn', '#shareResultBtn', '#assignBanner', '.mhw-addrow']);
   MHW.mountBar(document.querySelector('.wrap'), '../index.html');
-
-  const keyName = ex => ex && ex.key ? (ex.key[lang] || '') : '';
-  if(k === 'identify'){
-    const orig = window.checkIdentify;
-    window.checkIdentify = function(choice){
-      const ex = idEx, c0 = idScore.c, w0 = idScore.w;
-      const r = orig.apply(this, arguments);
-      if(idScore.c > c0) MHW.update({ done:1, ok:1 });
-      else if(idScore.w > w0) MHW.update({ done:1, bad:1, mis:[keyName(ex) + ': ' + getChordLabel(ex.sym)] });
-      return r;
-    };
-  } else if(k === 'build'){
-    const orig = window.checkBuild;
-    window.checkBuild = function(){
-      const ex = bdEx, c0 = bdScore.c, w0 = bdScore.w;
-      const name = (document.getElementById('bdChordName').textContent + ' ' + document.getElementById('bdKeyName').textContent).trim();
-      const r = orig.apply(this, arguments);
-      if(bdScore.c > c0) MHW.update({ done:1, ok:1 });
-      else if(ex && bdScore.w > w0) MHW.update({ done:1, bad:1, mis:[name] });
-      return r;
-    };
-  } else {
-    const tr = MHW.tracker();
-    ['checkSeqComplete','checkCadType'].forEach(fn => {
-      const orig = window[fn];
-      window[fn] = function(){
-        const ex = sqEx, c0 = sqScore.c, w0 = sqScore.w;
-        const r = orig.apply(this, arguments);
-        if(sqScore.c > c0) tr.right(ex);
-        else if(sqScore.w > w0) tr.wrong(ex, keyName(ex) + ': ' + (ex.cad ? (lang==='ru' ? ex.cad.ru : ex.cad.en) : ''));
-        return r;
-      };
-    });
-  }
 })();
 </script>
 <script>

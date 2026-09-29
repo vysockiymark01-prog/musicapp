@@ -1269,13 +1269,20 @@ function printResult(){ window.print(); }
 })();
 </script>
 <script>
-// ── Домашнее задание (см. ../hw.js) ──────────────────────────
-// Учитель: в «Викторине» «➕ В задание» сохраняет уровень. Ученик (?hwx=N): викторина
-// с уровнем из задания, переключатели и подсказка скрыты. На каждый вопрос одна
-// попытка, поэтому засчитывается каждый ответ, «верно» — если ответ правильный.
+// ── Домашнее задание и статистика (см. ../hw.js) ─────────────
+// Каждый ответ викторины пишется в общую статистику («Мои слабые места» на главной).
+// Учитель: в «Викторине» «➕ В задание» сохраняет уровень. Ученик (?hwx=N или тренировка
+// ?px=…): викторина с уровнем из задания, переключатели и подсказка скрыты. На каждый
+// вопрос одна попытка, поэтому засчитывается каждый ответ.
 (function(){
   if(!window.MHW) return;
-  const modName = () => MHW.MODULES.keys[lang==='en'?'en':'ru'];
+  const MOD = 'keys';
+  const modName = () => MHW.MODULES[MOD][lang==='en'?'en':'ru'];
+  const cfg = () => {
+    const lb = document.getElementById('lvlBtn'+quizLevel);
+    const n = [modName(), document.getElementById('mQuiz').textContent.trim(), lb ? lb.textContent.trim() : ''].filter(Boolean).join(' · ');
+    return { k: 'quiz', u: 'ans', n, p: { lv: quizLevel } };
+  };
   const add = MHW.addButton(document.getElementById('quizPanel'), document.getElementById('quizQ'), async () => {
     const g = await MHW.askGoal({
       title: lang==='en' ? 'How many questions to answer?' : 'На сколько вопросов ответить?',
@@ -1283,29 +1290,32 @@ function printResult(){ window.print(); }
       options: [10, 20, 30]
     });
     if(!g) return;
-    const lb = document.getElementById('lvlBtn'+quizLevel);
-    const n = [modName(), document.getElementById('mQuiz').textContent.trim(), lb ? lb.textContent.trim() : ''].filter(Boolean).join(' · ');
-    MHW.addFromModule({ m:'keys', k:'quiz', u:'ans', g, n, p:{ lv: quizLevel } }, '../index.html');
+    MHW.addFromModule(Object.assign({ m: MOD, g }, cfg()), '../index.html');
   });
   document.getElementById('langBtn').addEventListener('click', () => setTimeout(add.relabel, 0));
 
-  const tk = MHW.task('keys');
+  // Перехват ответов — всегда (статистика); в задании ещё и прогресс.
+  // Подпись для статистики — тональность вопроса (например, «Ре мажор»).
+  const ans = MHW.answer(MOD, cfg);
+  const orig = window.answerQuiz;
+  window.answerQuiz = function(btn, chosen, correct){
+    if(quizAnswered || !quizCorrect) return orig.apply(this, arguments);
+    const q = document.getElementById('quizQ').textContent.trim();
+    const k = KEYS[quizCorrect.idx];
+    const keyName = quizCorrect.isMaj ? k.maj[lang] : k.min[lang];
+    const r = orig.apply(this, arguments);
+    ans(chosen === correct, keyName, { mis: q + ' → ' + correct });
+    return r;
+  };
+
+  const tk = MHW.task(MOD);
   if(!tk) return;
   add.row.style.display = 'none';
   const lv = [0,1,2].includes((tk.item.p||{}).lv) ? tk.item.p.lv : 0;
   setMode('quiz');
   setLevel(lv);
-  MHW.lock(['.mode-row', '#levelTabs', '#quizHintBtn', '#assignBtn', '#shareResultBtn', '#assignBanner']);
+  MHW.lock(['.mode-row', '#levelTabs', '#quizHintBtn', '#assignBtn', '#shareResultBtn', '#assignBanner', '.mhw-addrow']);
   MHW.mountBar(document.querySelector('.wrap'), '../index.html');
-
-  const orig = window.answerQuiz;
-  window.answerQuiz = function(btn, chosen, correct){
-    if(quizAnswered) return orig.apply(this, arguments);
-    const q = document.getElementById('quizQ').textContent.trim();
-    const r = orig.apply(this, arguments);
-    MHW.update(chosen === correct ? { done:1, ok:1 } : { done:1, bad:1, mis:[q + ' → ' + correct] });
-    return r;
-  };
 })();
 </script>
 <script>

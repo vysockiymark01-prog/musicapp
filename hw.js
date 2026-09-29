@@ -82,6 +82,10 @@
       finishedPart: 'Выполнено упражнений',
       downloaded: 'Картинка отчёта сохранена, текст скопирован — отправьте их учителю.',
       addBtn: '➕ В задание',
+      toHome: '← На главную',
+      prDone: 'Тренировка завершена!',
+      prDoneSub: 'Результат учтён в «Моих слабых местах». Можно вернуться на главную или потренироваться ещё.',
+      practice: 'Тренировка',
       appName: 'Музграмота'
     },
     en: {
@@ -113,6 +117,10 @@
       finishedPart: 'Exercises complete',
       downloaded: 'Report image saved and text copied — send them to your teacher.',
       addBtn: '➕ Add to homework',
+      toHome: '← Home',
+      prDone: 'Practice complete!',
+      prDoneSub: 'The result is counted in “My weak spots”. Go back home or keep practising.',
+      practice: 'Practice',
       appName: 'Muzgramota'
     }
   };
@@ -224,10 +232,20 @@
   function finishedCount(s) { return s.prog.filter(function (p) { return p.fin; }).length; }
 
   // ── Работа внутри раздела ──
-  var current = null; // {idx, item, lastTs}
+  var current = null; // {idx, item, lastTs, practice}
+  var practiceState = null; // прогресс тренировки слабых мест — только в памяти, в задание не пишется
 
-  // Какое упражнение выполняется на этой странице: ?hwx=<номер> и раздел совпадает.
+  // Какое упражнение выполняется на этой странице: ?hwx=<номер> (задание) или ?px=<код>
+  // (тренировка слабых мест с главной) — и раздел совпадает.
   function task(mod) {
+    var px = /[?&]px=([^&#]+)/.exec(location.search);
+    if (px) {
+      var ph = parse(decodeURIComponent(px[1]));
+      if (!ph || ph.i[0].m !== mod) return null;
+      practiceState = { hw: ph, prog: [emptyProg()] };
+      current = { idx: 0, item: ph.i[0], lastTs: Date.now(), practice: true };
+      return { idx: 0, item: ph.i[0], prog: practiceState.prog[0], practice: true };
+    }
     var m = /[?&]hwx=(\d+)/.exec(location.search);
     if (!m) return null;
     var s = active();
@@ -243,9 +261,10 @@
   // Время копится по промежуткам между событиями (не больше минуты за раз, чтобы
   // брошенный на полчаса телефон не записался как полчаса занятий).
   // Возвращает {prog, justFinished}. После завершения упражнения прогресс больше не меняется.
+  function curState() { return current && current.practice ? practiceState : active(); }
   function update(delta) {
     if (!current) return null;
-    var s = active();
+    var s = curState();
     if (!s) return null;
     var p = s.prog[current.idx];
     if (!p) return null;
@@ -263,10 +282,93 @@
     if (delta.run) { p.runs.push(delta.run); if (p.runs.length > 30) p.runs.shift(); }
     var justFinished = false;
     if (p.done >= current.item.g) { p.fin = now; justFinished = true; }
-    saveActive(s);
+    if (!current.practice) saveActive(s);
     refreshBar();
     if (justFinished) showFinished();
     return { prog: p, justFinished: justFinished };
+  }
+
+  // ── Статистика ответов («Мои слабые места») ──
+  // Пишется во всех разделах всегда (не только в заданиях). Для каждого «предмета»
+  // (нота, интервал, термин, тональность…) храним: r/w — верных/неверных ответов,
+  // e — «долг»: +1 за ошибку, −0.5 за верный ответ (не ниже 0). Слабое место — e ≥ 1.
+  // k/p/n — упражнение, в котором была последняя ошибка (для кнопки «Потренировать»),
+  // c — код предмета, если раздел умеет тренировать конкретный список (ноты, термины).
+  var KEY_STATS = 'musicapp_stats';
+  var MAX_ITEMS = 400, MAX_DAYS = 60;
+  function dayKey(d) { d = d || new Date(); return d.getFullYear() + '-' + (d.getMonth() + 1) + '-' + d.getDate(); }
+  function dayTs(k) { var a = k.split('-').map(Number); return new Date(a[0], a[1] - 1, a[2]).getTime(); }
+  function statsGet() {
+    var s = readJSON(KEY_STATS, null);
+    if (!s || typeof s !== 'object') s = {};
+    if (!s.items || typeof s.items !== 'object') s.items = {};
+    if (!s.days || typeof s.days !== 'object') s.days = {};
+    if (!s.mods || typeof s.mods !== 'object') s.mods = {};
+    s.v = 1;
+    return s;
+  }
+  function stat(mod, ok, label, ctxFn, code) {
+    try {
+      var s = statsGet(), now = Date.now(), dk = dayKey();
+      var day = s.days[dk] || (s.days[dk] = { r: 0, w: 0 });
+      var mm = s.mods[mod] || (s.mods[mod] = { r: 0, w: 0 });
+      if (ok) { day.r++; mm.r++; } else { day.w++; mm.w++; }
+      if (label) {
+        label = cleanStr(label, 90);
+        var key = mod + '|' + label, it = s.items[key];
+        if (!it && !ok) it = s.items[key] = { m: mod, l: label, r: 0, w: 0, e: 0 };
+        if (it) {
+          if (ok) { it.r++; it.e = Math.max(0, it.e - 0.5); }
+          else {
+            it.w++; it.e += 1;
+            var ctx = null;
+            try { ctx = ctxFn ? ctxFn() : null; } catch (e) { ctx = null; }
+            if (ctx) { it.k = ctx.k; it.u = ctx.u; it.p = ctx.p; it.n = ctx.n; }
+          }
+          it.ts = now;
+          if (code != null) it.c = String(code);
+        }
+      }
+      var dks = Object.keys(s.days);
+      if (dks.length > MAX_DAYS) dks.sort(function (a, b) { return dayTs(a) - dayTs(b); }).slice(0, dks.length - MAX_DAYS).forEach(function (k) { delete s.days[k]; });
+      var iks = Object.keys(s.items);
+      if (iks.length > MAX_ITEMS) {
+        iks.sort(function (a, b) { var x = s.items[a], y = s.items[b]; return (x.e - y.e) || (x.ts - y.ts); })
+          .slice(0, iks.length - MAX_ITEMS).forEach(function (k) { delete s.items[k]; });
+      }
+      writeJSON(KEY_STATS, s);
+    } catch (e) {}
+  }
+  // Функция записи для раздела: rec(ok, подпись, код). cfgFn() — текущее упражнение
+  // раздела {k, u, p, n}; вызывается только при ошибке.
+  function recorder(mod, cfgFn) { return function (ok, label, code) { stat(mod, ok, label, cfgFn, code); }; }
+  function weak(limit) {
+    var s = statsGet();
+    return Object.keys(s.items).map(function (k) { return s.items[k]; })
+      .filter(function (it) { return it.e >= 1 && MODULES[it.m]; })
+      .sort(function (a, b) { return (b.e - a.e) || (b.ts - a.ts); })
+      .slice(0, limit || 50);
+  }
+  function summary(days) {
+    var s = statsGet(), from = Date.now() - (days || 7) * 86400000, r = 0, w = 0, active = 0;
+    Object.keys(s.days).forEach(function (k) {
+      if (dayTs(k) >= from - 86400000) { r += s.days[k].r; w += s.days[k].w; if (s.days[k].r + s.days[k].w) active++; }
+    });
+    return { r: r, w: w, days: active };
+  }
+  function clearWeak(mod) {
+    var s = statsGet();
+    Object.keys(s.items).forEach(function (k) { if (!mod || s.items[k].m === mod) s.items[k].e = 0; });
+    writeJSON(KEY_STATS, s);
+  }
+  // Ссылка на тренировку: раздел открывается с настройками item (как упражнение задания),
+  // но прогресс никуда не сохраняется, кроме статистики.
+  function practiceHref(item, prefix) {
+    var m = MODULES[item.m];
+    if (!m) return '#';
+    var o = { m: item.m, k: item.k, g: item.g, n: item.n, p: item.p || {} };
+    if (item.u) o.u = item.u;
+    return (prefix || './') + m.href + '?px=' + encode({ v: 1, id: 'p', t: '', c: Date.now(), i: [o] });
   }
 
   // ── Стили (одни на главной и в разделах; свои цвета, тёмная тема по data-theme) ──
@@ -407,21 +509,41 @@
   // Счёт «с первой попытки»: ok — верно без единой ошибки, bad — была ошибка (одна на
   // вопрос, сколько бы раз ни промахнулись). done растёт на каждом решённом вопросе.
   // key — любой объект/число, различающий вопросы (номер вопроса и т.п.).
-  function tracker() {
+  // Если передан раздел mod, ответы пишутся и в общую статистику (ошибка — один раз на
+  // вопрос; верный ответ — если передана подпись). Вне задания update() ничего не делает.
+  function tracker(mod, cfgFn) {
     var q = {}, missed = false;
     function sync(k) { if (k !== q) { q = k; missed = false; } }
     return {
-      wrong: function (k, label) {
+      wrong: function (k, label, code, misLabel) {
         sync(k);
         if (missed) return;
         missed = true;
-        update({ bad: 1, mis: label ? [label] : [] });
+        if (mod && label) stat(mod, false, label, cfgFn, code);
+        var ml = misLabel || label;
+        update({ bad: 1, mis: ml ? [ml] : [] });
       },
-      right: function (k) {
+      right: function (k, label, code) {
         sync(k);
+        // Верный ответ после ошибки на том же вопросе знание не подтверждает — в статистику не идёт.
+        if (mod && label && !missed) stat(mod, true, label, null, code);
         update({ done: 1, ok: missed ? 0 : 1 });
         q = {}; missed = false;
       }
+    };
+  }
+
+  // Ответ с одной попыткой (викторины): статистика + задание одним вызовом.
+  // o = {code, mis (подпись для отчёта, по умолчанию label), run, noDone}
+  function answer(mod, cfgFn) {
+    return function (ok, label, o) {
+      o = o || {};
+      if (label) stat(mod, ok, label, ok ? null : cfgFn, o.code);
+      var d = o.noDone ? {} : { done: 1 };
+      if (ok) d.ok = 1;
+      else { d.bad = 1; var ml = o.mis === false ? null : (o.mis || label); if (ml) d.mis = [ml]; }
+      if (o.run) d.run = o.run;
+      update(d);
     };
   }
 
@@ -443,18 +565,19 @@
     barEl.innerHTML =
       '<div class="mhw-bar-main"><div class="mhw-bar-title"></div><div class="mhw-bar-sub"></div>' +
       '<div class="mhw-track"><div class="mhw-fill"></div></div></div>' +
-      '<a class="mhw-btn primary" href="' + esc(barHome + '?hwopen=1') + '">' + esc(tr('toTask')) + '</a>';
+      '<a class="mhw-btn primary" href="' + esc(backHref()) + '">' + esc(current.practice ? tr('toHome') : tr('toTask')) + '</a>';
     container.insertBefore(barEl, container.firstChild);
     refreshBar();
   }
+  function backHref() { return barHome + (current && current.practice ? '?weak=1' : '?hwopen=1'); }
   function refreshBar() {
     if (!barEl || !current) return;
-    var s = active();
+    var s = curState();
     if (!s) return;
     var p = s.prog[current.idx], g = current.item.g;
     var total = p.ok + p.bad;
     var pct = total ? Math.round(p.ok / total * 100) : null;
-    barEl.querySelector('.mhw-bar-title').textContent = '📝 ' + current.item.n;
+    barEl.querySelector('.mhw-bar-title').textContent = (current.practice ? '🎯 ' : '📝 ') + current.item.n;
     barEl.querySelector('.mhw-bar-sub').textContent =
       (p.fin ? '✓ ' + tr('done') + ' · ' : '') + Math.min(p.done, g) + ' ' + tr('of') + ' ' + goalText(current.item) +
       (pct !== null ? ' · ' + tr('correct') + ' ' + pct + '%' : '');
@@ -464,11 +587,11 @@
   function showFinished() {
     var m = modal(
       '<div style="font-size:42px;text-align:center;margin-bottom:6px;">🎉</div>' +
-      '<h3 style="text-align:center;">' + esc(tr('exDone')) + '</h3>' +
-      '<p style="text-align:center;">' + esc(tr('exDoneSub')) + '</p>' +
+      '<h3 style="text-align:center;">' + esc(current.practice ? tr('prDone') : tr('exDone')) + '</h3>' +
+      '<p style="text-align:center;">' + esc(current.practice ? tr('prDoneSub') : tr('exDoneSub')) + '</p>' +
       '<div class="mhw-row" style="justify-content:center;">' +
       '<button type="button" class="mhw-btn" data-keep="1">' + esc(tr('keepTraining')) + '</button>' +
-      '<a class="mhw-btn primary" href="' + esc(barHome + '?hwopen=1') + '">' + esc(tr('toTask')) + '</a></div>'
+      '<a class="mhw-btn primary" href="' + esc(backHref()) + '">' + esc(current.practice ? tr('toHome') : tr('toTask')) + '</a></div>'
     );
     m.el.querySelector('[data-keep]').addEventListener('click', m.close);
   }
@@ -641,8 +764,10 @@
 
   window.MHW = {
     MODULES: MODULES,
+    stat: stat, recorder: recorder, weak: weak, summary: summary, clearWeak: clearWeak, practiceHref: practiceHref,
+    isPractice: function () { return !!(current && current.practice); },
     tr: tr, esc: esc, lang: lang, goalText: goalText, octName: octName,
-    addButton: addButton, lock: lock, tracker: tracker,
+    addButton: addButton, lock: lock, tracker: tracker, answer: answer,
     encode: encode, parse: parse,
     draft: draft, saveDraft: saveDraft, addToDraft: addToDraft, removeFromDraft: removeFromDraft, clearDraft: clearDraft,
     makeLink: makeLink,

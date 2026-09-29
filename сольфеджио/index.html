@@ -805,13 +805,22 @@ applyUI();
 newExercise();
 </script>
 <script>
-// ── Домашнее задание (см. ../hw.js) ──────────────────────────
+// ── Домашнее задание и статистика (см. ../hw.js) ─────────────
+// Каждая спетая нота пишется в общую статистику («Мои слабые места» на главной).
 // Учитель: «➕ В задание» сохраняет режим (нота / гамма / мелодия) и регистр.
-// Ученик (?hwx=N): переключатели и подсказка скрыты; засчитывается каждое спетое
-// упражнение, «верно» — если микрофон ни разу не услышал неверную ноту.
+// Ученик (?hwx=N или тренировка ?px=…): переключатели и подсказка скрыты; засчитывается
+// каждое спетое упражнение, «верно» — если микрофон ни разу не услышал неверную ноту.
 (function(){
   if(!window.MHW) return;
-  const modName = () => MHW.MODULES.solfege[lang==='en'?'en':'ru'];
+  const MOD = 'solfege';
+  const modName = () => MHW.MODULES[MOD][lang==='en'?'en':'ru'];
+  const cfg = () => {
+    const modeId = { note:'tNote', scale:'tScale', phrase:'tPhrase' }[mode];
+    const regBtn = document.querySelector('#regRow .sel-btn[data-reg="'+register+'"]');
+    const n = [modName(), document.getElementById(modeId).textContent.trim(),
+      (lang==='en' ? 'register: ' : 'регистр: ') + (regBtn ? regBtn.textContent.trim().toLowerCase() : register)].join(' · ');
+    return { k: mode, u: 'ex', n, p: { rg: register } };
+  };
   let inst = 0;
   const origNew = window.newExercise;
   window.newExercise = function(){ inst++; return origNew.apply(this, arguments); };
@@ -823,16 +832,32 @@ newExercise();
       options: [5, 10, 15, 20]
     });
     if(!g) return;
-    const modeId = { note:'tNote', scale:'tScale', phrase:'tPhrase' }[mode];
-    const regBtn = document.querySelector('#regRow .sel-btn[data-reg="'+register+'"]');
-    const n = [modName(), document.getElementById(modeId).textContent.trim(),
-      (lang==='en' ? 'register: ' : 'регистр: ') + (regBtn ? regBtn.textContent.trim().toLowerCase() : register)].join(' · ');
-    MHW.addFromModule({ m:'solfege', k:mode, u:'ex', g, n, p:{ rg: register } }, '../index.html');
+    MHW.addFromModule(Object.assign({ m: MOD, g }, cfg()), '../index.html');
   });
   const origLang = window.toggleLang;
   window.toggleLang = function(){ const r = origLang.apply(this, arguments); add.relabel(); return r; };
 
-  const tk = MHW.task('solfege');
+  // Перехват ответов — всегда (статистика); в задании ещё и прогресс.
+  const tr = MHW.tracker(MOD, cfg);
+  const label = midi => { const d = midiToNoteOct(midi); return noteLabel(d.note).toLowerCase() + ' (' + MHW.octName(d.octave) + ')'; };
+  const code = midi => { const d = midiToNoteOct(midi); return d.note + d.octave; };
+  const origErr = window.registerError;
+  window.registerError = function(){
+    const key = inst, target = targetMidis[curIdx];
+    const r = origErr.apply(this, arguments);
+    if(target != null) tr.wrong(key, label(target), code(target));
+    return r;
+  };
+  const origOk = window.registerSuccess;
+  window.registerSuccess = function(){
+    const key = inst, ok0 = score.ok, target = targetMidis[curIdx];
+    const r = origOk.apply(this, arguments);
+    if(target != null) MHW.stat(MOD, true, label(target), null, code(target));
+    if(score.ok > ok0) tr.right(key);
+    return r;
+  };
+
+  const tk = MHW.task(MOD);
   if(!tk) return;
   add.row.style.display = 'none';
   const md = ['note','scale','phrase'].includes(tk.item.k) ? tk.item.k : 'note';
@@ -840,25 +865,8 @@ newExercise();
   register = rg;
   document.querySelectorAll('#regRow .sel-btn').forEach(b=>b.classList.toggle('active', b.dataset.reg===rg));
   setMode(md);
-  MHW.lock(['.tabs', '#regRow', '[onclick="revealHint()"]']);
+  MHW.lock(['.tabs', '#regRow', '[onclick="revealHint()"]', '.mhw-addrow']);
   MHW.mountBar(document.querySelector('.container'), '../index.html');
-
-  const tr = MHW.tracker();
-  const label = midi => { const d = midiToNoteOct(midi); return noteLabel(d.note).toLowerCase() + ' (' + MHW.octName(d.octave) + ')'; };
-  const origErr = window.registerError;
-  window.registerError = function(){
-    const key = inst, target = targetMidis[curIdx];
-    const r = origErr.apply(this, arguments);
-    if(target != null) tr.wrong(key, label(target));
-    return r;
-  };
-  const origOk = window.registerSuccess;
-  window.registerSuccess = function(){
-    const key = inst, ok0 = score.ok;
-    const r = origOk.apply(this, arguments);
-    if(score.ok > ok0) tr.right(key);
-    return r;
-  };
 })();
 </script>
 <script>

@@ -190,6 +190,17 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
 .hw-qr canvas{width:240px;height:240px;image-rendering:pixelated;border-radius:8px;}
 .hw-report-img{width:100%;border-radius:12px;border:1px solid #cbd5e1;margin-bottom:12px;}
 .wn-list{display:flex;flex-direction:column;gap:10px;margin:8px 0 16px;}
+.weak-sum{font-size:11px;font-weight:700;color:var(--muted);margin:-4px 0 10px;}
+.weak-row{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:12px;
+  background:var(--sl100);border:1.5px solid var(--border);}
+.weak-main{flex:1;min-width:0;}
+.weak-name{font-size:11.5px;font-weight:800;color:var(--text);}
+.weak-items{font-size:11px;color:var(--text);line-height:1.45;margin-top:3px;word-break:break-word;}
+.weak-items b{font-weight:800;}
+.weak-cnt{color:#ef4444;font-weight:800;font-size:10px;}
+.weak-go{flex-shrink:0;text-decoration:none;}
+.weak-ok{font-size:12px;font-weight:700;color:#047857;padding:6px 2px;}
+[data-theme="dark"] .weak-ok{color:#34d399;}
 .wn-item{display:flex;gap:10px;font-size:12.5px;line-height:1.45;}
 .wn-ico{font-size:18px;flex-shrink:0;}
 
@@ -242,6 +253,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
       </svg>
       <span id="langText">RU</span>
     </button>
+    <button class="hbtn" id="profileBtn" title="Профили учеников" aria-label="Профили учеников">👤<span id="profileBtnName"></span></button>
     <button class="hbtn" id="tourBtn" title="Тур" aria-label="Тур" style="padding:7px 10px;">❔</button>
     <button class="hbtn" id="installBtn" style="display:none">
       <span>⬇️</span> <span id="installBtnText">Установить</span>
@@ -313,6 +325,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
   <div class="review-title" id="reviewTitle">🧠 Что подтянуть</div>
   <div class="review-list" id="reviewList"></div>
 </div>
+
+<div class="data-card" id="rateCard" style="display:none"></div>
 
 <div class="data-card" id="exportReminder" style="display:none">
   <div class="data-card-desc" id="exportReminderText"></div>
@@ -525,7 +539,7 @@ const T={
     profileTitle:'🎓 Мой класс',profileDesc:'Выберите класс — модули с заданиями будут сразу открываться на нужном уровне.',
     exportedMsg:'Сохранено: ',importedMsg:'Импортировано ключей: ',importedSuffix:'. Обновляю страницу…',importErrMsg:'Не удалось прочитать файл. Проверьте, что это резервная копия этого приложения.',
     achTitle:'🏅 Достижения',
-    reviewTitle:'🧠 Что подтянуть',
+    reviewTitle:'🧠 Мои слабые места',
     instrTitle:'🎸 Мой инструмент',instrDesc:'Выберите инструмент и отмечайте дни занятий — приложение посчитает вашу серию.',
     practiceMarkText:'Я позанимался сегодня',practiceDoneText:'Сегодня уже отмечено ✅',
     timerStart:'Начать занятие',timerPause:'Пауза',timerToday:'Сегодня:',
@@ -569,7 +583,7 @@ const T={
     profileTitle:'🎓 My grade',profileDesc:'Pick your grade — assignment-based modules will open at the right level right away.',
     exportedMsg:'Saved: ',importedMsg:'Imported keys: ',importedSuffix:'. Reloading the page…',importErrMsg:'Could not read the file. Make sure it\'s a backup from this app.',
     achTitle:'🏅 Achievements',
-    reviewTitle:'🧠 What to review',
+    reviewTitle:'🧠 My weak spots',
     instrTitle:'🎸 My instrument',instrDesc:'Pick your instrument and check in each day you practice — the app will track your streak.',
     practiceMarkText:'I practiced today',practiceDoneText:'Marked for today ✅',
     timerStart:'Start practicing',timerPause:'Pause',timerToday:'Today:',
@@ -1292,8 +1306,8 @@ const HWT={
     wn:[
       ['📝','<b>Домашние задания.</b> Учитель собирает упражнения из тренажёров и викторин (Нотная грамота, Сольфеджио, Ритм, Слух, Диктанты, Тональности, Цифровка и др.) и отправляет ученику ссылку или QR-код, а ученик возвращает отчёт с результатами.'],
       ['🎼','<b>Чтение нот:</b> 18 мелодий по трём уровням, режим без скорости для малышей, паузы в своих мелодиях, темп от 20 BPM.'],
-      ['♯','<b>Диезы</b> в тесте по нотам.'],
-      ['🔍','<b>Поиск по разделам</b> на главной странице.']
+      ['🧠','<b>Мои слабые места.</b> Приложение запоминает ошибки во всех разделах и показывает на главной, что стоит подтянуть, — с кнопкой «Потренировать».'],
+      ['👤','<b>Профили учеников.</b> Если на одном устройстве занимаются несколько человек, у каждого свой прогресс — кнопка 👤 вверху.']
     ]
   },
   en:{
@@ -1318,8 +1332,8 @@ const HWT={
     wn:[
       ['📝','<b>Homework.</b> A teacher builds exercises from the trainers and quizzes (Music notation, Solfege, Rhythm, Ear training, Dictations, Keys, Figured bass and more) and sends a link or QR code; the student sends back a report.'],
       ['🎼','<b>Note reading:</b> 18 melodies in three levels, an untimed mode for little ones, rests in custom melodies, tempo from 20 BPM.'],
-      ['♯','<b>Sharps</b> in the note test.'],
-      ['🔍','<b>Section search</b> on the home page.']
+      ['🧠','<b>My weak spots.</b> The app remembers mistakes in every section and shows on the home page what to work on, with a “Practise” button.'],
+      ['👤','<b>Student profiles.</b> Several people on one device each get their own progress — the 👤 button at the top.']
     ]
   }
 };
@@ -1487,7 +1501,7 @@ function openLinkModal(){
 function handleIncoming(){
   const params=new URLSearchParams(location.search);
   const code=params.get('hw');
-  let focus=params.has('hwopen')?'hwStudentCard':(params.has('hwbuild')?'hwTeacherCard':null);
+  let focus=params.has('hwopen')?'hwStudentCard':(params.has('hwbuild')?'hwTeacherCard':(params.has('weak')?'reviewCard':null));
   const t=L();
   if(code){
     const hw=MHW.parse(code);
@@ -1510,7 +1524,7 @@ function handleIncoming(){
 }
 
 /* ── «Что нового» — один раз после обновления, только тем, кто уже пользовался приложением ── */
-const WN_KEY='musicapp_whatsnew_seen',WN_VER='hw2';
+const WN_KEY='musicapp_whatsnew_seen',WN_VER='st1';
 function maybeShowWhatsNew(cameWithLink){
   if(localStorage.getItem(WN_KEY)===WN_VER)return;
   if(!localStorage.getItem(TOUR_KEY)){localStorage.setItem(WN_KEY,WN_VER);return;} // новый пользователь — ему покажут тур
@@ -1525,10 +1539,217 @@ function maybeShowWhatsNew(cameWithLink){
   },700);
 }
 
-document.getElementById('langBtn').addEventListener('click',()=>{renderStudent();renderTeacher();});
-window.addEventListener('pageshow',e=>{if(e.persisted){renderStudent();renderTeacher();}});
+document.getElementById('langBtn').addEventListener('click',()=>{renderStudent();renderTeacher();renderReview();});
+window.addEventListener('pageshow',e=>{if(e.persisted){renderStudent();renderTeacher();renderReview();}});
+/* ── «Мои слабые места»: общая статистика ответов из всех разделов (hw.js → MHW.stat) ── */
+const WT={
+  ru:{sum:(n,p,d)=>`За 7 дней: ${n} ${n%10===1&&n%100!==11?'ответ':(n%10>=2&&n%10<=4&&(n%100<12||n%100>14)?'ответа':'ответов')} · ${p}% верно · дней с занятиями: ${d}`,
+      none:'✅ Слабых мест нет — так держать!',go:'🎯 Потренировать',practice:'Тренировка',
+      due:(names)=>'Пора повторить термины: '+names},
+  en:{sum:(n,p,d)=>`Last 7 days: ${n} answers · ${p}% correct · active days: ${d}`,
+      none:'✅ No weak spots — keep it up!',go:'🎯 Practise',practice:'Practice',
+      due:(names)=>'Time to review terms: '+names}
+};
+const DEFAULT_GOAL={notes:10,ans:10,ex:5,dict:1,pairs:6,times:1};
+// Упражнение-тренировка для группы слабых мест одного раздела (и одного вида упражнения).
+function practiceItem(group){
+  const base=group.slice().filter(it=>it.k).sort((a,b)=>b.ts-a.ts)[0];
+  if(!base)return null;
+  const labels=group.slice(0,3).map(it=>it.l);
+  const item={m:base.m,k:base.k,u:base.u,p:Object.assign({},base.p||{}),g:DEFAULT_GOAL[base.u]||10};
+  const codes=group.map(it=>it.c).filter(Boolean);
+  if(base.m==='notation'&&base.k==='notes'&&codes.length){
+    // Тренируем ровно эти ноты: свой набор + самый широкий диапазон, чтобы они точно попали в тест.
+    item.p.set=codes.join(' '); item.p.lv=2; item.g=Math.max(10,codes.length*3);
+  } else if(base.m==='glossary'&&codes.length>=2){
+    item.p={tl:codes.join('|')};
+    if(codes.length>=4){item.k='quiz';item.u='ans';item.g=Math.max(10,codes.length*2);}
+    else {item.k='match';item.u='pairs';item.g=6;}
+  }
+  item.n=WT[lang==='en'?'en':'ru'].practice+': '+labels.join(', ')+(group.length>3?'…':'');
+  return item;
+}
+window.renderReview=function(){
+  const card=document.getElementById('reviewCard'),list=document.getElementById('reviewList');
+  if(!card||!list)return;
+  const W=WT[lang==='en'?'en':'ru'];
+  const sm=MHW.summary(7),total=sm.r+sm.w;
+  const groups={},order=[];
+  MHW.weak(60).forEach(it=>{const key=it.m+'|'+(it.k||'');if(!groups[key]){groups[key]=[];order.push(key);}groups[key].push(it);});
+  let html='';
+  if(total)html+=`<div class="weak-sum">${W.sum(total,Math.round(sm.r/total*100),sm.days)}</div>`;
+  const rows=order.slice(0,5).map(key=>{
+    const g=groups[key],m=MHW.MODULES[g[0].m];
+    const pi=practiceItem(g);
+    const chips=g.slice(0,5).map(it=>`<b>${esc(it.l)}</b>`+(it.w>1?` <span class="weak-cnt">×${it.w}</span>`:'')).join(', ')+(g.length>5?' …':'');
+    const sub=g[0].n?esc(String(g[0].n).split(' · ').filter(x=>x!==m.ru&&x!==m.en)[0]||''):''; // вид упражнения без названия раздела
+    return `<div class="weak-row"><span class="review-ico">${m.ico}</span><div class="weak-main">`+
+      `<div class="weak-name">${esc(lang==='en'?m.en:m.ru)}${sub?' · '+sub:''}</div><div class="weak-items">${chips}</div></div>`+
+      (pi?`<a class="hbtn data-btn-primary weak-go" href="${esc(MHW.practiceHref(pi,'./'))}">${W.go}</a>`:'')+`</div>`;
+  });
+  html+=rows.join('');
+  if(total&&!rows.length)html+=`<div class="weak-ok">${W.none}</div>`;
+  // Термины словарика, у которых подошёл срок интервального повторения.
+  try{
+    const srs=JSON.parse(localStorage.getItem('musicapp_glossary_srs')||'{}');
+    const td=new Date(),ts=td.getFullYear()+'-'+(td.getMonth()+1)+'-'+td.getDate();
+    const db=(a,b)=>{const pa=a.split('-').map(Number),pb=b.split('-').map(Number);return Math.round((new Date(pb[0],pb[1]-1,pb[2])-new Date(pa[0],pa[1]-1,pa[2]))/86400000);};
+    const due=Object.keys(srs).filter(t=>srs[t]&&srs[t].due&&db(srs[t].due,ts)>=0).sort((a,b)=>db(srs[b].due,ts)-db(srs[a].due,ts)).slice(0,3);
+    if(due.length)html+=`<a class="review-item" href="./словарик терминов/index.html"><span class="review-ico">📖</span><span class="review-text">${W.due('<b>'+due.map(esc).join('</b>, <b>')+'</b>')}</span></a>`;
+  }catch(e){}
+  if(!html){card.style.display='none';list.innerHTML='';return;}
+  card.style.display='';
+  list.innerHTML=html;
+};
+renderReview();
+/* ── «Оценить в Google Play»: после нескольких удачных занятий (≥40 верных ответов, ≥3 дня) ── */
+const RATE_KEY='musicapp_rate',PLAY_URL='https://play.google.com/store/apps/details?id=com.muzgramota.app';
+const RT={ru:{t:'⭐ Нравится Музграмота?',d:'Если приложение помогает заниматься, оцените его в Google Play — это очень помогает другим ученикам и учителям найти его.',
+              go:'⭐ Оценить',later:'Позже',never:'Не показывать'},
+          en:{t:'⭐ Enjoying Muzgramota?',d:'If the app helps you practise, please rate it on Google Play — it really helps other students and teachers find it.',
+              go:'⭐ Rate',later:'Later',never:"Don't show"}};
+function renderRate(){
+  const card=document.getElementById('rateCard');if(!card)return;
+  let st={};try{st=JSON.parse(localStorage.getItem(RATE_KEY)||'{}')||{};}catch(e){}
+  const hide=()=>{card.style.display='none';card.innerHTML='';};
+  if(st.s==='never'||(st.s==='later'&&Date.now()-(st.t||0)<30*86400000))return hide();
+  let ok=0,days=0;
+  try{const s=JSON.parse(localStorage.getItem('musicapp_stats')||'{}');
+    Object.values(s.mods||{}).forEach(m=>{ok+=m.r||0;});
+    days=Object.values(s.days||{}).filter(d=>(d.r||0)+(d.w||0)>0).length;}catch(e){}
+  if(ok<40||days<3)return hide();
+  const t=RT[lang==='en'?'en':'ru'];
+  card.style.display='';
+  card.innerHTML=`<div class="data-card-title">${t.t}</div><div class="data-card-desc">${t.d}</div>`+
+    `<div class="data-card-btns"><a class="hbtn data-btn-primary" id="rateGo" href="${PLAY_URL}" target="_blank" rel="noopener" style="text-decoration:none;">${t.go}</a>`+
+    `<button class="hbtn" id="rateLater">${t.later}</button><button class="hbtn" id="rateNever">${t.never}</button></div>`;
+  const save=v=>{localStorage.setItem(RATE_KEY,JSON.stringify({s:v,t:Date.now()}));hide();};
+  document.getElementById('rateGo').addEventListener('click',()=>setTimeout(()=>save('never'),300));
+  document.getElementById('rateLater').addEventListener('click',()=>save('later'));
+  document.getElementById('rateNever').addEventListener('click',()=>save('never'));
+}
+renderRate();
+document.getElementById('langBtn').addEventListener('click',renderRate);
 const came=handleIncoming();
 maybeShowWhatsNew(came);
+})();
+</script>
+<script>
+/* ── Профили учеников ──────────────────────────────────────────
+   Несколько учеников на одном устройстве (например, на планшете учителя). У каждого свои
+   серии дней, прогресс, избранное, статистика, задания и настройки тренажёров.
+   Как устроено: все ключи приложения (musicapp_* и старый ключ словарика mvpro3), кроме
+   общих для устройства (язык, тема, звук, тур, черновик задания учителя…), принадлежат
+   активному профилю. При переключении они сохраняются в реестр musicapp_profiles, а на их
+   место загружаются данные другого профиля — разделы при этом ничего о профилях не знают.
+   Ключи других сайтов на том же домене (github.io) не трогаем. */
+(function(){
+if(!window.MHW)return;
+const REG_KEY='musicapp_profiles';
+const GLOBAL_KEYS=new Set(['musicapp_lang','musicapp_theme','musicapp_sound_enabled','musicapp_onboarding_seen',
+  'musicapp_whatsnew_seen','musicapp_instrument_spotlight_seen','musicapp_hw_draft','musicapp_last_export_ts',
+  'musicapp_export_reminder_snoozed','musicapp_has_exported','musicapp_assignment_history','musicapp_result_history',
+  'musicapp_rate',REG_KEY]);
+const isProfileKey=k=>!!k&&!GLOBAL_KEYS.has(k)&&(k.indexOf('musicapp_')===0||k==='mvpro3');
+const PT={
+  ru:{title:'👤 Профили учеников',desc:'У каждого ученика свои серии дней, прогресс, статистика, избранное и задания. Удобно, если на одном устройстве занимаются несколько человек.',
+      cur:'сейчас',sw:'Выбрать',ren:'Переименовать',del:'Удалить',add:'➕ Добавить ученика',close:'Закрыть',
+      namePrompt:'Имя ученика',delConfirm:n=>'Удалить профиль «'+n+'» вместе со всем прогрессом? Это нельзя отменить.',
+      def:'Ученик 1',switched:n=>'Профиль: '+n,btnTitle:'Профили учеников'},
+  en:{title:'👤 Student profiles',desc:'Each student has their own streak, progress, stats, favourites and homework. Handy when several people use one device.',
+      cur:'current',sw:'Switch',ren:'Rename',del:'Delete',add:'➕ Add student',close:'Close',
+      namePrompt:'Student name',delConfirm:n=>'Delete profile “'+n+'” with all its progress? This cannot be undone.',
+      def:'Student 1',switched:n=>'Profile: '+n,btnTitle:'Student profiles'}
+};
+const P=()=>PT[lang==='en'?'en':'ru'];
+const esc=MHW.esc;
+function readReg(){try{const r=JSON.parse(localStorage.getItem(REG_KEY)||'null');if(r&&Array.isArray(r.list)&&r.list.length&&r.data)return r;}catch(e){}return null;}
+function writeReg(r){localStorage.setItem(REG_KEY,JSON.stringify(r));}
+function ensureReg(){
+  let r=readReg();
+  if(!r){
+    const nm=(localStorage.getItem('musicapp_hw_student_name')||'').trim()||P().def;
+    r={active:'p1',list:[{id:'p1',name:nm}],data:{}};
+    writeReg(r);
+  }
+  return r;
+}
+function profileKeys(){const ks=[];for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);if(isProfileKey(k))ks.push(k);}return ks;}
+function switchTo(id){
+  const r=ensureReg();
+  if(id===r.active||!r.list.some(p=>p.id===id))return;
+  const snap={};
+  profileKeys().forEach(k=>{snap[k]=localStorage.getItem(k);});
+  Object.keys(snap).forEach(k=>localStorage.removeItem(k));
+  r.data[r.active]=snap;
+  const load=r.data[id]||{};
+  Object.keys(load).forEach(k=>{if(isProfileKey(k))localStorage.setItem(k,load[k]);});
+  delete r.data[id];
+  r.active=id;
+  writeReg(r);
+  const p=r.list.find(x=>x.id===id);
+  try{sessionStorage.setItem('musicapp_profile_toast',p?p.name:'');}catch(e){}
+  location.reload();
+}
+function addProfile(){
+  const nm=(prompt(P().namePrompt,'')||'').trim().slice(0,40);
+  if(!nm)return;
+  const r=ensureReg();
+  const id='p'+Date.now().toString(36);
+  r.list.push({id,name:nm});
+  r.data[id]={musicapp_hw_student_name:nm}; // имя сразу подставится в отчёт по заданию
+  writeReg(r);
+  switchTo(id);
+}
+function renameProfile(id){
+  const r=ensureReg(),p=r.list.find(x=>x.id===id);if(!p)return;
+  const nm=(prompt(P().namePrompt,p.name)||'').trim().slice(0,40);
+  if(!nm)return;
+  p.name=nm;writeReg(r);renderBtn();openModal(true);
+}
+function deleteProfile(id){
+  const r=ensureReg(),p=r.list.find(x=>x.id===id);
+  if(!p||id===r.active)return;
+  if(!confirm(P().delConfirm(p.name)))return;
+  r.list=r.list.filter(x=>x.id!==id);delete r.data[id];writeReg(r);renderBtn();openModal(true);
+}
+let modalRef=null;
+function openModal(reopen){
+  if(modalRef){modalRef.close();modalRef=null;}
+  const r=ensureReg(),t=P();
+  const rows=r.list.map(p=>{
+    const act=p.id===r.active;
+    return `<div class="hw-item${act?' fin':''}" style="margin-bottom:8px;"><span class="hw-item-ico">${act?'✅':'👤'}</span>`+
+      `<div class="hw-item-main"><div class="hw-item-name">${esc(p.name)}${act?` <span style="color:var(--muted);font-weight:700;">· ${t.cur}</span>`:''}</div></div>`+
+      (act?'':`<button type="button" class="mhw-btn primary" data-sw="${p.id}">${t.sw}</button>`)+
+      `<button type="button" class="mhw-btn" data-ren="${p.id}" title="${t.ren}" aria-label="${t.ren}">✎</button>`+
+      (act?'':`<button type="button" class="mhw-btn danger" data-del="${p.id}" title="${t.del}" aria-label="${t.del}">✕</button>`)+`</div>`;
+  }).join('');
+  modalRef=MHW.modal(`<h3>${t.title}</h3><p>${t.desc}</p>${rows}`+
+    `<div class="mhw-row" style="margin-top:12px;"><button type="button" class="mhw-btn" data-close="1">${t.close}</button>`+
+    `<button type="button" class="mhw-btn primary" data-add="1">${t.add}</button></div>`);
+  modalRef.el.addEventListener('click',e=>{
+    const b=e.target.closest('button');if(!b)return;
+    if(b.dataset.close){modalRef.close();modalRef=null;}
+    else if(b.dataset.add)addProfile();
+    else if(b.dataset.sw)switchTo(b.dataset.sw);
+    else if(b.dataset.ren)renameProfile(b.dataset.ren);
+    else if(b.dataset.del)deleteProfile(b.dataset.del);
+  });
+}
+function renderBtn(){
+  const r=readReg(),el=document.getElementById('profileBtnName'),btn=document.getElementById('profileBtn');
+  if(btn){btn.title=P().btnTitle;btn.setAttribute('aria-label',P().btnTitle);}
+  if(!el)return;
+  // Имя показываем, только когда профилей больше одного — одиночному пользователю оно ни к чему.
+  const p=r&&r.list.length>1?r.list.find(x=>x.id===r.active):null;
+  el.textContent=p?' '+p.name:'';
+}
+document.getElementById('profileBtn').addEventListener('click',()=>openModal());
+document.getElementById('langBtn').addEventListener('click',renderBtn);
+renderBtn();
+try{const n=sessionStorage.getItem('musicapp_profile_toast');if(n!==null){sessionStorage.removeItem('musicapp_profile_toast');if(n)MHW.toast('👤 '+P().switched(n));}}catch(e){}
+window.MProfiles={switchTo,readReg,isProfileKey};
 })();
 </script>
 <script>

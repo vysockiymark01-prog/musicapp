@@ -1744,17 +1744,36 @@ function printResult(){ window.print(); }
 })();
 </script>
 <script>
-// ── Домашнее задание (см. ../hw.js) ──────────────────────────
-// Учитель: в «Викторине» или «Найди пару» «➕ В задание». Если по текущим фильтрам/поиску/
+// ── Домашнее задание и статистика (см. ../hw.js) ─────────────
+// Каждый ответ пишется в общую статистику («Мои слабые места» на главной).
+// Учитель: в «Тесте» или «Сопоставить» «➕ В задание». Если по текущим фильтрам/поиску/
 // избранному отобрано не больше 40 терминов — в задание попадает именно этот список
-// («выучи эти термины»), иначе — тема и класс. Ученик (?hwx=N): только эти термины,
-// вкладки, фильтры и поиск скрыты. Викторина — одна попытка на термин; «Найди пару» —
-// засчитывается каждая найденная пара, ошибки идут в отчёт.
+// («выучи эти термины»), иначе — тема и класс. Ученик (?hwx=N или тренировка ?px=…):
+// только эти термины, вкладки, фильтры и поиск скрыты. Тест — одна попытка на термин;
+// «Сопоставить» — засчитывается каждая найденная пара, ошибки идут в отчёт.
 (function(){
   if(!window.MHW) return;
+  const MOD = 'glossary';
   const L = () => lang==='en' ? 'en' : 'ru';
-  const modName = () => MHW.MODULES.glossary[L()];
+  const modName = () => MHW.MODULES[MOD][L()];
   const MAX_LIST = 40;
+  // withList — для «➕ В задание» кладём сам список терминов; для статистики достаточно фильтров.
+  const cfg = (withList) => {
+    const k = mode === 'match' ? 'match' : 'quiz';
+    const f = filtered();
+    const tabBtn = document.getElementById(k==='quiz' ? 'tab1' : 'tab2');
+    const parts = [modName(), tabBtn ? tabBtn.textContent.replace(/^[^\p{L}\d]+/u,'').trim() : k];
+    const p = {};
+    if(withList && f.length <= MAX_LIST){
+      p.tl = f.map(x=>x.term).join('|');
+      parts.push((L()==='en' ? f.length + ' terms: ' : f.length + ' терм.: ') + f.slice(0,3).map(x=>x.term).join(', ') + (f.length>3 ? '…' : ''));
+    } else {
+      p.tp = filterTopic; p.cl = filterCls;
+      if(filterTopic !== 'all') parts.push(topicLabel(filterTopic));
+      if(filterCls !== 'all') parts.push(clsLabel(filterCls));
+    }
+    return { k, u: k==='quiz' ? 'ans' : 'pairs', n: parts.join(' · '), p };
+  };
   const add = MHW.addButton(document.querySelector('.container'), document.querySelector('.search-box'), async () => {
     const k = mode;
     if(k !== 'quiz' && k !== 'match') return;
@@ -1769,18 +1788,7 @@ function printResult(){ window.print(); }
       options: k==='quiz' ? [10, 20, 30] : [6, 12, 18, 24]
     });
     if(!g) return;
-    const tabBtn = document.getElementById(k==='quiz' ? 'tab1' : 'tab2');
-    const parts = [modName(), tabBtn ? tabBtn.textContent.replace(/^[^\p{L}\d]+/u,'').trim() : k];
-    const p = {};
-    if(f.length <= MAX_LIST){
-      p.tl = f.map(x=>x.term).join('|');
-      parts.push((L()==='en' ? f.length + ' terms: ' : f.length + ' терм.: ') + f.slice(0,3).map(x=>x.term).join(', ') + (f.length>3 ? '…' : ''));
-    } else {
-      p.tp = filterTopic; p.cl = filterCls;
-      if(filterTopic !== 'all') parts.push(topicLabel(filterTopic));
-      if(filterCls !== 'all') parts.push(clsLabel(filterCls));
-    }
-    MHW.addFromModule({ m:'glossary', k, u: k==='quiz' ? 'ans' : 'pairs', g, n:parts.join(' · '), p }, '../index.html');
+    MHW.addFromModule(Object.assign({ m: MOD, g }, cfg(true)), '../index.html');
   });
   const syncAdd = () => { add.row.style.display = (mode==='quiz' || mode==='match') ? '' : 'none'; };
   const origSwitch = window.switchMode;
@@ -1789,7 +1797,30 @@ function printResult(){ window.print(); }
   const origLang = window.toggleLang;
   window.toggleLang = function(){ const r = origLang.apply(this, arguments); add.relabel(); return r; };
 
-  const tk = MHW.task('glossary');
+  // Перехват ответов — всегда (статистика); в задании ещё и прогресс. Подпись и код — термин.
+  const ans = MHW.answer(MOD, () => cfg(false));
+  const origQ = window.qAns;
+  window.qAns = function(btn, chosen, correct){
+    if(qAnswered) return origQ.apply(this, arguments);
+    const r = origQ.apply(this, arguments);
+    ans(chosen === correct, correct, { code: correct });
+    return r;
+  };
+  const origM = window.mClick;
+  window.mClick = function(el){
+    const prev = mSel, m0 = mMatched.length, e0 = mErrors;
+    const r = origM.apply(this, arguments);
+    const termOf = id => (mPairs[id] || {}).term;
+    if(mMatched.length > m0){ const t = termOf(+el.dataset.id); ans(true, t, { code: t }); }
+    else if(mErrors > e0){
+      const termEl = prev && prev.side === 'term' ? prev.el : el;
+      const t = termOf(+termEl.dataset.id);
+      ans(false, t, { code: t, noDone: true });
+    }
+    return r;
+  };
+
+  const tk = MHW.task(MOD);
   if(!tk) return;
   const k = tk.item.k === 'match' ? 'match' : 'quiz';
   const p = tk.item.p || {};
@@ -1803,32 +1834,9 @@ function printResult(){ window.print(); }
   if(pool.length < (k==='quiz' ? 4 : 2)) pool = TERMS.slice();
   window.filtered = () => pool.slice();
   switchMode(k);
-  add.row.style.display = 'none';
   MHW.lock(['.tabs', '.search-box', '#filterPanelTopic', '#filterPanelCls', '#filterToggle', '#progressSection',
-            '#favToggleBtn', '#assignBtn', '#shareResultBtn', '#assignBanner']);
+            '#favToggleBtn', '#assignBtn', '#shareResultBtn', '#assignBanner', '.mhw-addrow']);
   MHW.mountBar(document.querySelector('.container'), '../index.html');
-
-  if(k === 'quiz'){
-    const orig = window.qAns;
-    window.qAns = function(btn, chosen, correct){
-      if(qAnswered) return orig.apply(this, arguments);
-      const r = orig.apply(this, arguments);
-      MHW.update(chosen === correct ? { done:1, ok:1 } : { done:1, bad:1, mis:[correct] });
-      return r;
-    };
-  } else {
-    const orig = window.mClick;
-    window.mClick = function(el){
-      const prev = mSel, m0 = mMatched.length, e0 = mErrors;
-      const r = orig.apply(this, arguments);
-      if(mMatched.length > m0) MHW.update({ done:1, ok:1 });
-      else if(mErrors > e0){
-        const termEl = prev && prev.side === 'term' ? prev.el : el;
-        MHW.update({ bad:1, mis:[termEl.textContent.trim()] });
-      }
-      return r;
-    };
-  }
 })();
 </script>
 <script>
