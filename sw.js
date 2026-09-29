@@ -1,4 +1,4 @@
-const CACHE = 'muzgramota-v41';
+const CACHE = 'muzgramota-v42';
 
 // Критические файлы с ASCII-путями — кэшируются через addAll (всё-или-ничего),
 // поэтому здесь только то, без чего приложение не откроется вообще.
@@ -9,6 +9,8 @@ const PRECACHE = [
   '/musicapp/icon-512.png',
   '/musicapp/icon-192.png',
   '/musicapp/privacy-policy.html',
+  '/musicapp/hw.js',
+  '/musicapp/qrcode.min.js',
 ];
 
 // Страницы модулей — пути с кириллицей и пробелами. addAll() уронил бы весь

@@ -166,6 +166,33 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
 .cat-fav .mcard-tag{background:rgba(245,158,11,.12);color:#b45309;}
 [data-theme="dark"] .cat-fav .mcard-tag{background:rgba(245,158,11,.25);}
 
+/* Домашние задания */
+.hw-card{border-color:var(--blue);}
+.hw-sub{font-size:11px;color:var(--muted);font-weight:700;margin-bottom:12px;}
+.hw-list{display:flex;flex-direction:column;gap:8px;margin-bottom:12px;}
+.hw-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:12px;
+  background:var(--sl100);border:1.5px solid var(--border);}
+.hw-item.fin{border-color:#10b981;}
+.hw-item-ico{font-size:18px;flex-shrink:0;}
+.hw-item-main{flex:1;min-width:0;}
+.hw-item-name{font-size:11.5px;font-weight:800;line-height:1.35;color:var(--text);word-break:break-word;}
+.hw-item-meta{font-size:10.5px;font-weight:700;color:var(--muted);margin-top:3px;}
+.hw-track{height:5px;border-radius:4px;background:var(--sl200);overflow:hidden;margin-top:5px;}
+.hw-fill{height:100%;background:var(--blue);border-radius:4px;}
+.hw-item.fin .hw-fill{background:#10b981;}
+.hw-go{flex-shrink:0;text-decoration:none;}
+.hw-del{flex-shrink:0;background:none;border:none;color:#ef4444;font-size:15px;cursor:pointer;padding:4px 6px;}
+.hw-title-inp{width:100%;padding:10px 12px;border-radius:10px;border:1px solid var(--border);
+  background:var(--bg);color:var(--text);font-size:13px;margin-bottom:10px;}
+.hw-empty{font-size:11px;color:var(--muted);line-height:1.5;margin-bottom:10px;}
+.hw-link-danger{background:none !important;color:#ef4444 !important;}
+.hw-qr{display:flex;justify-content:center;margin:4px 0 12px;}
+.hw-qr canvas{width:240px;height:240px;image-rendering:pixelated;border-radius:8px;}
+.hw-report-img{width:100%;border-radius:12px;border:1px solid #cbd5e1;margin-bottom:12px;}
+.wn-list{display:flex;flex-direction:column;gap:10px;margin:8px 0 16px;}
+.wn-item{display:flex;gap:10px;font-size:12.5px;line-height:1.45;}
+.wn-ico{font-size:18px;flex-shrink:0;}
+
 /* Онбординг-тур для новых пользователей */
 .tour-backdrop{position:fixed;inset:0;z-index:9998;background:transparent;}
 .tour-highlight{position:fixed;border-radius:14px;box-shadow:0 0 0 9999px rgba(15,23,42,.6);
@@ -222,6 +249,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
   </div>
 </div>
 
+<div class="data-card hw-card" id="hwStudentCard" style="display:none"></div>
+
 <div class="progress-card">
   <div class="progress-top">
     <span class="progress-label" id="progLabel">Ваш прогресс</span>
@@ -277,6 +306,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
   </div>
   <div class="data-status" id="practiceBanner" style="display:none"></div>
 </div>
+
+<div class="data-card" id="hwTeacherCard"></div>
 
 <div class="review-card" id="reviewCard" style="display:none">
   <div class="review-title" id="reviewTitle">🧠 Что подтянуть</div>
@@ -1232,6 +1263,274 @@ document.getElementById('tourBtn').addEventListener('click',startTour);
 applyLang();
 maybeAutoStartTour();
 initInstrumentSpotlight();
+</script>
+<script src="hw.js"></script>
+<script>
+/* ── Домашние задания (учитель собирает, ученик выполняет) + «Что нового» ── */
+(function(){
+if(!window.MHW)return;
+const HWT={
+  ru:{
+    stTitle:'📝 Домашнее задание',received:'Получено',start:'Начать',cont:'Продолжить',again:'Повторить',
+    send:'📤 Отправить учителю',remove:'Удалить задание',removeConfirm:'Удалить это задание вместе с результатами?',
+    doneOf:'из',correct:'верно',allDone:'🎉 Всё выполнено! Отправьте отчёт учителю.',
+    tcTitle:'👩‍🏫 Задание ученику',
+    tcEmpty:'Откройте раздел, настройте упражнение и нажмите «➕ В задание». Упражнения соберутся здесь — потом отправите ученику одну ссылку или QR-код.',
+    tcAvail:'Сейчас задания можно собирать в разделе «Нотная грамота»: тест по нотам (вкладка «Теория» → «Тест») и чтение мелодий (вкладка «Чтение»).',
+    tcOpen:'Открыть Нотную грамоту',tcTitlePh:'Название задания (например, «Неделя 12, Маша»)',
+    tcLink:'🔗 Ссылка и QR-код',tcClear:'Очистить',tcClearConfirm:'Убрать все упражнения из задания?',
+    goal:'цель',
+    linkTitle:'Задание готово',linkText:'Ученик открывает ссылку или сканирует QR-код камерой телефона — задание появится на главной странице приложения.',
+    share:'Поделиться',copy:'Копировать',copied:'Ссылка скопирована',tryIt:'Открыть как ученик',close:'Закрыть',
+    tryConfirm:'Задание откроется на этом устройстве как у ученика. Продолжить?',
+    qrFail:'QR-код не поместился — отправьте ссылку.',
+    badLink:'Ссылка на задание повреждена',receivedToast:'Задание получено!',
+    replaceConfirm:'У вас уже есть начатое задание. Заменить его новым? Результаты старого пропадут.',
+    sendTitle:'Отчёт учителю',namePh:'Ваше имя и фамилия',sendBtn:'Отправить',cancel:'Отмена',
+    untitled:'Домашнее задание',
+    wnTitle:'Что нового',wnOk:'Понятно',
+    wn:[
+      ['📝','<b>Домашние задания.</b> Учитель собирает упражнения в Нотной грамоте и отправляет ученику ссылку или QR-код, а ученик возвращает отчёт с результатами.'],
+      ['🎼','<b>Чтение нот:</b> 18 мелодий по трём уровням, режим без скорости для малышей, паузы в своих мелодиях, темп от 20 BPM.'],
+      ['♯','<b>Диезы</b> в тесте по нотам.'],
+      ['🔍','<b>Поиск по разделам</b> на главной странице.']
+    ]
+  },
+  en:{
+    stTitle:'📝 Homework',received:'Received',start:'Start',cont:'Continue',again:'Repeat',
+    send:'📤 Send to teacher',remove:'Delete homework',removeConfirm:'Delete this homework and its results?',
+    doneOf:'of',correct:'correct',allDone:'🎉 All done! Send the report to your teacher.',
+    tcTitle:'👩‍🏫 Homework for a student',
+    tcEmpty:'Open a section, set up an exercise and tap “➕ Add to homework”. Exercises collect here — then send the student a single link or QR code.',
+    tcAvail:'For now, homework can be built in “Music notation”: the note test (Theory → Test) and melody reading (Reading tab).',
+    tcOpen:'Open Music notation',tcTitlePh:'Homework title (e.g. “Week 12, Masha”)',
+    tcLink:'🔗 Link & QR code',tcClear:'Clear',tcClearConfirm:'Remove all exercises from this homework?',
+    goal:'goal',
+    linkTitle:'Homework ready',linkText:'The student opens the link or scans the QR code with their phone camera — the homework appears on the app home page.',
+    share:'Share',copy:'Copy',copied:'Link copied',tryIt:'Open as student',close:'Close',
+    tryConfirm:'The homework will open on this device as a student would see it. Continue?',
+    qrFail:'The QR code does not fit — send the link instead.',
+    badLink:'The homework link is damaged',receivedToast:'Homework received!',
+    replaceConfirm:'You already have homework in progress. Replace it? Its results will be lost.',
+    sendTitle:'Report for the teacher',namePh:'Your first and last name',sendBtn:'Send',cancel:'Cancel',
+    untitled:'Homework',
+    wnTitle:"What's new",wnOk:'Got it',
+    wn:[
+      ['📝','<b>Homework.</b> A teacher builds exercises in Music notation and sends a link or QR code; the student sends back a report.'],
+      ['🎼','<b>Note reading:</b> 18 melodies in three levels, an untimed mode for little ones, rests in custom melodies, tempo from 20 BPM.'],
+      ['♯','<b>Sharps</b> in the note test.'],
+      ['🔍','<b>Section search</b> on the home page.']
+    ]
+  }
+};
+const L=()=>HWT[lang==='en'?'en':'ru'];
+const esc=MHW.esc;
+function plural(n,one,few,many){const a=n%10,b=n%100;if(a===1&&b!==11)return one;if(a>=2&&a<=4&&(b<12||b>14))return few;return many;}
+function goalText(item){
+  const g=item.g;
+  if(lang==='en')return item.k==='reading'?g+(g===1?' time':' times'):g+(g===1?' note':' notes');
+  return item.k==='reading'?g+' '+plural(g,'раз','раза','раз'):g+' '+plural(g,'нота','ноты','нот');
+}
+function modIco(item){const m=MHW.MODULES[item.m];return m?m.ico:'📝';}
+function fmtDay(ts){const d=new Date(ts);return (d.getDate()<10?'0':'')+d.getDate()+'.'+(d.getMonth()<9?'0':'')+(d.getMonth()+1);}
+
+/* ── Ученик ── */
+function renderStudent(){
+  const card=document.getElementById('hwStudentCard');
+  const s=MHW.active();
+  if(!s){card.style.display='none';card.innerHTML='';return;}
+  const t=L();
+  card.style.display='';
+  const fc=MHW.finishedCount(s),all=fc===s.hw.i.length;
+  card.innerHTML=
+    `<div class="data-card-title">${t.stTitle}${s.hw.t?': '+esc(s.hw.t):''}</div>`+
+    `<div class="hw-sub">${t.received} ${fmtDay(s.recv||Date.now())} · ${fc} ${t.doneOf} ${s.hw.i.length}</div>`+
+    (all?`<div class="data-status ok" style="margin:0 0 12px;">${t.allDone}</div>`:'')+
+    `<div class="hw-list">`+s.hw.i.map((item,i)=>{
+      const p=s.prog[i],mod=MHW.MODULES[item.m];
+      const total=p.ok+p.bad,pct=total?Math.round(p.ok/total*100):null;
+      const btn=p.fin?t.again:(p.done||total?t.cont:t.start);
+      const href=mod?'./'+mod.href+'?hwx='+i:'#';
+      return `<div class="hw-item${p.fin?' fin':''}">`+
+        `<span class="hw-item-ico">${p.fin?'✅':modIco(item)}</span>`+
+        `<div class="hw-item-main"><div class="hw-item-name">${esc(item.n)}</div>`+
+        `<div class="hw-item-meta">${Math.min(p.done,item.g)} ${t.doneOf} ${esc(goalText(item))}${pct!==null?' · '+t.correct+' '+pct+'%':''}</div>`+
+        `<div class="hw-track"><div class="hw-fill" style="width:${Math.min(100,p.done/item.g*100)}%"></div></div></div>`+
+        `<a class="hbtn${p.fin?'':' data-btn-primary'} hw-go" href="${esc(href)}">${btn}</a></div>`;
+    }).join('')+`</div>`+
+    `<div class="data-card-btns">`+
+      `<button class="hbtn data-btn-primary" id="hwSendBtn">${t.send}</button>`+
+      `<button class="hbtn hw-link-danger" id="hwRemoveBtn">${t.remove}</button>`+
+    `</div>`;
+  document.getElementById('hwSendBtn').addEventListener('click',openSendModal);
+  document.getElementById('hwRemoveBtn').addEventListener('click',()=>{
+    if(!confirm(t.removeConfirm))return;
+    MHW.clearActive();renderStudent();
+  });
+}
+
+function openSendModal(){
+  const s=MHW.active();if(!s)return;
+  const t=L();
+  const m=MHW.modal(
+    `<h3>${t.sendTitle}</h3>`+
+    `<input class="mhw-input" id="hwNameInp" maxlength="40" placeholder="${esc(t.namePh)}" value="${esc(MHW.studentName())}">`+
+    `<img class="hw-report-img" id="hwReportImg" alt="">`+
+    `<div class="mhw-row"><button type="button" class="mhw-btn" id="hwSendCancel">${t.cancel}</button>`+
+    `<button type="button" class="mhw-btn primary" id="hwSendGo">${t.sendBtn}</button></div>`
+  );
+  const inp=m.el.querySelector('#hwNameInp'),img=m.el.querySelector('#hwReportImg');
+  let tm=null;
+  function preview(){
+    const cv=MHW.reportCanvas(MHW.active()||s,inp.value.trim());
+    if(cv&&cv.toDataURL){try{img.src=cv.toDataURL('image/png');img.style.display='';}catch(e){img.style.display='none';}}
+    else img.style.display='none';
+  }
+  preview();
+  inp.addEventListener('input',()=>{clearTimeout(tm);tm=setTimeout(preview,300);});
+  m.el.querySelector('#hwSendCancel').addEventListener('click',m.close);
+  m.el.querySelector('#hwSendGo').addEventListener('click',()=>{
+    const name=inp.value.trim();
+    MHW.setStudentName(name);
+    MHW.shareReport(MHW.active()||s,name).then(r=>{if(r!=='cancel')m.close();});
+  });
+}
+
+/* ── Учитель ── */
+function renderTeacher(){
+  const card=document.getElementById('hwTeacherCard');
+  const d=MHW.draft(),t=L();
+  let html=`<div class="data-card-title">${t.tcTitle}</div>`;
+  if(!d.i.length){
+    html+=`<div class="hw-empty">${t.tcEmpty}</div><div class="hw-empty">${t.tcAvail}</div>`+
+      `<div class="data-card-btns"><a class="hbtn" href="./${MHW.MODULES.notation.href}" style="text-decoration:none;">🎼 ${t.tcOpen}</a></div>`;
+    card.innerHTML=html;return;
+  }
+  html+=`<input class="hw-title-inp" id="hwDraftTitle" maxlength="80" placeholder="${esc(t.tcTitlePh)}" value="${esc(d.t||'')}">`+
+    `<div class="hw-list">`+d.i.map((item,i)=>
+      `<div class="hw-item"><span class="hw-item-ico">${modIco(item)}</span>`+
+      `<div class="hw-item-main"><div class="hw-item-name">${esc(item.n)}</div>`+
+      `<div class="hw-item-meta">${t.goal}: ${esc(goalText(item))}</div></div>`+
+      `<button class="hw-del" data-del="${i}" aria-label="✕">✕</button></div>`).join('')+`</div>`+
+    `<div class="hw-empty">${t.tcAvail}</div>`+
+    `<div class="data-card-btns">`+
+      `<button class="hbtn data-btn-primary" id="hwMakeLinkBtn">${t.tcLink}</button>`+
+      `<a class="hbtn" href="./${MHW.MODULES.notation.href}" style="text-decoration:none;">➕ 🎼</a>`+
+      `<button class="hbtn hw-link-danger" id="hwClearDraftBtn">${t.tcClear}</button>`+
+    `</div>`;
+  card.innerHTML=html;
+  document.getElementById('hwDraftTitle').addEventListener('input',e=>{
+    const dd=MHW.draft();dd.t=e.target.value;MHW.saveDraft(dd);
+  });
+  card.querySelectorAll('[data-del]').forEach(b=>b.addEventListener('click',()=>{
+    MHW.removeFromDraft(parseInt(b.dataset.del,10));renderTeacher();
+  }));
+  document.getElementById('hwClearDraftBtn').addEventListener('click',()=>{
+    if(!confirm(t.tcClearConfirm))return;
+    MHW.clearDraft();renderTeacher();
+  });
+  document.getElementById('hwMakeLinkBtn').addEventListener('click',openLinkModal);
+}
+
+function homeBase(){return new URL('./',location.href).href.split('?')[0].split('#')[0];}
+function loadQR(){
+  if(window.qrcode)return Promise.resolve();
+  return new Promise((res,rej)=>{
+    const sc=document.createElement('script');
+    sc.src='qrcode.min.js';sc.onload=()=>res();sc.onerror=()=>rej(new Error('qr'));
+    document.head.appendChild(sc);
+  });
+}
+function drawQR(text){
+  const q=window.qrcode(0,'L');
+  q.addData(text);q.make();
+  const n=q.getModuleCount(),quiet=4,cell=4,size=(n+quiet*2)*cell;
+  const cv=document.createElement('canvas');cv.width=size;cv.height=size;
+  const ctx=cv.getContext('2d');
+  ctx.fillStyle='#fff';ctx.fillRect(0,0,size,size);ctx.fillStyle='#000';
+  for(let r=0;r<n;r++)for(let c=0;c<n;c++)if(q.isDark(r,c))ctx.fillRect((c+quiet)*cell,(r+quiet)*cell,cell,cell);
+  return cv;
+}
+function copyText(text){
+  if(navigator.clipboard&&navigator.clipboard.writeText)return navigator.clipboard.writeText(text);
+  return new Promise((res,rej)=>{
+    const ta=document.createElement('textarea');ta.value=text;document.body.appendChild(ta);ta.select();
+    try{document.execCommand('copy');res();}catch(e){rej(e);}finally{document.body.removeChild(ta);}
+  });
+}
+function openLinkModal(){
+  const d=MHW.draft();if(!d.i.length)return;
+  const t=L();
+  const url=MHW.makeLink(d,homeBase());
+  const title=d.t||t.untitled;
+  const m=MHW.modal(
+    `<h3>${t.linkTitle}</h3><p>${t.linkText}</p>`+
+    `<div class="hw-qr" id="hwQrBox"></div>`+
+    `<input class="mhw-input" readonly value="${esc(url)}" id="hwLinkInp" style="font-size:11px;">`+
+    `<div class="mhw-row" style="justify-content:flex-start;">`+
+      (navigator.share?`<button type="button" class="mhw-btn primary" id="hwShareBtn">${t.share}</button>`:'')+
+      `<button type="button" class="mhw-btn${navigator.share?'':' primary'}" id="hwCopyBtn">${t.copy}</button>`+
+      `<button type="button" class="mhw-btn" id="hwTryBtn">${t.tryIt}</button>`+
+      `<button type="button" class="mhw-btn" id="hwLinkClose">${t.close}</button>`+
+    `</div>`
+  );
+  const box=m.el.querySelector('#hwQrBox');
+  loadQR().then(()=>{box.appendChild(drawQR(url));}).catch(()=>{box.innerHTML=`<div class="hw-empty">${t.qrFail}</div>`;});
+  m.el.querySelector('#hwLinkInp').addEventListener('focus',e=>e.target.select());
+  const sb=m.el.querySelector('#hwShareBtn');
+  if(sb)sb.addEventListener('click',()=>{navigator.share({title:title,text:'📝 '+title,url:url}).catch(()=>{});});
+  m.el.querySelector('#hwCopyBtn').addEventListener('click',()=>{copyText(url).then(()=>MHW.toast('✓ '+t.copied),()=>{});});
+  m.el.querySelector('#hwTryBtn').addEventListener('click',()=>{if(confirm(t.tryConfirm))location.href=url;});
+  m.el.querySelector('#hwLinkClose').addEventListener('click',m.close);
+}
+
+/* ── Входящая ссылка и переходы из разделов ── */
+function handleIncoming(){
+  const params=new URLSearchParams(location.search);
+  const code=params.get('hw');
+  let focus=params.has('hwopen')?'hwStudentCard':(params.has('hwbuild')?'hwTeacherCard':null);
+  const t=L();
+  if(code){
+    const hw=MHW.parse(code);
+    if(!hw)MHW.toast(t.badLink);
+    else{
+      const cur=MHW.active();
+      if(cur&&cur.hw.id===hw.id){/* уже получено — просто показываем */}
+      else if(cur&&MHW.isStarted(cur)&&!confirm(t.replaceConfirm)){/* оставляем старое */}
+      else{MHW.setActive(hw);MHW.toast('📝 '+t.receivedToast);}
+      focus='hwStudentCard';
+    }
+  }
+  if(location.search){try{history.replaceState(null,'',location.pathname+location.hash);}catch(e){}}
+  renderStudent();renderTeacher();
+  if(focus){
+    const el=document.getElementById(focus);
+    if(el&&el.style.display!=='none')setTimeout(()=>el.scrollIntoView({block:'start',behavior:'smooth'}),250);
+  }
+  return !!code;
+}
+
+/* ── «Что нового» — один раз после обновления, только тем, кто уже пользовался приложением ── */
+const WN_KEY='musicapp_whatsnew_seen',WN_VER='hw1';
+function maybeShowWhatsNew(cameWithLink){
+  if(localStorage.getItem(WN_KEY)===WN_VER)return;
+  if(!localStorage.getItem(TOUR_KEY)){localStorage.setItem(WN_KEY,WN_VER);return;} // новый пользователь — ему покажут тур
+  if(cameWithLink)return; // ученик пришёл по ссылке — не мешаем, покажем в следующий раз
+  setTimeout(()=>{
+    const t=L();
+    const m=MHW.modal(`<h3>✨ ${t.wnTitle}</h3><div class="wn-list">`+
+      t.wn.map(x=>`<div class="wn-item"><span class="wn-ico">${x[0]}</span><span>${x[1]}</span></div>`).join('')+
+      `</div><div class="mhw-row"><button type="button" class="mhw-btn primary" id="wnOk">${t.wnOk}</button></div>`);
+    localStorage.setItem(WN_KEY,WN_VER);
+    m.el.querySelector('#wnOk').addEventListener('click',m.close);
+  },700);
+}
+
+document.getElementById('langBtn').addEventListener('click',()=>{renderStudent();renderTeacher();});
+window.addEventListener('pageshow',e=>{if(e.persisted){renderStudent();renderTeacher();}});
+const came=handleIncoming();
+maybeShowWhatsNew(came);
+})();
 </script>
 <script>
 if ('serviceWorker' in navigator) {

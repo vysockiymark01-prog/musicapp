@@ -1459,6 +1459,7 @@ html,body{overscroll-behavior-y:contain;}
         .postr-keysig-opt.correct { background: #16a34a; color: #fff; border-color: #15803d; }
         .postr-keysig-opt.wrong { background: #dc2626; color: #fff; border-color: #b91c1c; }
     </style>
+<script src="../hw.js"></script>
 </head>
 <body>
     <div class="container">
@@ -1572,6 +1573,7 @@ html,body{overscroll-behavior-y:contain;}
             <div class="test-level-row hidden" id="noteSetToggleRow">
                 <button class="level-btn" id="noteSetBtn">🎯 Набор нот</button>
                 <button class="level-btn" id="sharpsToggleBtn">♯ Диезы</button>
+                <button class="level-btn" id="hwAddNotesBtn">➕ В задание</button>
             </div>
 
             <div class="hidden" id="noteSetPanel" style="background:var(--color-bg-card);border:1px solid var(--color-border);border-radius:16px;padding:16px;margin-bottom:16px;box-shadow:var(--shadow-sm);">
@@ -1683,7 +1685,7 @@ html,body{overscroll-behavior-y:contain;}
                 <span id="readingTempoLabel" style="font-size:11px;font-weight:900;color:var(--color-text-secondary);min-width:70px;text-align:right;">90 BPM</span>
             </div>
 
-            <label style="display:flex;align-items:center;gap:8px;padding:10px 4px;margin-bottom:16px;font-size:11px;font-weight:800;color:var(--color-text-secondary);cursor:pointer;">
+            <label id="readingUntimedRow" style="display:flex;align-items:center;gap:8px;padding:10px 4px;margin-bottom:16px;font-size:11px;font-weight:800;color:var(--color-text-secondary);cursor:pointer;">
                 <input type="checkbox" id="readingUntimedChk" style="width:17px;height:17px;cursor:pointer;flex-shrink:0;">
                 <span id="readingUntimedLabel">Без ограничения по времени (для маленьких детей)</span>
             </label>
@@ -1722,8 +1724,9 @@ html,body{overscroll-behavior-y:contain;}
 
             <div id="readingScoreBox" style="background:var(--color-bg-card);border:1px solid var(--color-border);border-radius:16px;padding:14px 16px;text-align:center;font-size:12px;font-weight:900;color:var(--color-text-secondary);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:16px;"></div>
 
-            <div class="test-level-row" style="margin-bottom:0;">
+            <div class="test-level-row" id="readingEditorRow" style="margin-bottom:0;">
                 <button class="level-btn" id="readingEditorBtn">✏️ Своя мелодия</button>
+                <button class="level-btn" id="hwAddReadingBtn">➕ В задание</button>
             </div>
 
             <div class="hidden" id="readingEditorPanel" style="background:var(--color-bg-card);border:1px solid var(--color-border);border-radius:16px;padding:16px;margin-top:16px;box-shadow:var(--shadow-sm);">
@@ -1952,6 +1955,17 @@ html,body{overscroll-behavior-y:contain;}
                 noteSetClear: 'Очистить',
                 noteSetClose: 'Свернуть',
                 sharpsToggle: 'Диезы',
+                hwAddBtn: '➕ В задание',
+                hwNotesGoal: 'Сколько нот ученик должен найти?',
+                hwNotesGoalText: 'Упражнение запомнит инструмент, уровень, диезы и набор нот.',
+                hwReadingGoal: 'Сколько раз сыграть мелодию?',
+                hwReadingGoalText: 'Упражнение запомнит мелодию, инструмент и темп.',
+                hwNotesName: 'Ноты на стане',
+                hwReadingName: 'Чтение',
+                hwSharps: 'с диезами',
+                hwOwnSet: 'свой набор',
+                hwUntimed: 'без скорости',
+                hwBadMelody: 'Мелодия в задании повреждена',
                 reading: 'Чтение',
                 readingPreview: 'Прослушать',
                 readingStart: 'Начать чтение',
@@ -2039,6 +2053,17 @@ html,body{overscroll-behavior-y:contain;}
                 noteSetClear: 'Clear',
                 noteSetClose: 'Collapse',
                 sharpsToggle: 'Sharps',
+                hwAddBtn: '➕ Add to homework',
+                hwNotesGoal: 'How many notes should the student find?',
+                hwNotesGoalText: 'The exercise keeps the instrument, level, sharps and note set.',
+                hwReadingGoal: 'How many times to play the melody?',
+                hwReadingGoalText: 'The exercise keeps the melody, instrument and tempo.',
+                hwNotesName: 'Notes on the staff',
+                hwReadingName: 'Reading',
+                hwSharps: 'with sharps',
+                hwOwnSet: 'custom set',
+                hwUntimed: 'untimed',
+                hwBadMelody: 'The melody in this homework is damaged',
                 reading: 'Reading',
                 readingPreview: 'Preview',
                 readingStart: 'Start reading',
@@ -2088,6 +2113,19 @@ html,body{overscroll-behavior-y:contain;}
         // Диезы в тест-режиме — по умолчанию выключены (тест только натуральными нотами,
         // как и раньше), включаются отдельной кнопкой рядом с "Набором нот".
         let useSharpsInTest = localStorage.getItem('musicapp_notation_useSharps') === '1';
+        // Защита от двойного засчитывания: после верного ответа до появления новой ноты
+        // (800 мс) повторные нажатия не считаются. testNoteMissed — была ли уже ошибка
+        // на текущей ноте (в домашнем задании ошибка по одной ноте считается один раз).
+        let testAnswerLocked = false;
+        let testNoteMissed = false;
+
+        // ── Домашнее задание (см. ../hw.js) ──
+        // hwTask — упражнение, которое ученик выполняет на этой странице (?hwx=N), или null.
+        // hwReadingMelody — мелодия из задания; показывается вместо выбранной в списке и
+        // не попадает в "Свои мелодии" ученика.
+        let hwTask = null;
+        let hwReadingMelody = null;
+        let readingRunStartTs = 0;
 
         // ── ЧТЕНИЕ С ЛИСТА (готовые мелодии, регулировка скорости, проверка микрофоном) ──
         // Все мелодии ниже написаны с нуля специально для этого раздела (не заимствованы
@@ -2312,13 +2350,18 @@ html,body{overscroll-behavior-y:contain;}
             const pitchedNotes = notes.filter(n => !n.isPause);
             const midis = (pitchedNotes.length ? pitchedNotes : notes).map(n => noteToMidi(n.note, n.octave));
             const melMin = Math.min(...midis), melMax = Math.max(...midis);
-            let bestShift = 0, bestScore = Infinity;
+            let bestShift = 0, bestScore = Infinity, bestDist = Infinity;
             for (let k = -4; k <= 4; k++) {
                 const shiftedMin = melMin + 12 * k, shiftedMax = melMax + 12 * k;
                 const below = Math.max(0, minMidi - shiftedMin);
                 const above = Math.max(0, shiftedMax - maxMidi);
                 const score = below + above;
-                if (score < bestScore) { bestScore = score; bestShift = k; }
+                // Если помещается несколько сдвигов — берём тот, при котором мелодия ближе к
+                // середине диапазона инструмента (пианино — первая октава, виолончель —
+                // малая, домра — вторая), а не просто первый найденный снизу.
+                const center = (shiftedMin + shiftedMax) / 2 - (minMidi + maxMidi) / 2;
+                const dist = Math.abs(center);
+                if (score < bestScore || (score === bestScore && dist < bestDist)) { bestScore = score; bestShift = k; bestDist = dist; }
             }
             return notes.map(n => Object.assign({}, n, { octave: n.octave + bestShift }));
         }
@@ -2348,6 +2391,7 @@ html,body{overscroll-behavior-y:contain;}
         let readingEditDuration = 'quarter';
 
         function getReadingMelody() {
+            if (hwReadingMelody) return hwReadingMelody;
             return getAllReadingMelodies()[readingMelodyIdx] || null;
         }
 
@@ -2902,12 +2946,15 @@ html,body{overscroll-behavior-y:contain;}
                 updateReadingEditorStaff();
             }
 
-            if (activeTab === 'theory' && isTestMode && testNote) {
+            if (activeTab === 'theory' && isTestMode && testNote && !testAnswerLocked) {
                 if (note === testNote.note && octave === testNote.octave) {
+                    testAnswerLocked = true;
                     showFeedback(TRANSLATIONS[lang].correct, true);
+                    hwRecordNote(true);
                     setTimeout(() => generateNewTestNote(), 800);
                 } else {
                     showFeedback(TRANSLATIONS[lang].wrong, false);
+                    hwRecordNote(false);
                 }
             }
 
@@ -3110,7 +3157,65 @@ html,body{overscroll-behavior-y:contain;}
             }
             testNote = candidates[Math.floor(Math.random() * candidates.length)];
             showHint = false;
+            testAnswerLocked = false;
+            testNoteMissed = false;
             updateUI();
+        }
+
+        // ── Домашнее задание: запись результатов ──
+        function hwNoteLabel(n) {
+            const t = TRANSLATIONS[lang];
+            return (t.notes[n.note] || n.note).toLowerCase() + ' (' + String(t.octaves[n.octave] || n.octave).toLowerCase() + ')';
+        }
+
+        // Тест нот: цель — найти N нот. Верно с первой попытки = ok, была ошибка = bad
+        // (одна на ноту, сколько бы раз ни промахнулись), так что ok+bad = найдено нот.
+        function hwRecordNote(ok) {
+            if (!hwTask || hwTask.item.k !== 'notes' || !testNote || !window.MHW) return;
+            if (ok) {
+                MHW.update({ done: 1, ok: testNoteMissed ? 0 : 1 });
+            } else if (!testNoteMissed) {
+                testNoteMissed = true;
+                MHW.update({ bad: 1, mis: [hwNoteLabel(testNote)] });
+            }
+        }
+
+        // Чтение: цель — сыграть мелодию N раз до конца.
+        function hwRecordReadingRun(notes) {
+            if (!hwTask || hwTask.item.k !== 'reading' || !window.MHW) return;
+            let ok = 0, total = 0;
+            const mis = [];
+            readingResults.forEach((r, i) => {
+                if (r === null || r === undefined) return;
+                total++;
+                if (r) ok++;
+                else if (notes[i]) mis.push(hwNoteLabel(notes[i]));
+            });
+            const ms = Date.now() - readingRunStartTs;
+            MHW.update({ done: 1, ok, bad: total - ok, mis, run: readingUntimed ? { ms } : { ok, total, ms } });
+        }
+
+        // Мелодия из ссылки: "C4:1 D#4:0.5 R:2" (нота+октава:длительность в долях, R — пауза).
+        function hwEncodeMelody(notes) {
+            return notes.map(n => n.isPause ? 'R:' + n.duration : n.note + n.octave + ':' + n.duration).join(' ');
+        }
+        function hwDecodeMelody(str) {
+            const TYPE = { 4: 'whole', 2: 'half', 1: 'quarter', 0.5: 'eighth' };
+            const out = [];
+            String(str || '').split(' ').slice(0, 200).forEach(tok => {
+                let m = /^R:(\d+(?:\.5)?)$/.exec(tok);
+                if (m) {
+                    const d = parseFloat(m[1]);
+                    if (TYPE[d]) out.push({ note: 'PAUSE', octave: 4, duration: d, type: TYPE[d], isPause: true });
+                    return;
+                }
+                m = /^([A-G]#?)([1-7]):(\d+(?:\.5)?)$/.exec(tok);
+                if (m && NOTES.includes(m[1])) {
+                    const d = parseFloat(m[3]);
+                    if (TYPE[d]) out.push({ note: m[1], octave: parseInt(m[2]), duration: d, type: TYPE[d], isPause: false });
+                }
+            });
+            return out;
         }
 
         // Рисуем сетку чекбоксов "нота × октава" для выбора своего набора.
@@ -3252,6 +3357,8 @@ html,body{overscroll-behavior-y:contain;}
             // Редактор своих мелодий — статичные подписи тоже переводим при смене языка
             const editorBtn = document.getElementById('readingEditorBtn');
             if (editorBtn) editorBtn.textContent = readingEditorOpen ? t.readingEditorClose : t.readingEditorBtn;
+            const hwAddReadingBtn = document.getElementById('hwAddReadingBtn');
+            if (hwAddReadingBtn) { hwAddReadingBtn.textContent = t.hwAddBtn; hwAddReadingBtn.classList.toggle('hidden', !window.MHW); }
             const undoBtn = document.getElementById('readingEditorUndoBtn'); if (undoBtn) undoBtn.textContent = t.readingEditorUndo;
             const clearBtn = document.getElementById('readingEditorClearBtn'); if (clearBtn) clearBtn.textContent = t.readingEditorClear;
             const saveBtn = document.getElementById('readingEditorSaveBtn'); if (saveBtn) saveBtn.textContent = t.readingEditorSave;
@@ -3294,6 +3401,7 @@ html,body{overscroll-behavior-y:contain;}
             readingRunning = true;
             readingCursor = 0;
             readingResults = [];
+            readingRunStartTs = Date.now();
             if (!micEnabled) startMic();
             updateReadingUI();
             readingScheduleStep();
@@ -3329,6 +3437,7 @@ html,body{overscroll-behavior-y:contain;}
             const notes = getReadingActiveNotes();
             if (readingCursor >= notes.length) {
                 readingRunning = false;
+                hwRecordReadingRun(notes);
                 updateReadingUI();
                 return;
             }
@@ -3561,8 +3670,11 @@ html,body{overscroll-behavior-y:contain;}
         // Что делать при совпадении ноты — переход к следующей цели зависит от вкладки.
         function handleMicMatch() {
             if (activeTab === 'theory' && isTestMode) {
+                if (testAnswerLocked) return;
+                testAnswerLocked = true;
                 micMatchCooldown = true;
                 showFeedback(TRANSLATIONS[lang].correct, true);
+                hwRecordNote(true);
                 setTimeout(() => {
                     generateNewTestNote();
                     micMatchCooldown = false;
@@ -3849,6 +3961,8 @@ html,body{overscroll-behavior-y:contain;}
                 sharpsToggleBtn.textContent = '♯ ' + t.sharpsToggle;
                 sharpsToggleBtn.classList.toggle('active', useSharpsInTest);
             }
+            const hwAddNotesBtn = document.getElementById('hwAddNotesBtn');
+            if (hwAddNotesBtn) { hwAddNotesBtn.textContent = t.hwAddBtn; hwAddNotesBtn.classList.toggle('hidden', !window.MHW); }
             if (isTestMode && noteSetPanelOpen) renderNoteSetGrid();
             const micPanel = document.getElementById('micPanel');
             if (micPanel) micPanel.classList.toggle('hidden', !isTestMode);
@@ -4385,7 +4499,97 @@ html,body{overscroll-behavior-y:contain;}
 
             document.getElementById('rhythmListenBtn').addEventListener('click', () => playSequence(targetRhythm));
 
+            // ── Домашнее задание: учитель добавляет текущие настройки как упражнение ──
+            document.getElementById('hwAddNotesBtn').addEventListener('click', async () => {
+                if (!window.MHW) return;
+                const t = TRANSLATIONS[lang];
+                const g = await MHW.askGoal({ title: t.hwNotesGoal, text: t.hwNotesGoalText, options: [10, 20, 30, 50] });
+                if (!g) return;
+                const set = (useCustomNoteSet && customNoteSet.size > 0) ? [...customNoteSet] : [];
+                const parts = [t.hwNotesName, t[instrMode], t.testLevels[testLevel]];
+                if (useSharpsInTest) parts.push(t.hwSharps);
+                if (set.length) parts.push(t.hwOwnSet + ' (' + set.length + ')');
+                MHW.addFromModule({
+                    m: 'notation', k: 'notes', g, n: parts.join(' · '),
+                    p: { ins: instrMode, lv: testLevel, sh: useSharpsInTest ? 1 : 0, set: set.join(' '), cl: clefMode }
+                }, '../index.html');
+            });
+
+            document.getElementById('hwAddReadingBtn').addEventListener('click', async () => {
+                if (!window.MHW) return;
+                const m = getReadingMelody();
+                if (!m || !m.notes.length) return;
+                if (readingRunning) readingStop();
+                const t = TRANSLATIONS[lang];
+                const g = await MHW.askGoal({ title: t.hwReadingGoal, text: t.hwReadingGoalText, options: [1, 2, 3, 5] });
+                if (!g) return;
+                const name = readingMelodyName(m);
+                MHW.addFromModule({
+                    m: 'notation', k: 'reading', g,
+                    n: t.hwReadingName + ' «' + name + '» · ' + t[instrMode] + ' · ' + (readingUntimed ? t.hwUntimed : readingTempo + ' BPM'),
+                    p: { ins: instrMode, ts: m.timeSig, tp: readingTempo, un: readingUntimed ? 1 : 0, nm: name, mel: hwEncodeMelody(m.notes) }
+                }, '../index.html');
+            });
+
+            // ── Домашнее задание: ученик открыл упражнение (?hwx=N) ──
+            // Настройки берутся из задания и не сохраняются в собственные настройки ученика;
+            // переключатели, которыми можно было бы упростить упражнение, прячутся.
+            function initHomeworkMode() {
+                if (!window.MHW) return;
+                const tk = MHW.task('notation');
+                if (!tk) return;
+                const p = tk.item.p || {};
+                const t = TRANSLATIONS[lang];
+                const VALID_INSTR = ['piano', 'guitar', 'balalaika', 'domra', 'violin', 'viola', 'cello', 'contrabass', 'ukulele'];
+                const clampNum = (v, lo, hi, def) => { v = Number(v); return isFinite(v) ? Math.max(lo, Math.min(hi, v)) : def; };
+
+                if (tk.item.k === 'reading') {
+                    const notes = hwDecodeMelody(p.mel);
+                    if (!notes.length) { MHW.toast(t.hwBadMelody); return; }
+                    hwReadingMelody = {
+                        id: 'hw', custom: true,
+                        timeSig: ['2/4', '3/4', '4/4'].includes(p.ts) ? p.ts : '4/4',
+                        name: String(p.nm || '').slice(0, 60) || t.hwReadingName,
+                        notes
+                    };
+                    readingTempo = Math.round(clampNum(p.tp, 20, 160, 90));
+                    readingUntimed = p.un === 1;
+                } else if (tk.item.k === 'notes') {
+                    testLevel = Math.round(clampNum(p.lv, 0, 2, 0));
+                    useSharpsInTest = p.sh === 1;
+                    const set = String(p.set || '').split(' ').filter(s => /^[A-G]#?[2-6]$/.test(s) && NOTES.includes(s.slice(0, -1)));
+                    useCustomNoteSet = set.length > 0;
+                    customNoteSet = new Set(set);
+                    if (['auto', 'bass', 'tenor', 'treble'].includes(p.cl)) clefMode = p.cl;
+                } else {
+                    return;
+                }
+
+                hwTask = tk;
+                instrMode = VALID_INSTR.includes(p.ins) ? p.ins : 'piano';
+                syncInstrumentSelectors();
+
+                const st = document.createElement('style');
+                st.textContent =
+                    '.hw-lock .tabs, .hw-lock .instr-cat-tabs, .hw-lock .instrument-selector, .hw-lock #clefModeRow,' +
+                    '.hw-lock #testLevelRow, .hw-lock #noteSetToggleRow, .hw-lock #noteSetPanel, .hw-lock #testModeBtn, .hw-lock #hintBtn,' +
+                    '.hw-lock #readingLevelRow, .hw-lock #readingTimeSigRow, .hw-lock #readingMelodyRow, .hw-lock #readingTempoRow,' +
+                    '.hw-lock #readingUntimedRow, .hw-lock #readingEditorRow, .hw-lock #readingEditorPanel { display: none !important; }' +
+                    '.hw-lock #theoryContent .control-grid { grid-template-columns: 1fr !important; }';
+                document.head.appendChild(st);
+                document.body.classList.add('hw-lock');
+
+                if (tk.item.k === 'reading') {
+                    document.getElementById('readingTab').click();
+                } else {
+                    isTestMode = true;
+                    generateNewTestNote();
+                }
+                MHW.mountBar(document.querySelector('.container'), '../index.html');
+            }
+
             updateUI();
+            initHomeworkMode();
         });
 
         const style = document.createElement('style');
