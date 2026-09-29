@@ -17,8 +17,32 @@
 
   // Разделы, которые умеют работать с заданиями. href — относительно главной.
   var MODULES = {
-    notation: { href: 'Нотная грамота/index.html', ico: '🎼', ru: 'Нотная грамота', en: 'Music notation' }
+    notation: { href: 'Нотная грамота/index.html', ico: '🎼', ru: 'Нотная грамота', en: 'Music notation' },
+    solfege: { href: 'сольфеджио/index.html', ico: '🎤', ru: 'Сольфеджио', en: 'Solfege' },
+    rhythm: { href: 'ритмический тренажер/index.html', ico: '🥁', ru: 'Ритмический тренажёр', en: 'Rhythm trainer' },
+    ear: { href: 'слуховой анализ/index.html', ico: '👂', ru: 'Слуховой анализ', en: 'Ear training' },
+    dictation: { href: 'музыкальные диктанты/index.html', ico: '🎵', ru: 'Муз. диктанты', en: 'Dictations' }
   };
+
+  // Единицы цели упражнения: [одна, две-четыре, пять+] по-русски и [одна, много] по-английски.
+  var UNITS = {
+    notes: { ru: ['нота', 'ноты', 'нот'], en: ['note', 'notes'] },
+    times: { ru: ['раз', 'раза', 'раз'], en: ['time', 'times'] },
+    ex: { ru: ['упражнение', 'упражнения', 'упражнений'], en: ['exercise', 'exercises'] },
+    ans: { ru: ['ответ', 'ответа', 'ответов'], en: ['answer', 'answers'] },
+    dict: { ru: ['диктант', 'диктанта', 'диктантов'], en: ['dictation', 'dictations'] }
+  };
+  function unitOf(item) {
+    if (item.u && UNITS[item.u]) return item.u;
+    return item.k === 'reading' ? 'times' : 'notes'; // задания первой версии (только Нотная грамота)
+  }
+  function goalText(item, n) {
+    var g = n == null ? item.g : n, u = UNITS[unitOf(item)];
+    if (lang() === 'en') return g + ' ' + (g === 1 ? u.en[0] : u.en[1]);
+    var a = g % 10, b = g % 100;
+    var f = (a === 1 && b !== 11) ? 0 : (a >= 2 && a <= 4 && (b < 12 || b > 14)) ? 1 : 2;
+    return g + ' ' + u.ru[f];
+  }
 
   var TXT = {
     ru: {
@@ -49,6 +73,7 @@
       finishedAll: 'Все упражнения выполнены',
       finishedPart: 'Выполнено упражнений',
       downloaded: 'Картинка отчёта сохранена, текст скопирован — отправьте их учителю.',
+      addBtn: '➕ В задание',
       appName: 'Музграмота'
     },
     en: {
@@ -79,6 +104,7 @@
       finishedAll: 'All exercises complete',
       finishedPart: 'Exercises complete',
       downloaded: 'Report image saved and text copied — send them to your teacher.',
+      addBtn: '➕ Add to homework',
       appName: 'Muzgramota'
     }
   };
@@ -124,7 +150,9 @@
     var items = hw.i.filter(function (it) {
       return it && typeof it === 'object' && MODULES[it.m] && typeof it.k === 'string' && it.p && typeof it.p === 'object';
     }).slice(0, 20).map(function (it) {
-      return { m: it.m, k: cleanStr(it.k, 20), g: clampInt(it.g, 1, 500, 10), n: cleanStr(it.n, 120), p: it.p };
+      var o = { m: it.m, k: cleanStr(it.k, 20), g: clampInt(it.g, 1, 500, 10), n: cleanStr(it.n, 160), p: it.p };
+      if (UNITS[it.u]) o.u = it.u;
+      return o;
     });
     if (!items.length) return null;
     return {
@@ -150,7 +178,9 @@
   function saveDraft(d) { writeJSON(KEY_DRAFT, d); }
   function addToDraft(item) {
     var d = draft();
-    d.i.push({ m: item.m, k: item.k, g: item.g, n: item.n, p: item.p });
+    var o = { m: item.m, k: item.k, g: item.g, n: item.n, p: item.p };
+    if (item.u) o.u = item.u;
+    d.i.push(o);
     saveDraft(d);
     return d.i.length;
   }
@@ -273,6 +303,9 @@
       'display:flex;align-items:center;gap:10px;max-width:92vw;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;}' +
       'html[data-theme="dark"] .mhw-toast{background:#f1f5f9;color:#0f172a;}' +
       '.mhw-toast a{color:#60a5fa;font-weight:900;text-decoration:none;white-space:nowrap;}' +
+      '.mhw-addrow{display:flex;justify-content:flex-end;margin:0 0 12px;}' +
+      '.mhw-add{background:rgba(37,99,235,.12);color:#2563eb;border:1.5px solid rgba(37,99,235,.35);}' +
+      'html[data-theme="dark"] .mhw-add{background:rgba(37,99,235,.25);color:#93c5fd;}' +
       'html[data-theme="dark"] .mhw-toast a{color:#2563eb;}';
     var st = document.createElement('style');
     st.id = 'mhw-css';
@@ -340,6 +373,57 @@
     return n;
   }
 
+  // Кнопка «➕ В задание» для раздела. Вставляется строкой перед refNode внутри parent.
+  function addButton(parent, refNode, onClick) {
+    injectCSS();
+    var row = document.createElement('div');
+    row.className = 'mhw-addrow';
+    var b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'mhw-btn mhw-add';
+    b.textContent = tr('addBtn');
+    b.addEventListener('click', onClick);
+    row.appendChild(b);
+    parent.insertBefore(row, refNode || null);
+    return { row: row, btn: b, relabel: function () { b.textContent = tr('addBtn'); } };
+  }
+
+  // Прячет элементы, которыми ученик мог бы поменять условия упражнения.
+  function lock(selectors) {
+    var st = document.createElement('style');
+    st.textContent = selectors.join(',') + '{display:none !important;}';
+    document.head.appendChild(st);
+    document.body.classList.add('hw-lock');
+  }
+
+  // Счёт «с первой попытки»: ok — верно без единой ошибки, bad — была ошибка (одна на
+  // вопрос, сколько бы раз ни промахнулись). done растёт на каждом решённом вопросе.
+  // key — любой объект/число, различающий вопросы (номер вопроса и т.п.).
+  function tracker() {
+    var q = {}, missed = false;
+    function sync(k) { if (k !== q) { q = k; missed = false; } }
+    return {
+      wrong: function (k, label) {
+        sync(k);
+        if (missed) return;
+        missed = true;
+        update({ bad: 1, mis: label ? [label] : [] });
+      },
+      right: function (k) {
+        sync(k);
+        update({ done: 1, ok: missed ? 0 : 1 });
+        q = {}; missed = false;
+      }
+    };
+  }
+
+  // Название октавы для подписей ошибок: 4 → «1 окт.», 3 → «малая».
+  function octName(o) {
+    var ru = { 1: 'контроктава', 2: 'большая', 3: 'малая', 4: '1 окт.', 5: '2 окт.', 6: '3 окт.', 7: '4 окт.' };
+    var en = { 1: 'contra oct.', 2: 'great oct.', 3: 'small oct.', 4: '1st oct.', 5: '2nd oct.', 6: '3rd oct.', 7: '4th oct.' };
+    return (lang() === 'en' ? en : ru)[o] || String(o);
+  }
+
   // ── Полоска прогресса упражнения в разделе ──
   var barEl = null, barHome = '../index.html';
   function mountBar(container, homeHref) {
@@ -364,7 +448,7 @@
     var pct = total ? Math.round(p.ok / total * 100) : null;
     barEl.querySelector('.mhw-bar-title').textContent = '📝 ' + current.item.n;
     barEl.querySelector('.mhw-bar-sub').textContent =
-      (p.fin ? '✓ ' + tr('done') + ' · ' : '') + Math.min(p.done, g) + ' ' + tr('of') + ' ' + g +
+      (p.fin ? '✓ ' + tr('done') + ' · ' : '') + Math.min(p.done, g) + ' ' + tr('of') + ' ' + goalText(current.item) +
       (pct !== null ? ' · ' + tr('correct') + ' ' + pct + '%' : '');
     barEl.querySelector('.mhw-fill').style.width = Math.min(100, p.done / g * 100) + '%';
     barEl.classList.toggle('fin', !!p.fin);
@@ -401,12 +485,13 @@
     var lines = [];
     if (!p.done && !p.ok && !p.bad) { lines.push(tr('notStarted')); return lines; }
     var total = p.ok + p.bad;
-    var l1 = tr('progress') + ': ' + Math.min(p.done, item.g) + ' ' + tr('of') + ' ' + item.g;
+    var l1 = tr('progress') + ': ' + Math.min(p.done, item.g) + ' ' + tr('of') + ' ' + goalText(item);
     if (total) l1 += ' · ' + tr('accuracy') + ': ' + p.ok + '/' + total + ' (' + Math.round(p.ok / total * 100) + '%)';
     l1 += ' · ' + tr('time') + ': ' + fmtTime(p.ms);
     lines.push(l1);
     if (p.runs.length) {
       lines.push(tr('attempts') + ': ' + p.runs.map(function (r) {
+        if (r.pct != null) return r.pct + '%';
         return r.total ? (r.ok + '/' + r.total) : fmtTime(r.ms || 0);
       }).join(', '));
     }
@@ -548,7 +633,8 @@
 
   window.MHW = {
     MODULES: MODULES,
-    tr: tr, esc: esc, lang: lang,
+    tr: tr, esc: esc, lang: lang, goalText: goalText, octName: octName,
+    addButton: addButton, lock: lock, tracker: tracker,
     encode: encode, parse: parse,
     draft: draft, saveDraft: saveDraft, addToDraft: addToDraft, removeFromDraft: removeFromDraft, clearDraft: clearDraft,
     makeLink: makeLink,

@@ -268,6 +268,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
   .result-view .rv-actions,.result-view button{display:none!important;}
 }
 </style>
+<script src="../hw.js"></script>
 </head>
 <body>
 <div class="wrap">
@@ -2460,6 +2461,80 @@ function printResult(){ window.print(); }
       if(profileGrade && GRADE_LIST.indexOf(profileGrade)!==-1) switchGrade(profileGrade);
     }catch(e){}
   }
+})();
+</script>
+<script>
+// ── Домашнее задание (см. ../hw.js) ──────────────────────────
+// Учитель: «➕ В задание» сохраняет вид диктанта, класс и темп. Ученик (?hwx=N): выбор
+// класса/вида/темпа, подсказки и «Показать ответ» скрыты. Каждый проверенный диктант —
+// одна попытка (в отчёт идёт процент совпадения); в «Размере» — каждый ответ.
+(function(){
+  if(!window.MHW) return;
+  const CFG = {
+    melodic:  { check:'checkMelodic',  score:()=>mScore,  fb:'mFeedback',  tempo:'mTempo' },
+    twovoice: { check:'checkTwoVoice', score:()=>tvScore, fb:'tvFeedback', tempo:'tvTempo' },
+    rhythm:   { check:'checkRhythm',   score:()=>rScore,  fb:'rFeedback',  tempo:'rTempo' },
+    errors:   { check:'checkErrors',   score:()=>eScore,  fb:'eFeedback' },
+    meter:    { check:'checkMeter',    score:()=>mtScore, fb:'mtFeedback', tempo:'mtTempo' }
+  };
+  const modName = () => MHW.MODULES.dictation[lang==='en'?'en':'ru'];
+
+  const add = MHW.addButton(document.querySelector('.wrap'), document.querySelector('.progress-bar'), async () => {
+    const isMeter = tab === 'meter';
+    const g = await MHW.askGoal({
+      title: isMeter ? (lang==='en' ? 'How many answers?' : 'Сколько ответов?') : (lang==='en' ? 'How many dictations?' : 'Сколько диктантов написать?'),
+      text: lang==='en' ? 'The exercise keeps the dictation type, grade and tempo.' : 'Упражнение запомнит вид диктанта, класс и темп.',
+      options: isMeter ? [5, 10, 15, 20] : [1, 2, 3, 5]
+    });
+    if(!g) return;
+    const c = CFG[tab];
+    const p = { gr: grade };
+    const tEl = c.tempo && document.getElementById(c.tempo);
+    if(tEl) p.tp = +tEl.value;
+    const tabBtn = document.getElementById('mtab-'+tab);
+    const n = [modName(), tabBtn ? tabBtn.textContent.replace(/^\S+\s/,'').trim() : tab,
+      grade.replace('-','–') + (lang==='en' ? ' grade' : ' класс'),
+      tEl ? (lang==='en' ? 'tempo ' : 'темп ') + tEl.value : ''].filter(Boolean).join(' · ');
+    MHW.addFromModule({ m:'dictation', k:tab, u: isMeter ? 'ans' : 'dict', g, n, p }, '../index.html');
+  });
+  const origLang = window.toggleLang;
+  window.toggleLang = function(){ const r = origLang.apply(this, arguments); add.relabel(); return r; };
+
+  const tk = MHW.task('dictation');
+  if(!tk) return;
+  add.row.style.display = 'none';
+  const k = CFG[tk.item.k] ? tk.item.k : 'melodic';
+  const c = CFG[k], p = tk.item.p || {};
+  const gr = GRADE_LIST.includes(p.gr) ? p.gr : '1-2';
+  if(c.tempo && p.tp){
+    const el = document.getElementById(c.tempo);
+    if(el){ el.value = Math.max(+el.min, Math.min(+el.max, +p.tp)); el.dispatchEvent(new Event('input')); }
+  }
+  grade = gr;
+  document.querySelectorAll('.gtab').forEach(b=>b.classList.toggle('active', b.dataset.g===gr));
+  if(tab === k) refreshTab(); else switchTab(k);
+  MHW.lock(['#gradeTabs', '#mainTabs', '.tempo-row', '#assignBtn', '#shareResultBtn', '#assignBanner',
+            '[onclick="melodicHint()"]', '[onclick="showMAnswer()"]', '[onclick="twoVoiceHint()"]',
+            '[onclick="showTVAnswer()"]', '[onclick="showRAnswer()"]']);
+  MHW.mountBar(document.querySelector('.wrap'), '../index.html');
+
+  const orig = window[c.check];
+  window[c.check] = function(){
+    const sc = c.score(), c0 = sc.c, w0 = sc.w;
+    const meterAns = k === 'meter' && mtEx ? mtEx.timeSig : null;
+    const r = orig.apply(this, arguments);
+    const good = sc.c > c0, bad = sc.w > w0;
+    if(!good && !bad) return r; // проверка не состоялась (пустой ответ и т.п.)
+    if(k === 'meter'){
+      MHW.update(good ? { done:1, ok:1 } : { done:1, bad:1, mis:[(lang==='en' ? 'meter ' : 'размер ') + meterAns + '/4'] });
+    } else {
+      const fbEl = document.getElementById(c.fb);
+      const m = /(\d+)%/.exec(fbEl ? fbEl.textContent : '');
+      const run = m ? { pct: +m[1] } : { pct: good ? 100 : 0 };
+      MHW.update(good ? { done:1, ok:1, run } : { done:1, bad:1, run });
+    }
+    return r;
+  };
 })();
 </script>
 <script>

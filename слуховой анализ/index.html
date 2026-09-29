@@ -237,6 +237,7 @@ html,body{overscroll-behavior-y:contain;}
   .result-view .rv-actions,.result-view button{display:none!important;}
 }
 </style>
+<script src="../hw.js"></script>
 </head>
 <body>
 <div class="container">
@@ -2542,6 +2543,105 @@ function printResult(){ window.print(); }
       }
     }catch(e){}
   }
+})();
+</script>
+<script>
+// ── Домашнее задание (см. ../hw.js) ──────────────────────────
+// Учитель: «➕ В задание» сохраняет текущую вкладку и все её настройки (уровень, звучание,
+// тоника, скорость…). Ученик (?hwx=N): настройки из задания, переключатели и подсказки
+// скрыты. Засчитывается каждый верно определённый вопрос («верно» — с первой попытки);
+// в цепочках — каждый элемент цепочки (верно или нет, как и в самом тренажёре).
+(function(){
+  if(!window.MHW) return;
+  const TABS = {
+    intervals:  { sel:['iLevel','iMode','iRoot','iSpeed'],     sw:'iSelectAnswer',  nq:'iNewQuestion',  ok:()=>iCorrect,  bad:()=>iWrong,  cur:()=>iCurrent,  name:x=>lang==='ru'?x.ruFull:x.enFull },
+    chords:     { sel:['cLevel','cMode','cRoot','cSpeed'],     sw:'cSelectAnswer',  nq:'cNewQuestion',  ok:()=>cCorrect,  bad:()=>cWrong,  cur:()=>cCurrent,  name:x=>lang==='ru'?x.ruFull:x.enFull },
+    chains:     { sel:['chLevel','chType','chLen','chSpeed'] },
+    resolution: { sel:['rLevel','rType','rSpeed'],             sw:'rSelectAnswer',  nq:'rNewQuestion',  ok:()=>rCorrect,  bad:()=>rWrong,  cur:()=>rCurrent,  name:x=>lang==='ru'?x.ruFull:x.enFull },
+    modes:      { sel:['mLevel','mSpeed','mDir'],              sw:'mSelectAnswer',  nq:'mNewQuestion',  ok:()=>mCorrect,  bad:()=>mWrong,  cur:()=>mCurrent,  name:x=>lang==='ru'?T.ru.scales[x.id].ru:T.en.scales[x.id].en },
+    scales:     { sel:['seLevel','seSpeed','seDir'],           sw:'seSelectAnswer', nq:'seNewQuestion', ok:()=>seCorrect, bad:()=>seWrong, cur:()=>seCurrent, name:x=>seScaleName(x.id) }
+  };
+  const modName = () => MHW.MODULES.ear[lang==='en'?'en':'ru'];
+  const optText = id => {
+    const s=document.getElementById(id);
+    if(!s || s.selectedIndex<0) return '';
+    const txt=s.options[s.selectedIndex].text.trim();
+    if(!/^\d+$/.test(txt)) return txt;
+    const lbl=s.parentElement && s.parentElement.querySelector('.sg-label'); // «Длина 5», а не просто «5»
+    return (lbl ? lbl.textContent.trim().toLowerCase()+' ' : '') + txt;
+  };
+
+  // Номер вопроса в каждой вкладке — один и тот же интервал может выпасть два раза подряд,
+  // а ошибка должна считаться отдельно для каждого вопроса.
+  const qn = {};
+  Object.keys(TABS).forEach(tab => {
+    const c = TABS[tab]; if(!c.nq) return;
+    qn[tab] = 0;
+    const orig = window[c.nq];
+    window[c.nq] = function(){ qn[tab]++; return orig.apply(this, arguments); };
+  });
+
+  const add = MHW.addButton(document.querySelector('.container'), document.getElementById('intervalsContent'), async () => {
+    const tab = activeTab;
+    const c = TABS[tab]; if(!c) return;
+    const g = await MHW.askGoal({
+      title: lang==='en' ? 'How many correct answers?' : 'Сколько верных ответов нужно дать?',
+      text: tab==='chains'
+        ? (lang==='en' ? 'Counts every element of a chain. Keeps all settings of the tab.' : 'Считается каждый элемент цепочки. Упражнение запомнит все настройки вкладки.')
+        : (lang==='en' ? 'The exercise keeps all settings of the tab.' : 'Упражнение запомнит все настройки вкладки.'),
+      options: [10, 20, 30, 50]
+    });
+    if(!g) return;
+    const p = {};
+    c.sel.forEach(id => { const s=document.getElementById(id); if(s) p[id]=s.value; });
+    const tabBtn = document.querySelector('.tab[data-tab="'+tab+'"]');
+    const n = [modName(), tabBtn ? tabBtn.textContent.trim() : tab].concat(c.sel.map(optText)).filter(Boolean).join(' · ');
+    MHW.addFromModule({ m:'ear', k:tab, u:'ans', g, n, p }, '../index.html');
+  });
+  // setTimeout — наш обработчик срабатывает раньше, чем раздел успевает переключить язык.
+  document.getElementById('langBtn').addEventListener('click', () => setTimeout(add.relabel, 0));
+
+  const tk = MHW.task('ear');
+  if(!tk) return;
+  add.row.style.display = 'none';
+  const tab = TABS[tk.item.k] ? tk.item.k : 'intervals';
+  const c = TABS[tab], p = tk.item.p || {};
+  MHW.lock(['.tabs', '.settings-row', '.card:has(> .settings-row)', '.sub-tabs', '#assignBtn', '#shareResultBtn', '#assignBanner',
+            '#iHintBtn', '#cHintBtn', '#chHintBtn', '#rHintBtn', '#mHintBtn', '#seHintBtn']);
+  MHW.mountBar(document.querySelector('.container'), '../index.html');
+  const tr = MHW.tracker();
+
+  if(tab === 'chains'){
+    const orig = window.chSelectAnswer;
+    window.chSelectAnswer = function(){
+      const cur = chChain[chStep], c0 = chCorrect, w0 = chWrong;
+      const r = orig.apply(this, arguments);
+      if(cur && chCorrect > c0) MHW.update({ done:1, ok:1 });
+      else if(cur && chWrong > w0) MHW.update({ done:1, bad:1, mis:[lang==='ru'?cur.data.ruFull:cur.data.enFull] });
+      return r;
+    };
+  } else {
+    const orig = window[c.sw];
+    window[c.sw] = function(){
+      const cur = c.cur(), key = tab+':'+qn[tab], c0 = c.ok(), w0 = c.bad();
+      const r = orig.apply(this, arguments);
+      if(cur && c.ok() > c0) tr.right(key);
+      else if(cur && c.bad() > w0) tr.wrong(key, c.name(cur));
+      return r;
+    };
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    c.sel.forEach(id => {
+      const s = document.getElementById(id);
+      if(!s || p[id] == null) return;
+      if([...s.options].some(o => o.value === String(p[id]))){
+        s.value = String(p[id]);
+        s.dispatchEvent(new Event('change'));
+      }
+    });
+    saSwitchTab(tab);
+  });
 })();
 </script>
 <script>

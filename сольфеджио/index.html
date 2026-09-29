@@ -155,6 +155,7 @@ html,body{overscroll-behavior-y:contain;}
   z-index:9999;animation:musicappStreakIn .25s ease-out;pointer-events:none;white-space:nowrap;}
 [data-theme="dark"] .musicapp-streak-toast{background:#f1f5f9;color:#0f172a;}
 </style>
+<script src="../hw.js"></script>
 </head>
 <body>
 <div class="container">
@@ -802,6 +803,63 @@ function applyUI(){
 
 applyUI();
 newExercise();
+</script>
+<script>
+// ── Домашнее задание (см. ../hw.js) ──────────────────────────
+// Учитель: «➕ В задание» сохраняет режим (нота / гамма / мелодия) и регистр.
+// Ученик (?hwx=N): переключатели и подсказка скрыты; засчитывается каждое спетое
+// упражнение, «верно» — если микрофон ни разу не услышал неверную ноту.
+(function(){
+  if(!window.MHW) return;
+  const modName = () => MHW.MODULES.solfege[lang==='en'?'en':'ru'];
+  let inst = 0;
+  const origNew = window.newExercise;
+  window.newExercise = function(){ inst++; return origNew.apply(this, arguments); };
+
+  const add = MHW.addButton(document.querySelector('.container'), document.querySelector('.ex-box'), async () => {
+    const g = await MHW.askGoal({
+      title: lang==='en' ? 'How many exercises to sing?' : 'Сколько упражнений спеть?',
+      text: lang==='en' ? 'The exercise keeps the mode and the register.' : 'Упражнение запомнит режим и регистр.',
+      options: [5, 10, 15, 20]
+    });
+    if(!g) return;
+    const modeId = { note:'tNote', scale:'tScale', phrase:'tPhrase' }[mode];
+    const regBtn = document.querySelector('#regRow .sel-btn[data-reg="'+register+'"]');
+    const n = [modName(), document.getElementById(modeId).textContent.trim(),
+      (lang==='en' ? 'register: ' : 'регистр: ') + (regBtn ? regBtn.textContent.trim().toLowerCase() : register)].join(' · ');
+    MHW.addFromModule({ m:'solfege', k:mode, u:'ex', g, n, p:{ rg: register } }, '../index.html');
+  });
+  const origLang = window.toggleLang;
+  window.toggleLang = function(){ const r = origLang.apply(this, arguments); add.relabel(); return r; };
+
+  const tk = MHW.task('solfege');
+  if(!tk) return;
+  add.row.style.display = 'none';
+  const md = ['note','scale','phrase'].includes(tk.item.k) ? tk.item.k : 'note';
+  const rg = ['low','mid','high'].includes((tk.item.p||{}).rg) ? tk.item.p.rg : 'mid';
+  register = rg;
+  document.querySelectorAll('#regRow .sel-btn').forEach(b=>b.classList.toggle('active', b.dataset.reg===rg));
+  setMode(md);
+  MHW.lock(['.tabs', '#regRow', '[onclick="revealHint()"]']);
+  MHW.mountBar(document.querySelector('.container'), '../index.html');
+
+  const tr = MHW.tracker();
+  const label = midi => { const d = midiToNoteOct(midi); return noteLabel(d.note).toLowerCase() + ' (' + MHW.octName(d.octave) + ')'; };
+  const origErr = window.registerError;
+  window.registerError = function(){
+    const key = inst, target = targetMidis[curIdx];
+    const r = origErr.apply(this, arguments);
+    if(target != null) tr.wrong(key, label(target));
+    return r;
+  };
+  const origOk = window.registerSuccess;
+  window.registerSuccess = function(){
+    const key = inst, ok0 = score.ok;
+    const r = origOk.apply(this, arguments);
+    if(score.ok > ok0) tr.right(key);
+    return r;
+  };
+})();
 </script>
 <script>
 /* Клавиатурная доступность: элементы с onclick (не <button>/<a>/полям форм)

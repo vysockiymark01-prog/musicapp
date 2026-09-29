@@ -201,6 +201,7 @@ html,body{overscroll-behavior-y:contain;}
     .rule-text{font-size:12px;}
   }
 </style>
+<script src="../hw.js"></script>
 </head>
 <body>
 <div class="container">
@@ -1258,6 +1259,75 @@ function renderRules() {
 applyStaticLabels();
 renderExercise();
 setTimeout(drawBeams, 0);
+</script>
+<script>
+// ── Домашнее задание (см. ../hw.js) ──────────────────────────
+// Учитель: «➕ В задание» сохраняет режим (Сгруппируй / Найди ошибку), размер и сложность.
+// Ученик (?hwx=N): настройки из задания, переключатели и подсказка скрыты; засчитывается
+// каждое решённое упражнение, «верно» — если решено с первой попытки.
+(function(){
+  if(!window.MHW) return;
+  const modName = () => MHW.MODULES.rhythm[lang==='en'?'en':'ru'];
+  let inst = 0; // номер показанного упражнения (одно и то же упражнение может выпасть снова)
+  const origRender = window.renderExercise;
+  window.renderExercise = function(){ inst++; return origRender.apply(this, arguments); };
+
+  const add = MHW.addButton(document.querySelector('.container'), document.getElementById('mainContent'), async () => {
+    const tab = currentTab === 'rules' ? 'group' : currentTab;
+    const g = await MHW.askGoal({
+      title: lang==='en' ? 'How many exercises to solve?' : 'Сколько упражнений решить?',
+      text: lang==='en' ? 'The exercise keeps the mode, time signature and difficulty.' : 'Упражнение запомнит режим, размер и сложность.',
+      options: [5, 10, 15, 20]
+    });
+    if(!g) return;
+    const tabBtn = document.getElementById(tab==='find' ? 'tab1' : 'tab0');
+    const diffBtn = document.querySelector('.sel-btn[data-diff="'+difficulty+'"]');
+    const n = [modName(), tabBtn.textContent.replace(/^\S+\s/,'').trim(), timeSig, diffBtn ? diffBtn.textContent.trim() : ''].filter(Boolean).join(' · ');
+    MHW.addFromModule({ m:'rhythm', k:tab, u:'ex', g, n, p:{ ts: timeSig, df: difficulty } }, '../index.html');
+  });
+  const origSwitch = window.switchTab;
+  window.switchTab = function(tab){ const r = origSwitch.apply(this, arguments); add.row.style.display = tab==='rules' ? 'none' : ''; return r; };
+  const origLang = window.toggleLang;
+  window.toggleLang = function(){ const r = origLang.apply(this, arguments); add.relabel(); return r; };
+
+  const tk = MHW.task('rhythm');
+  if(!tk) return;
+  add.row.style.display = 'none';
+  const p = tk.item.p || {};
+  const tab = tk.item.k === 'find' ? 'find' : 'group';
+  const ts = ['2/4','3/4','4/4','6/8'].includes(p.ts) ? p.ts : '2/4';
+  const df = [1,2,3].includes(p.df) ? p.df : 1;
+  timeSig = ts; difficulty = df;
+  document.querySelectorAll('.sel-btn[data-ts]').forEach(b=>b.classList.toggle('active',b.dataset.ts===ts));
+  document.querySelectorAll('.sel-btn[data-diff]').forEach(b=>b.classList.toggle('active',+b.dataset.diff===df));
+  switchTab(tab);
+  MHW.lock(['.tabs', '#timeSigRow', '#diffRow', '[onclick="showHintBeams()"]']);
+  MHW.mountBar(document.querySelector('.container'), '../index.html');
+
+  const tr = MHW.tracker();
+  const errLabel = (ex, extra) => ex.ts + ': ' + extra;
+  const origCheck = window.checkAnswer;
+  window.checkAnswer = function(){
+    if(checked || !currentEx) return origCheck.apply(this, arguments);
+    const ex = currentEx, key = inst;
+    const correct = computeCorrectBeams(ex.notes, ex.ts);
+    const extra = beamState.some((b,i)=>b && !correct[i]);
+    const err0 = scoreErr;
+    const r = origCheck.apply(this, arguments);
+    if(scoreErr > err0) tr.wrong(key, errLabel(ex, lang==='en' ? (extra ? 'extra beam' : 'missing beam') : (extra ? 'лишнее ребро' : 'пропущено ребро')));
+    else tr.right(key);
+    return r;
+  };
+  const origFind = window.findErrorClick;
+  window.findErrorClick = function(){
+    if(checked || !currentEx) return origFind.apply(this, arguments);
+    const ex = currentEx, key = inst, err0 = scoreErr;
+    const r = origFind.apply(this, arguments);
+    if(scoreErr > err0) tr.wrong(key, errLabel(ex, lang==='en' ? 'error not found' : 'не нашёл ошибку'));
+    else tr.right(key);
+    return r;
+  };
+})();
 </script><script>
 /* Клавиатурная доступность: элементы с onclick (не <button>/<a>/полям форм)
    становятся фокусируемыми и активируются Enter/Space — включая те,

@@ -4510,7 +4510,7 @@ html,body{overscroll-behavior-y:contain;}
                 if (useSharpsInTest) parts.push(t.hwSharps);
                 if (set.length) parts.push(t.hwOwnSet + ' (' + set.length + ')');
                 MHW.addFromModule({
-                    m: 'notation', k: 'notes', g, n: parts.join(' · '),
+                    m: 'notation', k: 'notes', u: 'notes', g, n: parts.join(' · '),
                     p: { ins: instrMode, lv: testLevel, sh: useSharpsInTest ? 1 : 0, set: set.join(' '), cl: clefMode }
                 }, '../index.html');
             });
@@ -4525,7 +4525,7 @@ html,body{overscroll-behavior-y:contain;}
                 if (!g) return;
                 const name = readingMelodyName(m);
                 MHW.addFromModule({
-                    m: 'notation', k: 'reading', g,
+                    m: 'notation', k: 'reading', u: 'times', g,
                     n: t.hwReadingName + ' «' + name + '» · ' + t[instrMode] + ' · ' + (readingUntimed ? t.hwUntimed : readingTempo + ' BPM'),
                     p: { ins: instrMode, ts: m.timeSig, tp: readingTempo, un: readingUntimed ? 1 : 0, nm: name, mel: hwEncodeMelody(m.notes) }
                 }, '../index.html');

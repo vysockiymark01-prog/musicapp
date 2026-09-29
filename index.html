@@ -1276,8 +1276,8 @@ const HWT={
     doneOf:'из',correct:'верно',allDone:'🎉 Всё выполнено! Отправьте отчёт учителю.',
     tcTitle:'👩‍🏫 Задание ученику',
     tcEmpty:'Откройте раздел, настройте упражнение и нажмите «➕ В задание». Упражнения соберутся здесь — потом отправите ученику одну ссылку или QR-код.',
-    tcAvail:'Сейчас задания можно собирать в разделе «Нотная грамота»: тест по нотам (вкладка «Теория» → «Тест») и чтение мелодий (вкладка «Чтение»).',
-    tcOpen:'Открыть Нотную грамоту',tcTitlePh:'Название задания (например, «Неделя 12, Маша»)',
+    tcAvail:'Задания можно собирать в этих разделах:',
+    tcMore:'Добавить ещё упражнение:',tcTitlePh:'Название задания (например, «Неделя 12, Маша»)',
     tcLink:'🔗 Ссылка и QR-код',tcClear:'Очистить',tcClearConfirm:'Убрать все упражнения из задания?',
     goal:'цель',
     linkTitle:'Задание готово',linkText:'Ученик открывает ссылку или сканирует QR-код камерой телефона — задание появится на главной странице приложения.',
@@ -1290,7 +1290,7 @@ const HWT={
     untitled:'Домашнее задание',
     wnTitle:'Что нового',wnOk:'Понятно',
     wn:[
-      ['📝','<b>Домашние задания.</b> Учитель собирает упражнения в Нотной грамоте и отправляет ученику ссылку или QR-код, а ученик возвращает отчёт с результатами.'],
+      ['📝','<b>Домашние задания.</b> Учитель собирает упражнения (Нотная грамота, Сольфеджио, Ритм, Слуховой анализ, Диктанты) и отправляет ученику ссылку или QR-код, а ученик возвращает отчёт с результатами.'],
       ['🎼','<b>Чтение нот:</b> 18 мелодий по трём уровням, режим без скорости для малышей, паузы в своих мелодиях, темп от 20 BPM.'],
       ['♯','<b>Диезы</b> в тесте по нотам.'],
       ['🔍','<b>Поиск по разделам</b> на главной странице.']
@@ -1302,8 +1302,8 @@ const HWT={
     doneOf:'of',correct:'correct',allDone:'🎉 All done! Send the report to your teacher.',
     tcTitle:'👩‍🏫 Homework for a student',
     tcEmpty:'Open a section, set up an exercise and tap “➕ Add to homework”. Exercises collect here — then send the student a single link or QR code.',
-    tcAvail:'For now, homework can be built in “Music notation”: the note test (Theory → Test) and melody reading (Reading tab).',
-    tcOpen:'Open Music notation',tcTitlePh:'Homework title (e.g. “Week 12, Masha”)',
+    tcAvail:'Homework can be built in these sections:',
+    tcMore:'Add another exercise:',tcTitlePh:'Homework title (e.g. “Week 12, Masha”)',
     tcLink:'🔗 Link & QR code',tcClear:'Clear',tcClearConfirm:'Remove all exercises from this homework?',
     goal:'goal',
     linkTitle:'Homework ready',linkText:'The student opens the link or scans the QR code with their phone camera — the homework appears on the app home page.',
@@ -1316,7 +1316,7 @@ const HWT={
     untitled:'Homework',
     wnTitle:"What's new",wnOk:'Got it',
     wn:[
-      ['📝','<b>Homework.</b> A teacher builds exercises in Music notation and sends a link or QR code; the student sends back a report.'],
+      ['📝','<b>Homework.</b> A teacher builds exercises (Music notation, Solfege, Rhythm, Ear training, Dictations) and sends a link or QR code; the student sends back a report.'],
       ['🎼','<b>Note reading:</b> 18 melodies in three levels, an untimed mode for little ones, rests in custom melodies, tempo from 20 BPM.'],
       ['♯','<b>Sharps</b> in the note test.'],
       ['🔍','<b>Section search</b> on the home page.']
@@ -1325,11 +1325,10 @@ const HWT={
 };
 const L=()=>HWT[lang==='en'?'en':'ru'];
 const esc=MHW.esc;
-function plural(n,one,few,many){const a=n%10,b=n%100;if(a===1&&b!==11)return one;if(a>=2&&a<=4&&(b<12||b>14))return few;return many;}
-function goalText(item){
-  const g=item.g;
-  if(lang==='en')return item.k==='reading'?g+(g===1?' time':' times'):g+(g===1?' note':' notes');
-  return item.k==='reading'?g+' '+plural(g,'раз','раза','раз'):g+' '+plural(g,'нота','ноты','нот');
+const goalText=item=>MHW.goalText(item);
+function moduleChips(){
+  return Object.keys(MHW.MODULES).map(k=>{const m=MHW.MODULES[k];
+    return `<a class="hbtn" href="./${m.href}" style="text-decoration:none;">${m.ico} ${esc(lang==='en'?m.en:m.ru)}</a>`;}).join('');
 }
 function modIco(item){const m=MHW.MODULES[item.m];return m?m.ico:'📝';}
 function fmtDay(ts){const d=new Date(ts);return (d.getDate()<10?'0':'')+d.getDate()+'.'+(d.getMonth()<9?'0':'')+(d.getMonth()+1);}
@@ -1403,7 +1402,7 @@ function renderTeacher(){
   let html=`<div class="data-card-title">${t.tcTitle}</div>`;
   if(!d.i.length){
     html+=`<div class="hw-empty">${t.tcEmpty}</div><div class="hw-empty">${t.tcAvail}</div>`+
-      `<div class="data-card-btns"><a class="hbtn" href="./${MHW.MODULES.notation.href}" style="text-decoration:none;">🎼 ${t.tcOpen}</a></div>`;
+      `<div class="data-card-btns">${moduleChips()}</div>`;
     card.innerHTML=html;return;
   }
   html+=`<input class="hw-title-inp" id="hwDraftTitle" maxlength="80" placeholder="${esc(t.tcTitlePh)}" value="${esc(d.t||'')}">`+
@@ -1412,12 +1411,12 @@ function renderTeacher(){
       `<div class="hw-item-main"><div class="hw-item-name">${esc(item.n)}</div>`+
       `<div class="hw-item-meta">${t.goal}: ${esc(goalText(item))}</div></div>`+
       `<button class="hw-del" data-del="${i}" aria-label="✕">✕</button></div>`).join('')+`</div>`+
-    `<div class="hw-empty">${t.tcAvail}</div>`+
     `<div class="data-card-btns">`+
       `<button class="hbtn data-btn-primary" id="hwMakeLinkBtn">${t.tcLink}</button>`+
-      `<a class="hbtn" href="./${MHW.MODULES.notation.href}" style="text-decoration:none;">➕ 🎼</a>`+
       `<button class="hbtn hw-link-danger" id="hwClearDraftBtn">${t.tcClear}</button>`+
-    `</div>`;
+    `</div>`+
+    `<div class="hw-empty" style="margin:12px 0 8px;">${t.tcMore}</div>`+
+    `<div class="data-card-btns">${moduleChips()}</div>`;
   card.innerHTML=html;
   document.getElementById('hwDraftTitle').addEventListener('input',e=>{
     const dd=MHW.draft();dd.t=e.target.value;MHW.saveDraft(dd);
@@ -1511,7 +1510,7 @@ function handleIncoming(){
 }
 
 /* ── «Что нового» — один раз после обновления, только тем, кто уже пользовался приложением ── */
-const WN_KEY='musicapp_whatsnew_seen',WN_VER='hw1';
+const WN_KEY='musicapp_whatsnew_seen',WN_VER='hw2';
 function maybeShowWhatsNew(cameWithLink){
   if(localStorage.getItem(WN_KEY)===WN_VER)return;
   if(!localStorage.getItem(TOUR_KEY)){localStorage.setItem(WN_KEY,WN_VER);return;} // новый пользователь — ему покажут тур
