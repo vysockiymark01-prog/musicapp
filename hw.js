@@ -21,7 +21,11 @@
     solfege: { href: 'сольфеджио/index.html', ico: '🎤', ru: 'Сольфеджио', en: 'Solfege' },
     rhythm: { href: 'ритмический тренажер/index.html', ico: '🥁', ru: 'Ритмический тренажёр', en: 'Rhythm trainer' },
     ear: { href: 'слуховой анализ/index.html', ico: '👂', ru: 'Слуховой анализ', en: 'Ear training' },
-    dictation: { href: 'музыкальные диктанты/index.html', ico: '🎵', ru: 'Муз. диктанты', en: 'Dictations' }
+    dictation: { href: 'музыкальные диктанты/index.html', ico: '🎵', ru: 'Муз. диктанты', en: 'Dictations' },
+    keys: { href: 'тональности/index.html', ico: '🔑', ru: 'Тональности', en: 'Keys' },
+    transpose: { href: 'транспозиция/index.html', ico: '🎹', ru: 'Транспозиция', en: 'Transposition' },
+    figured: { href: 'цифровка/index.html', ico: '🔢', ru: 'Цифровка', en: 'Figured bass' },
+    jazz: { href: 'джазовая-гармония/index.html', ico: '🎷', ru: 'Джазовая гармония', en: 'Jazz harmony' }
   };
 
   // Единицы цели упражнения: [одна, две-четыре, пять+] по-русски и [одна, много] по-английски.
@@ -249,7 +253,7 @@
     p.bad += delta.bad || 0;
     p.done += delta.done || 0;
     (delta.mis || []).forEach(function (lbl) {
-      lbl = cleanStr(lbl, 40);
+      lbl = cleanStr(lbl, 90);
       p.mis[lbl] = (p.mis[lbl] || 0) + 1;
     });
     if (delta.run) { p.runs.push(delta.run); if (p.runs.length > 30) p.runs.shift(); }

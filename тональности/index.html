@@ -168,6 +168,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
   .result-view .rv-actions,.result-view button{display:none!important;}
 }
 </style>
+<script src="../hw.js"></script>
 </head>
 <body>
 <div class="wrap">
@@ -178,7 +179,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
     <div class="hdr-sub" id="hdrSub">Квинтовый круг</div>
   </div>
   <div class="hdr-btns">
-    <button class="hbtn" id="assignBtn" onclick="openAssignModal()">📋 <span id="assignBtnText">Создать задание</span></button>
+    <button class="hbtn" id="assignBtn" style="display:none" onclick="openAssignModal()">📋 <span id="assignBtnText">Создать задание</span></button>
     <button class="hbtn" id="shareResultBtn" style="display:none" onclick="openShareResultModal()">📤 <span id="shareResultBtnText">Результат</span></button>
     <button class="hbtn" id="soundBtn" title="Звук"><span id="soundIco">🔊</span></button>
     <button class="hbtn" id="themeBtn">
@@ -1265,6 +1266,46 @@ function printResult(){ window.print(); }
       if(profileGrade && (profileGrade in map)) setLevel(map[profileGrade]);
     }catch(e){}
   }
+})();
+</script>
+<script>
+// ── Домашнее задание (см. ../hw.js) ──────────────────────────
+// Учитель: в «Викторине» «➕ В задание» сохраняет уровень. Ученик (?hwx=N): викторина
+// с уровнем из задания, переключатели и подсказка скрыты. На каждый вопрос одна
+// попытка, поэтому засчитывается каждый ответ, «верно» — если ответ правильный.
+(function(){
+  if(!window.MHW) return;
+  const modName = () => MHW.MODULES.keys[lang==='en'?'en':'ru'];
+  const add = MHW.addButton(document.getElementById('quizPanel'), document.getElementById('quizQ'), async () => {
+    const g = await MHW.askGoal({
+      title: lang==='en' ? 'How many questions to answer?' : 'На сколько вопросов ответить?',
+      text: lang==='en' ? 'The exercise keeps the quiz level.' : 'Упражнение запомнит уровень викторины.',
+      options: [10, 20, 30]
+    });
+    if(!g) return;
+    const lb = document.getElementById('lvlBtn'+quizLevel);
+    const n = [modName(), document.getElementById('mQuiz').textContent.trim(), lb ? lb.textContent.trim() : ''].filter(Boolean).join(' · ');
+    MHW.addFromModule({ m:'keys', k:'quiz', u:'ans', g, n, p:{ lv: quizLevel } }, '../index.html');
+  });
+  document.getElementById('langBtn').addEventListener('click', () => setTimeout(add.relabel, 0));
+
+  const tk = MHW.task('keys');
+  if(!tk) return;
+  add.row.style.display = 'none';
+  const lv = [0,1,2].includes((tk.item.p||{}).lv) ? tk.item.p.lv : 0;
+  setMode('quiz');
+  setLevel(lv);
+  MHW.lock(['.mode-row', '#levelTabs', '#quizHintBtn', '#assignBtn', '#shareResultBtn', '#assignBanner']);
+  MHW.mountBar(document.querySelector('.wrap'), '../index.html');
+
+  const orig = window.answerQuiz;
+  window.answerQuiz = function(btn, chosen, correct){
+    if(quizAnswered) return orig.apply(this, arguments);
+    const q = document.getElementById('quizQ').textContent.trim();
+    const r = orig.apply(this, arguments);
+    MHW.update(chosen === correct ? { done:1, ok:1 } : { done:1, bad:1, mis:[q + ' → ' + correct] });
+    return r;
+  };
 })();
 </script>
 <script>

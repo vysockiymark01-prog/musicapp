@@ -130,6 +130,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
   z-index:9999;animation:musicappStreakIn .25s ease-out;pointer-events:none;white-space:nowrap;}
 [data-theme="dark"] .musicapp-streak-toast{background:#f1f5f9;color:#0f172a;}
 </style>
+<script src="../hw.js"></script>
 </head>
 <body>
 <div class="wrap">
@@ -874,6 +875,60 @@ const __dk0=document.documentElement.getAttribute('data-theme')==='dark';
 document.getElementById('themeText').textContent=__dk0?(lang==='ru'?'Светлая':'Light'):(lang==='ru'?'Тёмная':'Dark');
 if(__dk0)document.getElementById('themeIco').innerHTML='<circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>';
 </script><script>
+// ── Домашнее задание (см. ../hw.js) ──────────────────────────
+// Учитель: на вкладках «Мелодия», «Инструменты» и «Викторина» «➕ В задание» сохраняет
+// вкладку. Ученик (?hwx=N): вкладки скрыты. На каждый вопрос одна попытка, поэтому
+// засчитывается каждый ответ, «верно» — если ответ правильный.
+(function(){
+  if(!window.MHW) return;
+  const QUIZ_TABS = {
+    2: { ans:'answerMelody',    score:()=>melScore,    q:'melQ',    box:'melChoices',   done:()=>melAnswered },
+    3: { ans:'answerInstrument', score:()=>instrScore, q:'instrQ',  box:'instrChoices', done:()=>instrChosenVal!==null },
+    4: { ans:'answerQuiz2',     score:()=>quizScore2,  q:'quizQ2',  box:'quizChoices2', done:()=>quizChosenVal!==null }
+  };
+  let curTab = 0;
+  const modName = () => MHW.MODULES.transpose[lang==='en'?'en':'ru'];
+  const add = MHW.addButton(document.querySelector('.wrap'), document.getElementById('panel0'), async () => {
+    if(!QUIZ_TABS[curTab]) return;
+    const g = await MHW.askGoal({
+      title: lang==='en' ? 'How many questions to answer?' : 'На сколько вопросов ответить?',
+      options: [10, 20, 30]
+    });
+    if(!g) return;
+    const n = [modName(), document.getElementById('t'+curTab).textContent.trim()].join(' · ');
+    MHW.addFromModule({ m:'transpose', k:String(curTab), u:'ans', g, n, p:{} }, '../index.html');
+  });
+  add.row.style.display = 'none';
+  const origShow = window.showTab;
+  window.showTab = function(n){ curTab = n; const r = origShow.apply(this, arguments); add.row.style.display = QUIZ_TABS[n] ? '' : 'none'; return r; };
+  document.getElementById('langBtn').addEventListener('click', () => setTimeout(add.relabel, 0));
+
+  const tk = MHW.task('transpose');
+  if(!tk) return;
+  const n = QUIZ_TABS[+tk.item.k] ? +tk.item.k : 4;
+  showTab(n);
+  add.row.style.display = 'none';
+  MHW.lock(['.tabs']);
+  MHW.mountBar(document.querySelector('.wrap'), '../index.html');
+
+  const c = QUIZ_TABS[n];
+  const orig = window[c.ans];
+  window[c.ans] = function(){
+    if(c.done()) return orig.apply(this, arguments);
+    const q = document.getElementById(c.q).textContent.trim(), sc = c.score(), c0 = sc.c, w0 = sc.w;
+    const r = orig.apply(this, arguments);
+    if(sc.c > c0) MHW.update({ done:1, ok:1 });
+    else if(sc.w > w0){
+      const cor = document.querySelector('#'+c.box+' .correct');
+      const notes = cor ? [...cor.querySelectorAll('.mel-note')].map(s=>s.textContent) : [];
+      const ans = cor ? (notes.length ? notes.join(' ') : cor.textContent.trim()) : '';
+      MHW.update({ done:1, bad:1, mis:[q + (ans ? ' → ' + ans : '')] });
+    }
+    return r;
+  };
+})();
+</script>
+<script>
 /* Клавиатурная доступность: элементы с onclick (не <button>/<a>/полям форм)
    становятся фокусируемыми и активируются Enter/Space — включая те,
    что добавляются в DOM динамически (пианино, варианты викторин и т.п.). */

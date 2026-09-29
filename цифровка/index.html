@@ -293,6 +293,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
   .result-view .rv-actions,.result-view button{display:none!important;}
 }
 </style>
+<script src="../hw.js"></script>
 </head>
 <body>
 <div class="wrap">
@@ -305,7 +306,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
     <div class="hdr-sub" id="hdrSub">Ступени · Аккорды · Кадансы</div>
   </div>
   <div class="hdr-actions">
-    <button class="hbtn" id="assignBtn" onclick="openAssignModal()">📋 <span id="assignBtnText">Создать задание</span></button>
+    <button class="hbtn" id="assignBtn" style="display:none" onclick="openAssignModal()">📋 <span id="assignBtnText">Создать задание</span></button>
     <button class="hbtn" id="shareResultBtn" style="display:none" onclick="openShareResultModal()">📤 <span id="shareResultBtnText">Результат</span></button>
     <button class="hbtn" id="soundBtn" title="Звук"><span id="soundIco">🔊</span></button>
     <button class="hbtn" id="themeBtn">
@@ -2182,6 +2183,83 @@ function printResult(){ window.print(); }
       const profileGrade=localStorage.getItem('musicapp_profile_grade');
       if(profileGrade && GRADE_LIST.indexOf(profileGrade)!==-1) switchGrade(profileGrade);
     }catch(e){}
+  }
+})();
+</script>
+<script>
+// ── Домашнее задание (см. ../hw.js) ──────────────────────────
+// Учитель: на вкладках «Определи», «Построй», «Последовательность» «➕ В задание» сохраняет
+// вкладку, класс и режим последовательности. Ученик (?hwx=N): переключатели и подсказки
+// скрыты. «Определи» и «Построй» — одна попытка на аккорд (засчитывается каждый ответ);
+// в «Последовательности» можно исправлять, «верно» — если с первой попытки.
+(function(){
+  if(!window.MHW) return;
+  const modName = () => MHW.MODULES.figured[lang==='en'?'en':'ru'];
+  const add = MHW.addButton(document.querySelector('.wrap'), document.querySelector('.progress-bar'), async () => {
+    if(tab === 'theory') return;
+    const g = await MHW.askGoal({
+      title: lang==='en' ? 'How many exercises?' : 'Сколько упражнений выполнить?',
+      text: lang==='en' ? 'The exercise keeps the tab and grade.' : 'Упражнение запомнит вкладку и класс.',
+      options: [5, 10, 15, 20]
+    });
+    if(!g) return;
+    const tb = document.getElementById('mtab-'+tab);
+    const parts = [modName(), tb ? tb.textContent.replace(/^\S+\s/,'').trim() : tab];
+    if(tab === 'sequence'){ const sb = document.getElementById(sqMode==='identify' ? 'sqModeI' : 'sqModeB'); if(sb) parts.push(sb.textContent.trim()); }
+    parts.push(grade.replace('-','–') + (lang==='en' ? ' grade' : ' класс'));
+    MHW.addFromModule({ m:'figured', k:tab, u: tab==='sequence' ? 'ex' : 'ans', g, n:parts.join(' · '), p:{ gr:grade, sm:sqMode } }, '../index.html');
+  });
+  const origSwitch = window.switchTab;
+  window.switchTab = function(t){ const r = origSwitch.apply(this, arguments); add.row.style.display = tab==='theory' ? 'none' : ''; return r; };
+  add.row.style.display = tab==='theory' ? 'none' : '';
+  // setTimeout — наш обработчик срабатывает раньше, чем раздел успевает переключить язык.
+  document.getElementById('langBtn').addEventListener('click', () => setTimeout(add.relabel, 0));
+
+  const tk = MHW.task('figured');
+  if(!tk) return;
+  const k = ['identify','build','sequence'].includes(tk.item.k) ? tk.item.k : 'identify';
+  const p = tk.item.p || {};
+  grade = GRADE_LIST.includes(p.gr) ? p.gr : '1-2';
+  document.querySelectorAll('.gtab').forEach(b=>b.classList.toggle('active', b.dataset.g===grade));
+  if(tab === k) refreshTab(); else switchTab(k);
+  if(k === 'sequence' && (p.sm === 'build' || p.sm === 'identify')) setSqMode(p.sm);
+  add.row.style.display = 'none';
+  MHW.lock(['#gradeTabs', '#mainTabs', '#idHintBtn', '#bdHint', '#sqHintBtn', '#sqModeB', '#sqModeI',
+            '#assignBtn', '#shareResultBtn', '#assignBanner']);
+  MHW.mountBar(document.querySelector('.wrap'), '../index.html');
+
+  const keyName = ex => ex && ex.key ? (ex.key[lang] || '') : '';
+  if(k === 'identify'){
+    const orig = window.checkIdentify;
+    window.checkIdentify = function(choice){
+      const ex = idEx, c0 = idScore.c, w0 = idScore.w;
+      const r = orig.apply(this, arguments);
+      if(idScore.c > c0) MHW.update({ done:1, ok:1 });
+      else if(idScore.w > w0) MHW.update({ done:1, bad:1, mis:[keyName(ex) + ': ' + getChordLabel(ex.sym)] });
+      return r;
+    };
+  } else if(k === 'build'){
+    const orig = window.checkBuild;
+    window.checkBuild = function(){
+      const ex = bdEx, c0 = bdScore.c, w0 = bdScore.w;
+      const name = (document.getElementById('bdChordName').textContent + ' ' + document.getElementById('bdKeyName').textContent).trim();
+      const r = orig.apply(this, arguments);
+      if(bdScore.c > c0) MHW.update({ done:1, ok:1 });
+      else if(ex && bdScore.w > w0) MHW.update({ done:1, bad:1, mis:[name] });
+      return r;
+    };
+  } else {
+    const tr = MHW.tracker();
+    ['checkSeqComplete','checkCadType'].forEach(fn => {
+      const orig = window[fn];
+      window[fn] = function(){
+        const ex = sqEx, c0 = sqScore.c, w0 = sqScore.w;
+        const r = orig.apply(this, arguments);
+        if(sqScore.c > c0) tr.right(ex);
+        else if(sqScore.w > w0) tr.wrong(ex, keyName(ex) + ': ' + (ex.cad ? (lang==='ru' ? ex.cad.ru : ex.cad.en) : ''));
+        return r;
+      };
+    });
   }
 })();
 </script>
