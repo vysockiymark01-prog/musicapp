@@ -18,7 +18,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>Муз. Литература</title>
 <meta name="theme-color" content="#1c3a8e">
-<script>(function(){var t=localStorage.getItem('musicapp_theme');var dark=t==='dark';document.documentElement.setAttribute('data-theme',dark?'dark':'light');})()</script>
+<script>(function(){var t=localStorage.getItem('musicapp_theme');var dark=t?t==='dark':window.matchMedia('(prefers-color-scheme: dark)').matches;document.documentElement.setAttribute('data-theme',dark?'dark':'light');})()</script>
 <style>
 /* Отключаем системный жест pull-to-refresh (стрелка/спиннер при потягивании вниз) — приложение уже показывает свой интерфейс, обновление страницы через этот жест не нужно и мешает свайпам внутри модулей. */
 html,body{overscroll-behavior-y:contain;}
@@ -233,6 +233,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
   .comp-name{font-size:13px;}
 }
 </style>
+<script src="../hw.js"></script>
 </head>
 <body>
 <div class="wrap">
@@ -1730,6 +1731,58 @@ renderCards();
   },100);
 })();
 </script><script>
+// ── Домашнее задание (см. ../hw.js) ──────────────────────────
+// Учитель: в «Викторине» «➕ В задание». Если в «Карточках» выбрана эпоха — вопросы будут
+// только о композиторах этой эпохи. Ученик (?hwx=N): вкладки скрыты; одна попытка на
+// вопрос, засчитывается каждый ответ.
+(function(){
+  if(!window.MHW) return;
+  const L = () => lang==='en' ? 'en' : 'ru';
+  const modName = () => MHW.MODULES.history[L()];
+  const panel = document.querySelector('#panel2 .quiz-wrap');
+  const add = MHW.addButton(panel, document.getElementById('quizQ'), async () => {
+    const g = await MHW.askGoal({
+      title: L()==='en' ? 'How many questions to answer?' : 'На сколько вопросов ответить?',
+      text: eraFilter !== 'all'
+        ? (L()==='en' ? 'Questions will be about the era selected in Cards.' : 'Вопросы будут о композиторах эпохи, выбранной в «Карточках».')
+        : (L()==='en' ? 'Tip: pick an era in Cards to limit the questions.' : 'Совет: выберите эпоху в «Карточках», чтобы вопросы были только о ней.'),
+      options: [10, 20, 30]
+    });
+    if(!g) return;
+    const parts = [modName(), document.getElementById('t2').textContent.trim()];
+    const p = {};
+    if(eraFilter !== 'all'){ p.era = eraFilter; parts.push((ERA_LABELS[eraFilter]||{})[lang] || eraFilter); }
+    MHW.addFromModule({ m:'history', k:'quiz', u:'ans', g, n:parts.join(' · '), p }, '../index.html');
+  });
+  document.getElementById('langBtn').addEventListener('click', () => setTimeout(add.relabel, 0));
+
+  const tk = MHW.task('history');
+  if(!tk) return;
+  const era = (tk.item.p || {}).era;
+  const pool = era ? COMPOSERS.filter(c => c.era === era) : [];
+  if(pool.length){
+    const origPick = window.pickWeightedComposer;
+    window.pickWeightedComposer = function(){ return pool[Math.floor(Math.random() * pool.length)]; };
+  }
+  showTab(2);
+  document.getElementById('quizQ').textContent = '';
+  nextQuiz();
+  add.row.style.display = 'none';
+  MHW.lock(['.tabs']);
+  MHW.mountBar(document.querySelector('.wrap'), '../index.html');
+
+  const orig = window.answerQuiz;
+  window.answerQuiz = function(btn, chosen, correct){
+    const first = document.querySelector('#quizChoices .qc');
+    if(first && first.disabled) return orig.apply(this, arguments);
+    const q = (document.getElementById('quizQ').textContent + ' ' + document.getElementById('quizSub').textContent).trim();
+    const r = orig.apply(this, arguments);
+    MHW.update(chosen === correct ? { done:1, ok:1 } : { done:1, bad:1, mis:[q + ' → ' + correct] });
+    return r;
+  };
+})();
+</script>
+<script>
 /* Клавиатурная доступность: элементы с onclick (не <button>/<a>/полям форм)
    становятся фокусируемыми и активируются Enter/Space — включая те,
    что добавляются в DOM динамически (пианино, варианты викторин и т.п.). */

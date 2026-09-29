@@ -196,6 +196,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
   .hdr-title{font-size:13px;}
 }
 </style>
+<script src="../hw.js"></script>
 </head>
 <body>
 <div class="wrap">
@@ -725,11 +726,14 @@ function updateQuizScore(){
   document.getElementById('qWrong').textContent=quizScore.w;
 }
 let quizCorrectId=null;
+// Домашнее задание может ограничить викторину эпохой/школой (см. блок в конце файла).
+let hwQuotePool=null;
 function nextQuiz(){
-  const pool=ALL_QUOTES;
+  let pool=ALL_QUOTES;
+  if(hwQuotePool){ const f=ALL_QUOTES.filter(hwQuotePool); if(f.length>=4) pool=f; }
   if(pool.length<4)return;
-  quizIdx=Math.floor(Math.random()*pool.length);
-  const q=pool[quizIdx];
+  const q=pool[Math.floor(Math.random()*pool.length)];
+  quizIdx=ALL_QUOTES.indexOf(q); // showHint() ищет цитату в полном списке
   quizCorrectId=q.cid;
   document.getElementById('quizQuote').textContent='"'+(q[lang]||q.ru)+'"';
   document.getElementById('quizEra').textContent=
@@ -870,6 +874,55 @@ applyLang();
   },100);
 })();
 </script><script>
+// ── Домашнее задание (см. ../hw.js) ──────────────────────────
+// Учитель: в «Угадай автора» «➕ В задание». Выбранные эпоха и школа сохраняются —
+// цитаты будут только из них. Ученик (?hwx=N): видна только викторина, фильтры и
+// подсказка скрыты; одна попытка на цитату, засчитывается каждый ответ.
+(function(){
+  if(!window.MHW) return;
+  const L = () => lang==='en' ? 'en' : 'ru';
+  const modName = () => MHW.MODULES.quotes[L()];
+  const add = MHW.addButton(document.getElementById('quizPanel'), document.getElementById('quizQuote'), async () => {
+    const g = await MHW.askGoal({
+      title: L()==='en' ? 'How many quotes to answer?' : 'На сколько цитат ответить?',
+      text: L()==='en' ? 'Selected era and school filters are kept.' : 'Упражнение запомнит выбранные эпоху и школу.',
+      options: [10, 20, 30]
+    });
+    if(!g) return;
+    const parts = [modName(), document.getElementById('quizTxt').textContent.trim()];
+    const p = {};
+    if(filterEra !== 'all'){ p.era = filterEra; parts.push((ERA_LABELS[filterEra]||{})[lang] || filterEra); }
+    if(filterOrigin !== 'all'){ p.org = filterOrigin; parts.push((ORIGIN_LABELS[filterOrigin]||{})[lang] || filterOrigin); }
+    MHW.addFromModule({ m:'quotes', k:'quiz', u:'ans', g, n:parts.join(' · '), p }, '../index.html');
+  });
+  document.getElementById('langBtn').addEventListener('click', () => setTimeout(add.relabel, 0));
+
+  const tk = MHW.task('quotes');
+  if(!tk) return;
+  const p = tk.item.p || {};
+  if(p.era || p.org) hwQuotePool = q => (!p.era || q.era === p.era) && (!p.org || q.origin === p.org);
+  if(!quizMode) toggleQuiz(); else nextQuiz();
+  add.row.style.display = 'none';
+  MHW.lock(['.controls', '.top-bar', '.cards', '#emptyState', '#randomCard', '#quizHintBtn']);
+  MHW.mountBar(document.querySelector('.wrap'), '../index.html');
+
+  const orig = window.answerQuiz;
+  window.answerQuiz = function(btn){
+    if(btn.disabled) return orig.apply(this, arguments);
+    const q = ALL_QUOTES[quizIdx], chosen = btn.dataset.cid, correct = quizCorrectId;
+    const r = orig.apply(this, arguments);
+    if(chosen === correct) MHW.update({ done:1, ok:1 });
+    else {
+      const c = DATA.find(x => x.id === correct);
+      const txt = q ? (q[lang] || q.ru) : '';
+      const short = txt.length > 45 ? txt.slice(0, 45) + '…' : txt;
+      MHW.update({ done:1, bad:1, mis:['«' + short + '» → ' + (c ? (c.name[lang] || c.name.ru) : correct)] });
+    }
+    return r;
+  };
+})();
+</script>
+<script>
 /* Клавиатурная доступность: элементы с onclick (не <button>/<a>/полям форм)
    становятся фокусируемыми и активируются Enter/Space — включая те,
    что добавляются в DOM динамически (пианино, варианты викторин и т.п.). */

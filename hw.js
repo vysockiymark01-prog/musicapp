@@ -25,7 +25,10 @@
     keys: { href: 'тональности/index.html', ico: '🔑', ru: 'Тональности', en: 'Keys' },
     transpose: { href: 'транспозиция/index.html', ico: '🎹', ru: 'Транспозиция', en: 'Transposition' },
     figured: { href: 'цифровка/index.html', ico: '🔢', ru: 'Цифровка', en: 'Figured bass' },
-    jazz: { href: 'джазовая-гармония/index.html', ico: '🎷', ru: 'Джазовая гармония', en: 'Jazz harmony' }
+    jazz: { href: 'джазовая-гармония/index.html', ico: '🎷', ru: 'Джазовая гармония', en: 'Jazz harmony' },
+    glossary: { href: 'словарик терминов/index.html', ico: '📖', ru: 'Словарик терминов', en: 'Glossary' },
+    history: { href: 'муз-литература/index.html', ico: '🎭', ru: 'Муз. литература', en: 'Music history' },
+    quotes: { href: 'цитаты/index.html', ico: '💬', ru: 'Цитатник', en: 'Quotes' }
   };
 
   // Единицы цели упражнения: [одна, две-четыре, пять+] по-русски и [одна, много] по-английски.
@@ -34,7 +37,8 @@
     times: { ru: ['раз', 'раза', 'раз'], en: ['time', 'times'] },
     ex: { ru: ['упражнение', 'упражнения', 'упражнений'], en: ['exercise', 'exercises'] },
     ans: { ru: ['ответ', 'ответа', 'ответов'], en: ['answer', 'answers'] },
-    dict: { ru: ['диктант', 'диктанта', 'диктантов'], en: ['dictation', 'dictations'] }
+    dict: { ru: ['диктант', 'диктанта', 'диктантов'], en: ['dictation', 'dictations'] },
+    pairs: { ru: ['пара', 'пары', 'пар'], en: ['pair', 'pairs'] }
   };
   function unitOf(item) {
     if (item.u && UNITS[item.u]) return item.u;
