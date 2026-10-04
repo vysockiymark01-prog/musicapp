@@ -2547,6 +2547,141 @@ function printResult(){ window.print(); }
 })();
 </script>
 <script>
+// ── «Интервалы»: ответ нотой (для малышей) ─────────────────────
+// При фиксированной тонике «до» вторая нота интервала однозначна, поэтому вместо названия
+// интервала можно отвечать названием ноты («ми» вместо «б.3») — на кнопках, на экранном
+// пианино или с MIDI-клавиатуры. Плюс самый простой уровень «до-ре-ми».
+INTERVAL_LEVELS[0] = ['p1','M2','M3']; // до-до, до-ре, до-ми
+const NA_L = {
+  ru: { lbl:'Отвечать', iv:'интервалом', note:'нотой', lvl0:'До-ре-ми (малыши)', hint:'Звучит «до», потом вторая нота — какая?',
+        names:['до','ре♭','ре','ми♭','ми','фа','фа♯','соль','ля♭','ля','си♭','си','до²'] },
+  en: { lbl:'Answer with', iv:'interval', note:'note', lvl0:'C-D-E (little ones)', hint:'You hear C, then a second note — which one?',
+        names:['C','D♭','D','E♭','E','F','F♯','G','A♭','A','B♭','B','C (high)'] }
+};
+const NA = k => NA_L[lang==='en'?'en':'ru'][k];
+let naMidiBtn = null; // кнопка «🎹 MIDI» — нужна только в режиме «нотой»
+let noteAnswer = (() => { try { return localStorage.getItem('musicapp_ear_note_answer') === '1'; } catch(e) { return false; } })();
+const noteMode = () => noteAnswer && iRoot === 'fixed';
+function ivNoteName(iv){ return NA('names')[iv.semi] || iv.ru; }
+function naInit(){
+  const lvl = document.getElementById('iLevel');
+  if(lvl && ![...lvl.options].some(o => o.value === '0')){ const o = document.createElement('option'); o.value = '0'; lvl.appendChild(o); }
+  const row = document.querySelector('#intervalsContent .settings-row');
+  const sg = document.createElement('div');
+  sg.className = 'sg'; sg.id = 'iAnsSg';
+  sg.innerHTML = `<div class="sg-label" id="iLblAns"></div><select class="sg-select" id="iAnsMode"><option value="interval"></option><option value="note"></option></select>`;
+  row.appendChild(sg);
+  const sel = document.getElementById('iAnsMode');
+  sel.value = noteAnswer ? 'note' : 'interval';
+  sel.addEventListener('change', () => {
+    noteAnswer = sel.value === 'note';
+    try { localStorage.setItem('musicapp_ear_note_answer', noteAnswer ? '1' : '0'); } catch(e) {}
+    // Для ответа нотой ноты должны звучать по очереди: сначала «до», потом загаданная.
+    const md = document.getElementById('iMode');
+    if(noteAnswer && md && md.value !== 'melodic'){ md.value = 'melodic'; md.dispatchEvent(new Event('change')); }
+    naSync(true);
+  });
+  document.getElementById('iRoot').addEventListener('change', () => naSync(true));
+  // Мини-пианино на одну октаву (до — до²): ответ касанием клавиши.
+  const pn = document.createElement('div');
+  pn.id = 'iNotePiano'; pn.className = 'na-piano';
+  const grid = document.getElementById('iAnswerGrid');
+  grid.parentNode.insertBefore(pn, grid.nextSibling);
+  document.getElementById('langBtn').addEventListener('click', () => setTimeout(() => naSync(false), 0));
+  naSync(false);
+}
+function naLabels(){
+  const set = (id, v) => { const el = document.getElementById(id); if(el) el.textContent = v; };
+  set('iLblAns', NA('lbl'));
+  const sel = document.getElementById('iAnsMode');
+  if(sel){ sel.options[0].text = NA('iv'); sel.options[1].text = NA('note'); }
+  const lvl = document.getElementById('iLevel');
+  const o0 = lvl && [...lvl.options].find(o => o.value === '0'); if(o0) o0.text = NA('lvl0');
+}
+function naSync(regen){
+  naLabels();
+  // «Отвечать нотой» имеет смысл только при тонике «до».
+  const sg = document.getElementById('iAnsSg'); if(sg) sg.style.display = iRoot === 'fixed' ? '' : 'none';
+  naRenderPiano();
+  if(naMidiBtn && window.AIN && AIN.midi.supported()) naMidiBtn.style.display = noteMode() ? '' : 'none';
+  if(regen) iNewQuestion(); else iRenderGrid();
+}
+function naRenderPiano(){
+  const pn = document.getElementById('iNotePiano'); if(!pn) return;
+  if(!noteMode()){ pn.style.display = 'none'; pn.innerHTML = ''; return; }
+  pn.style.display = '';
+  const names = NA('names');
+  const whites = [0,2,4,5,7,9,11,12], blacks = { 1:0, 3:1, 6:3, 8:4, 10:5 };
+  let html = '<div class="na-keys">';
+  whites.forEach(s => { html += `<button type="button" class="na-w" data-semi="${s}"><span>${names[s]}</span></button>`; });
+  Object.keys(blacks).forEach(s => { html += `<button type="button" class="na-b" data-semi="${s}" style="left:calc(${(blacks[s] + 1) * 12.5}% - 5%)"><span>${names[s]}</span></button>`; });
+  html += '</div>';
+  pn.innerHTML = html;
+  pn.querySelectorAll('button').forEach(b => b.addEventListener('click', () => naAnswerSemi(+b.dataset.semi)));
+}
+// Ответ по полутонам от «до»: верный — если совпал с загаданным; иначе засчитывается как ошибка.
+function naAnswerSemi(semi){
+  if(!iCurrent) return;
+  if(!iPlayed){ iPlayCurrent(); return; } // сначала нужно услышать
+  if(iAnswered) return;
+  const hit = INTERVALS.find(x => x.semi === semi);
+  const pool = iGetPool();
+  const inPool = hit && pool.some(x => x.id === hit.id);
+  iSelectAnswer(iCurrent.semi === semi ? iCurrent.id : (inPool ? hit.id : '__' + semi));
+  try { const ctx = getCtx(); playTone(60 + semi, ctx.currentTime + 0.02, 0.5); } catch(e) {}
+}
+(function(){
+  // Кнопки ответа подписываем нотами — id прежние, так что проверка ответа не меняется.
+  const origGrid = window.iRenderGrid;
+  window.iRenderGrid = function(){
+    const r = origGrid.apply(this, arguments);
+    if(noteMode()){
+      document.querySelectorAll('#iAnswerGrid .ans-btn').forEach(b => {
+        const iv = INTERVALS.find(x => x.id === b.dataset.id); if(!iv) return;
+        b.querySelector('.ans-btn-name').textContent = ivNoteName(iv);
+        const sub = b.querySelector('.ans-btn-sub'); if(sub) sub.textContent = '';
+      });
+    }
+    return r;
+  };
+  const origSel = window.iSelectAnswer;
+  window.iSelectAnswer = function(id){
+    const r = origSel.apply(this, arguments);
+    if(noteMode() && iAnswered && iCurrent){
+      const a = document.getElementById('iAnswer');
+      if(a) a.textContent = ivNoteName(iCurrent) + ' — ' + (lang==='ru' ? iCurrent.ruFull : iCurrent.enFull);
+    }
+    return r;
+  };
+  const origNew = window.iNewQuestion;
+  window.iNewQuestion = function(){
+    const r = origNew.apply(this, arguments);
+    if(noteMode()){ const s = document.getElementById('iStatus'); if(s) s.textContent = NA('hint'); }
+    return r;
+  };
+  // MIDI-клавиатура: в режиме «нотой» нажатая клавиша — ответ (октава не важна).
+  document.addEventListener('DOMContentLoaded', () => {
+    naInit();
+    if(window.AIN) naMidiBtn = AIN.midi.button(document.getElementById('intervalsContent'), document.getElementById('iAnswerGrid'), ev => {
+      if(activeTab !== 'intervals' || !noteMode() || (typeof singMode !== 'undefined' && singMode)) return;
+      const pc = ((ev.midi % 12) + 12) % 12;
+      const semi = iCurrent && iCurrent.semi % 12 === pc ? iCurrent.semi : pc;
+      naAnswerSemi(semi);
+    });
+    naSync(false);
+  });
+})();
+</script>
+<style>
+.na-piano{margin:0 0 16px;}
+.na-keys{position:relative;display:flex;height:120px;max-width:420px;margin:0 auto;}
+.na-w{flex:1;border:2px solid var(--border);border-radius:0 0 10px 10px;background:#fff;color:#0f172a;display:flex;align-items:flex-end;justify-content:center;
+  padding-bottom:8px;font-size:11px;font-weight:900;cursor:pointer;margin:0 1px;}
+.na-b{position:absolute;top:0;width:10%;height:62%;border:none;border-radius:0 0 8px 8px;background:#1e293b;color:#e2e8f0;display:flex;align-items:flex-end;
+  justify-content:center;padding-bottom:5px;font-size:9px;font-weight:900;cursor:pointer;z-index:2;}
+.na-w:active,.na-b:active{filter:brightness(.85);}
+</style>
+<script>
 // ── 🎤 Спой интервал (вкладка «Интервалы») ─────────────────────
 // Звучит нижняя нота, ученик поёт верхнюю ноту названного интервала; высоту слушает
 // микрофон (../audio-in.js). Октава голоса не важна — мальчики, девочки и взрослые поют
@@ -2688,7 +2823,8 @@ document.addEventListener('DOMContentLoaded', singInit);
   if(!window.MHW) return;
   const MOD = 'ear';
   const TABS = {
-    intervals:  { sel:['iLevel','iMode','iRoot','iSpeed'],     sw:'iSelectAnswer',  nq:'iNewQuestion',  ok:()=>iCorrect,  bad:()=>iWrong,  cur:()=>iCurrent,  name:x=>lang==='ru'?x.ruFull:x.enFull },
+    intervals:  { sel:['iLevel','iMode','iRoot','iSpeed','iAnsMode'], sw:'iSelectAnswer', nq:'iNewQuestion', ok:()=>iCorrect, bad:()=>iWrong, cur:()=>iCurrent,
+                  name:x=>noteMode() ? ivNoteName(x) + (lang==='ru' ? ' (от до)' : ' (from C)') : (lang==='ru'?x.ruFull:x.enFull) },
     chords:     { sel:['cLevel','cMode','cRoot','cSpeed'],     sw:'cSelectAnswer',  nq:'cNewQuestion',  ok:()=>cCorrect,  bad:()=>cWrong,  cur:()=>cCurrent,  name:x=>lang==='ru'?x.ruFull:x.enFull },
     chains:     { sel:['chLevel','chType','chLen','chSpeed'] },
     resolution: { sel:['rLevel','rType','rSpeed'],             sw:'rSelectAnswer',  nq:'rNewQuestion',  ok:()=>rCorrect,  bad:()=>rWrong,  cur:()=>rCurrent,  name:x=>lang==='ru'?x.ruFull:x.enFull },
