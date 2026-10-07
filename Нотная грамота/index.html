@@ -2845,7 +2845,7 @@ html,body{overscroll-behavior-y:contain;}
         const FRETBOARD_CONFIG = {
             guitar:     { strings: [{ note: 'E', octave: 5 }, { note: 'B', octave: 4 }, { note: 'G', octave: 4 }, { note: 'D', octave: 4 }, { note: 'A', octave: 3 }, { note: 'E', octave: 3 }], frets: 19, markers: [3,5,7,9,12,15,17,19] },
             balalaika:  { strings: [{ note: 'A', octave: 4 }, { note: 'E', octave: 4 }, { note: 'E', octave: 4 }], frets: 24, markers: [3,5,7,9,12,15,17,19,21] },
-            domra:      { strings: [{ note: 'D', octave: 5 }, { note: 'A', octave: 4 }, { note: 'E', octave: 4 }], frets: 14, markers: [3,5,7,9,12] },
+            domra:      { strings: [{ note: 'D', octave: 5 }, { note: 'A', octave: 4 }, { note: 'E', octave: 4 }], frets: 24, markers: [3,5,7,9,12,15,17,19,21,24] },
             ukulele:    { strings: [{ note: 'G', octave: 4 }, { note: 'C', octave: 4 }, { note: 'E', octave: 4 }, { note: 'A', octave: 4 }], frets: 15, markers: [3,5,7,9,12,15] },
             violin:     { strings: [{ note: 'E', octave: 5 }, { note: 'A', octave: 4 }, { note: 'D', octave: 4 }, { note: 'G', octave: 3 }], frets: 15, markers: [3,5,7,9,12,15] },
             viola:      { strings: [{ note: 'A', octave: 4 }, { note: 'D', octave: 4 }, { note: 'G', octave: 3 }, { note: 'C', octave: 3 }], frets: 19, markers: [3,5,7,9,12,15,17,19] },
@@ -3094,7 +3094,12 @@ html,body{overscroll-behavior-y:contain;}
         function getInstrTestRange(modeOverride, levelOverride) {
             const mode = modeOverride !== undefined ? modeOverride : instrMode;
             const level = levelOverride !== undefined ? levelOverride : testLevel;
-            if (mode === 'balalaika' || mode === 'domra') {
+            if (mode === 'domra') {
+                // Домра прима: нижняя открытая струна ми 1-й октавы. Продвинутый уровень —
+                // вся 3-я октава (до си 3-й октавы): на грифе это примерно 21-й лад первой струны.
+                const maxMidis = [noteToMidi('B', 4), noteToMidi('E', 5), noteToMidi('B', 6)];
+                return { minMidi: noteToMidi('E', 4), maxMidi: maxMidis[level] };
+            } else if (mode === 'balalaika') {
                 // Lowest open string: E4; cap per level
                 const maxMidis = [noteToMidi('B', 4), noteToMidi('E', 5), noteToMidi('B', 5)];
                 return { minMidi: noteToMidi('E', 4), maxMidi: maxMidis[level] };
