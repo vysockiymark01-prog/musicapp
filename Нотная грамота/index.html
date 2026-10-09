@@ -517,6 +517,57 @@ html,body{overscroll-behavior-y:contain;}
             z-index: 1;
         }
 
+        /* Оформление грифа: «Дерево» (по умолчанию), «Клён», «Тёмный» (как раньше), «Цветные ноты» */
+        .fb-style-row { display:flex; gap:6px; flex-wrap:wrap; align-items:center; margin:0 0 10px; }
+        .fb-style-row .fb-lbl { font-size:10px; font-weight:900; text-transform:uppercase; color:var(--color-text-muted); margin-right:2px; }
+        .fb-style-btn { padding:6px 12px; border-radius:10px; border:1px solid var(--color-border); background:var(--color-bg-card); color:var(--color-text-secondary);
+            font-size:11px; font-weight:800; cursor:pointer; }
+        .fb-style-btn.active { background:var(--color-blue-600); border-color:var(--color-blue-600); color:#fff; }
+        .fretboard-container.fb-wood, .fretboard-container.fb-color {
+            background:
+              repeating-linear-gradient(90deg, rgba(0,0,0,.05) 0 2px, rgba(255,255,255,.02) 2px 7px),
+              linear-gradient(180deg, #6b4428 0%, #4a2d18 55%, #3d2413 100%);
+        }
+        .fretboard-container.fb-maple {
+            background:
+              repeating-linear-gradient(90deg, rgba(120,72,20,.06) 0 3px, rgba(255,255,255,.05) 3px 9px),
+              linear-gradient(180deg, #f1d39b 0%, #e4bb73 100%);
+        }
+        .fb-wood .fret, .fb-color .fret { width:3px; background:linear-gradient(90deg,#8d939b,#f3f4f6,#8d939b); box-shadow:0 0 2px rgba(0,0,0,.4); }
+        .fb-maple .fret { width:3px; background:linear-gradient(90deg,#6b7280,#d1d5db,#6b7280); }
+        .fb-wood .nut, .fb-color .nut, .fb-maple .nut { width:9px; background:linear-gradient(90deg,#d9cfb4,#fbf7ea,#d9cfb4); box-shadow:1px 0 3px rgba(0,0,0,.35); }
+        .fb-wood .string, .fb-color .string { background:linear-gradient(180deg,#f8fafc,#9ca3af 60%,#6b7280); box-shadow:0 1px 1px rgba(0,0,0,.45); }
+        .fb-maple .string { background:linear-gradient(180deg,#9ca3af,#374151); }
+        .fb-wood .fret-marker, .fb-color .fret-marker { width:14px; height:14px; background:radial-gradient(circle at 35% 35%,#ffffff,#e5e7eb 55%,#c7cdd6); box-shadow:inset 0 0 2px rgba(0,0,0,.25); }
+        .fb-maple .fret-marker { width:14px; height:14px; background:radial-gradient(circle at 35% 35%,#6b4428,#3d2413); }
+        .fb-wood .fret-number, .fb-color .fret-number { color:#f5e6c8; }
+        .fb-maple .fret-number { color:#7c4a15; }
+        /* Кнопки нот на светлом и деревянном грифе — светлые «наклейки» с тёмным текстом: читается и на солнце */
+        .fb-wood .fret-dot, .fb-maple .fret-dot { background:rgba(255,253,245,.9); border:1.5px solid rgba(120,80,30,.45); box-shadow:0 1px 3px rgba(0,0,0,.35); }
+        .fb-wood .fret-dot-label, .fb-maple .fret-dot-label, .fb-color .fret-dot-label { color:#1f2937; font-size:10px; }
+        .fb-wood .fret-dot.no-label, .fb-maple .fret-dot.no-label, .fb-color .fret-dot.no-label { background:rgba(255,255,255,.14); border-color:rgba(255,255,255,.25); box-shadow:none; }
+        .fb-maple .fret-dot.no-label { background:rgba(60,30,0,.1); border-color:rgba(60,30,0,.2); }
+        .fb-wood .fret-dot.selected, .fb-maple .fret-dot.selected, .fb-color .fret-dot.selected {
+            background:#facc15; border:2px solid #fff; box-shadow:0 0 0 3px rgba(37,99,235,.9), 0 0 16px rgba(250,204,21,.8); }
+        /* «Цветные ноты»: у каждой ноты свой цвет (как цветные колокольчики/трубки у малышей) */
+        .fb-color .fret-dot { border:1.5px solid rgba(255,255,255,.7); box-shadow:0 1px 3px rgba(0,0,0,.35); }
+        .fb-color .n-C { background:#ef4444; } .fb-color .n-D { background:#f97316; } .fb-color .n-E { background:#facc15; }
+        .fb-color .n-F { background:#22c55e; } .fb-color .n-G { background:#38bdf8; } .fb-color .n-A { background:#6366f1; }
+        .fb-color .n-B { background:#d946ef; }
+        .fb-color .n-Cs { background:linear-gradient(135deg,#ef4444 50%,#f97316 50%); } .fb-color .n-Ds { background:linear-gradient(135deg,#f97316 50%,#facc15 50%); }
+        .fb-color .n-Fs { background:linear-gradient(135deg,#22c55e 50%,#38bdf8 50%); } .fb-color .n-Gs { background:linear-gradient(135deg,#38bdf8 50%,#6366f1 50%); }
+        .fb-color .n-As { background:linear-gradient(135deg,#6366f1 50%,#d946ef 50%); }
+        .fb-color .fret-dot .fret-dot-label { color:#fff; text-shadow:0 1px 2px rgba(0,0,0,.7); }
+        .fb-color .fret-dot.no-label { opacity:.55; }
+        .fretboard-container.fb-wood.fb-fretless, .fretboard-container.fb-color.fb-fretless {
+            background:
+              repeating-linear-gradient(90deg, rgba(255,255,255,.025) 0 2px, rgba(0,0,0,.04) 2px 6px),
+              linear-gradient(180deg, #2a2421 0%, #171311 60%, #0f0c0a 100%);
+        }
+        .fb-fretless .fret { width:1px !important; background:rgba(255,255,255,.16) !important; box-shadow:none !important; }
+        .fb-maple.fb-fretless .fret { background:rgba(80,40,0,.22) !important; }
+        .fb-fretless .fret-marker { display:none; }
+
         .octave-label {
             position: absolute;
             top: 8px;
@@ -1613,6 +1664,7 @@ html,body{overscroll-behavior-y:contain;}
                 <div class="piano-keys" id="pianoKeys"></div>
             </div>
 
+            <div class="fb-style-row hidden" id="fbStyleRow"></div>
             <div id="fretboardContainer" class="fretboard-container hidden">
                 <div class="fretboard" id="fretboard"></div>
             </div>
@@ -1956,6 +2008,7 @@ html,body{overscroll-behavior-y:contain;}
                 noteSetClear: 'Очистить',
                 noteSetClose: 'Свернуть',
                 sharpsToggle: 'Диезы',
+                fbStyle: 'Гриф', fbWood: 'Дерево', fbMaple: 'Клён', fbColor: 'Цветные ноты', fbDark: 'Тёмный',
                 hwAddBtn: '➕ В задание',
                 hwNotesGoal: 'Сколько нот ученик должен найти?',
                 hwNotesGoalText: 'Упражнение запомнит инструмент, уровень, диезы и набор нот.',
@@ -2054,6 +2107,7 @@ html,body{overscroll-behavior-y:contain;}
                 noteSetClear: 'Clear',
                 noteSetClose: 'Collapse',
                 sharpsToggle: 'Sharps',
+                fbStyle: 'Fretboard', fbWood: 'Wood', fbMaple: 'Maple', fbColor: 'Colour notes', fbDark: 'Dark',
                 hwAddBtn: '➕ Add to homework',
                 hwNotesGoal: 'How many notes should the student find?',
                 hwNotesGoalText: 'The exercise keeps the instrument, level, sharps and note set.',
@@ -2117,6 +2171,8 @@ html,body{overscroll-behavior-y:contain;}
         // Защита от двойного засчитывания: после верного ответа до появления новой ноты
         // (800 мс) повторные нажатия не считаются. testNoteMissed — была ли уже ошибка
         // на текущей ноте (в домашнем задании ошибка по одной ноте считается один раз).
+        // Оформление грифа (для всех струнных с грифом): 'wood' | 'maple' | 'dark' | 'color'
+        let fbStyle = localStorage.getItem('musicapp_notation_fbStyle') || 'wood';
         let testAnswerLocked = false;
         let testNoteMissed = false;
 
@@ -2346,6 +2402,13 @@ html,body{overscroll-behavior-y:contain;}
         function transposeNotesForInstrument(notes, mode) {
             if (!notes.length) return notes;
             const { minMidi, maxMidi } = getInstrTestRange(mode, 2); // 2 = самый широкий (продвинутый) диапазон
+            // Середину ищем по «удобному» среднему уровню: продвинутый уровень у многих
+            // инструментов доходит до 3-й октавы, и мелодии для чтения не должны из-за этого
+            // уезжать вверх — они пишутся в привычном для ученика регистре.
+            // Верх «удобного» диапазона — между средним и продвинутым уровнем (у альта средний
+            // уровень слишком низкий, а продвинутый у гитары/домры — слишком высокий).
+            const comfort = getInstrTestRange(mode, 1);
+            const comfortCenter = (minMidi + (comfort.maxMidi + maxMidi) / 2) / 2;
             // Паузы — не настоящая высота звука, их не учитываем при расчёте диапазона
             // мелодии, иначе дефолтная октава паузы (4-я) могла бы случайно сместить оценку.
             const pitchedNotes = notes.filter(n => !n.isPause);
@@ -2360,7 +2423,7 @@ html,body{overscroll-behavior-y:contain;}
                 // Если помещается несколько сдвигов — берём тот, при котором мелодия ближе к
                 // середине диапазона инструмента (пианино — первая октава, виолончель —
                 // малая, домра — вторая), а не просто первый найденный снизу.
-                const center = (shiftedMin + shiftedMax) / 2 - (minMidi + maxMidi) / 2;
+                const center = (shiftedMin + shiftedMax) / 2 - comfortCenter;
                 const dist = Math.abs(center);
                 if (score < bestScore || (score === bestScore && dist < bestDist)) { bestScore = score; bestShift = k; bestDist = dist; }
             }
@@ -2853,6 +2916,22 @@ html,body{overscroll-behavior-y:contain;}
             contrabass: { strings: [{ note: 'G', octave: 3 }, { note: 'D', octave: 3 }, { note: 'A', octave: 2 }, { note: 'E', octave: 2 }], frets: 16, markers: [3,5,7,9,12,15] }
         };
 
+        function renderFbStyleRow() {
+            const row = document.getElementById('fbStyleRow');
+            if (!row) return;
+            row.classList.toggle('hidden', instrMode === 'piano');
+            if (instrMode === 'piano') return;
+            const t = TRANSLATIONS[lang];
+            const opts = [['wood', t.fbWood], ['maple', t.fbMaple], ['color', t.fbColor], ['dark', t.fbDark]];
+            row.innerHTML = `<span class="fb-lbl">🎨 ${t.fbStyle}</span>` + opts.map(([id, lbl]) =>
+                `<button type="button" class="fb-style-btn ${fbStyle === id ? 'active' : ''}" data-fb="${id}">${lbl}</button>`).join('');
+            row.querySelectorAll('[data-fb]').forEach(b => b.addEventListener('click', () => {
+                fbStyle = b.dataset.fb;
+                localStorage.setItem('musicapp_notation_fbStyle', fbStyle);
+                updateUI();
+            }));
+        }
+
         function createFretboard() {
             const container = document.getElementById('fretboard');
             const cfg = FRETBOARD_CONFIG[instrMode] || FRETBOARD_CONFIG.guitar;
@@ -2872,10 +2951,12 @@ html,body{overscroll-behavior-y:contain;}
 
             // Метки на ладах
             const markerFrets = cfg.markers;
-            const totalStrH = strings.length * 40;
-            const centerY  = totalStrH / 2 + 30;
-            const thirdY   = totalStrH / 3 + 30;
-            const twoThirdY = totalStrH * 2 / 3 + 30;
+            // Метки ставим между струнами, а не на струне — иначе их закрывают кнопки нот.
+            const rowY = i => i * 40 + 30;
+            const g = Math.floor((strings.length - 1) / 2);
+            const centerY  = (rowY(g) + rowY(g + 1)) / 2;
+            const thirdY   = (rowY(0) + rowY(1)) / 2;
+            const twoThirdY = (rowY(strings.length - 2) + rowY(strings.length - 1)) / 2;
             markerFrets.forEach(f => {
                 if (f <= fretsCount) {
                     const x = (f - 0.5) * fretWidth + 60;
@@ -2896,18 +2977,25 @@ html,body{overscroll-behavior-y:contain;}
             }
 
             strings.forEach((string, sIdx) => {
-                html += `<div class="string" style="top: ${sIdx * 40 + 30}px;"></div>`;
+                // Нижние (басовые) струны толще — как на настоящем инструменте.
+                const thick = (1.5 + (sIdx / Math.max(1, strings.length - 1)) * 2).toFixed(1);
+                html += `<div class="string" style="top: ${sIdx * 40 + 30 - thick / 2}px; height:${thick}px;"></div>`;
                 for (let fIdx = 0; fIdx <= fretsCount; fIdx++) {
                     const { note, octave } = getNoteAtFret(string.note, string.octave, fIdx);
                     const fretHL = (isTestMode && testNote && showHint) ? testNote : selectedNote;
                     const isActive = fretHL.note === note && fretHL.octave === octave;
-                    html += `<button class="fret-dot ${isActive ? 'selected' : ''}" data-note="${note}" data-octave="${octave}" style="left: ${fIdx * fretWidth + 25}px; top: ${sIdx * 40 + 30}px;">`;
+                    html += `<button class="fret-dot n-${note.replace('#', 's')} ${isActive ? 'selected' : ''} ${showKeyLabels ? '' : 'no-label'}" data-note="${note}" data-octave="${octave}" style="left: ${fIdx * fretWidth + 25}px; top: ${sIdx * 40 + 30}px;">`;
                     if (showKeyLabels) html += `<span class="fret-dot-label">${TRANSLATIONS[lang].notes[note]}</span>`;
                     html += '</button>';
                 }
             });
 
             container.innerHTML = html;
+            const fbc = document.getElementById('fretboardContainer');
+            ['wood','maple','dark','color'].forEach(st => fbc.classList.toggle('fb-' + st, st === fbStyle));
+            // У смычковых нет ладов: гриф эбеновый (почти чёрный), вместо ладов — едва заметные
+            // линии полутонов для ориентира, без перламутровых меток.
+            fbc.classList.toggle('fb-fretless', ['violin', 'viola', 'cello', 'contrabass'].includes(instrMode));
 
             container.querySelectorAll('.fret-dot').forEach(btn => {
                 let tFretX, tFretY;
@@ -3085,7 +3173,9 @@ html,body{overscroll-behavior-y:contain;}
         // Явный "потолок" для продвинутого уровня, когда формула +24 п/т не подходит
         // (верхняя нота альта — ми 3-й октавы, реальный практический предел)
         const ADVANCED_CAP_OVERRIDE = {
-            viola: { note: 'E', octave: 6 },
+            viola:   { note: 'E', octave: 6 },   // ми 3-й октавы
+            violin:  { note: 'G', octave: 6 },   // соль 3-й октавы (≈7-я позиция на ми-струне)
+            ukulele: { note: 'C', octave: 6 },   // до 3-й октавы (15-й лад ля-струны)
         };
 
         // modeOverride/levelOverride позволяют запросить диапазон произвольного инструмента
@@ -3100,12 +3190,14 @@ html,body{overscroll-behavior-y:contain;}
                 const maxMidis = [noteToMidi('B', 4), noteToMidi('E', 5), noteToMidi('B', 6)];
                 return { minMidi: noteToMidi('E', 4), maxMidi: maxMidis[level] };
             } else if (mode === 'balalaika') {
-                // Lowest open string: E4; cap per level
-                const maxMidis = [noteToMidi('B', 4), noteToMidi('E', 5), noteToMidi('B', 5)];
+                // Нижняя открытая струна ми 1-й октавы; продвинутый — до ля 3-й октавы
+                // (24-й лад первой струны, конец грифа).
+                const maxMidis = [noteToMidi('B', 4), noteToMidi('E', 5), noteToMidi('A', 6)];
                 return { minMidi: noteToMidi('E', 4), maxMidi: maxMidis[level] };
             } else if (mode === 'guitar') {
-                // Lowest open string: E3; cap per level
-                const maxMidis = [noteToMidi('B', 3), noteToMidi('B', 4), noteToMidi('B', 5)];
+                // Нижняя открытая струна ми малой октавы (как пишется в нотах); продвинутый —
+                // до си 3-й октавы (19-й лад первой струны).
+                const maxMidis = [noteToMidi('B', 3), noteToMidi('B', 4), noteToMidi('B', 6)];
                 return { minMidi: noteToMidi('E', 3), maxMidi: maxMidis[level] };
             } else if (mode === 'contrabass') {
                 // Реальный диапазон контрабаса — около 4 октав, E1-h1 звучания = E2-B5 написано
@@ -4015,6 +4107,7 @@ html,body{overscroll-behavior-y:contain;}
             if (micPanel) micPanel.classList.toggle('hidden', !isTestMode);
             if (!isTestMode && micEnabled) stopMic();
 
+            renderFbStyleRow();
             if (instrMode === 'piano') {
                 document.getElementById('pianoContainer').classList.remove('hidden');
                 document.getElementById('fretboardContainer').classList.add('hidden');
