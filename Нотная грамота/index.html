@@ -1625,7 +1625,14 @@ html,body{overscroll-behavior-y:contain;}
             <div class="test-level-row hidden" id="noteSetToggleRow">
                 <button class="level-btn" id="noteSetBtn">🎯 Набор нот</button>
                 <button class="level-btn" id="sharpsToggleBtn">♯ Диезы</button>
+                <button class="level-btn hidden" id="openStrBtn">🎸 Открытые струны</button>
                 <button class="level-btn" id="hwAddNotesBtn">➕ В задание</button>
+            </div>
+
+            <div class="hidden" id="openStrPanel" style="background:var(--color-bg-card);border:1px solid var(--color-border);border-radius:16px;padding:16px;margin-bottom:16px;box-shadow:var(--shadow-sm);">
+                <div style="font-size:11px;font-weight:900;text-transform:uppercase;color:var(--color-text-primary);margin-bottom:4px;" id="openStrTitle"></div>
+                <div style="font-size:10px;color:var(--color-text-muted);margin-bottom:12px;" id="openStrHint"></div>
+                <div id="openStrList" style="display:flex;flex-wrap:wrap;gap:6px;"></div>
             </div>
 
             <div class="hidden" id="noteSetPanel" style="background:var(--color-bg-card);border:1px solid var(--color-border);border-radius:16px;padding:16px;margin-bottom:16px;box-shadow:var(--shadow-sm);">
@@ -1665,6 +1672,7 @@ html,body{overscroll-behavior-y:contain;}
             </div>
 
             <div class="fb-style-row hidden" id="fbStyleRow"></div>
+            <div id="transposeNote" class="hidden" style="font-size:10px;color:var(--color-text-muted);margin:-4px 0 10px;"></div>
             <div id="fretboardContainer" class="fretboard-container hidden">
                 <div class="fretboard" id="fretboard"></div>
             </div>
@@ -1982,7 +1990,7 @@ html,body{overscroll-behavior-y:contain;}
                 darkTheme: 'Тёмная',
                 durations: { whole: 'Целая', half: 'Половинная', quarter: 'Четвертная', eighth: 'Восьмая' },
                 rests: { whole: 'Пауза целая', half: 'Пауза половинная', quarter: 'Пауза четвертная', eighth: 'Пауза восьмая' },
-                octaves: { 2: 'БОЛЬШАЯ', 3: 'МАЛАЯ', 4: '1 ОКТ.', 5: '2 ОКТ.', 6: '3 ОКТ.' },
+                octaves: { 1: 'КОНТР.', 2: 'БОЛЬШАЯ', 3: 'МАЛАЯ', 4: '1 ОКТ.', 5: '2 ОКТ.', 6: '3 ОКТ.' },
                 notes: { 'C': 'ДО', 'C#': 'ДО#', 'D': 'РЕ', 'D#': 'РЕ#', 'E': 'МИ', 'F': 'ФА', 'F#': 'ФА#', 'G': 'СОЛЬ', 'G#': 'СОЛЬ#', 'A': 'ЛЯ', 'A#': 'ЛЯ#', 'B': 'СИ' },
                 construction: 'Построение',
                 intervals: 'Интервалы', chords: 'Аккорды', scales: 'Гаммы', keys: 'Знаки тональности',
@@ -2001,6 +2009,11 @@ html,body{overscroll-behavior-y:contain;}
                 noteLabels: 'Ноты',
                 backHome: '← Главная',
                 noteSetBtn: 'Набор нот',
+                openStrBtn: 'Открытые струны', openStrTitle: 'Только открытые струны',
+                openStrHint: 'В тесте будут только ноты открытых струн — нота звучит, найди её на грифе. Отметь, какие струны тренировать.',
+                stringWord: 'струна',
+                transposeNote: 'Гитара звучит на октаву ниже, чем написано в нотах. Октавы подписаны по звучанию — как в гитарных школах (6-я струна — ми большой октавы).',
+                transposeNoteCb: 'Контрабас звучит на октаву ниже, чем написано в нотах. Октавы подписаны по звучанию.',
                 noteSetOn: 'Свой набор',
                 noteSetTitle: 'Выберите ноты для тренировки',
                 noteSetHint: 'Будут попадаться только отмеченные ноты. Ничего не выбрано — используется весь диапазон.',
@@ -2081,7 +2094,7 @@ html,body{overscroll-behavior-y:contain;}
                 darkTheme: 'Dark',
                 durations: { whole: 'Whole', half: 'Half', quarter: 'Quarter', eighth: 'Eighth' },
                 rests: { whole: 'Whole rest', half: 'Half rest', quarter: 'Quarter rest', eighth: 'Eighth rest' },
-                octaves: { 2: 'GREAT', 3: 'SMALL', 4: '1st OCT.', 5: '2nd OCT.', 6: '3rd OCT.' },
+                octaves: { 1: 'CONTRA', 2: 'GREAT', 3: 'SMALL', 4: '1st OCT.', 5: '2nd OCT.', 6: '3rd OCT.' },
                 notes: { 'C': 'C', 'C#': 'C#', 'D': 'D', 'D#': 'D#', 'E': 'E', 'F': 'F', 'F#': 'F#', 'G': 'G', 'G#': 'G#', 'A': 'A', 'A#': 'A#', 'B': 'B' },
                 construction: 'Construction',
                 intervals: 'Intervals', chords: 'Chords', scales: 'Scales', keys: 'Key Signatures',
@@ -2100,6 +2113,11 @@ html,body{overscroll-behavior-y:contain;}
                 noteLabels: 'Notes',
                 backHome: '← Home',
                 noteSetBtn: 'Note set',
+                openStrBtn: 'Open strings', openStrTitle: 'Open strings only',
+                openStrHint: 'The test uses only open-string notes — the note sounds, find it on the fretboard. Tick the strings to practise.',
+                stringWord: 'string',
+                transposeNote: 'The guitar sounds an octave lower than written. Octaves are named by the actual sound, as in guitar methods (6th string — E of the great octave).',
+                transposeNoteCb: 'The double bass sounds an octave lower than written. Octaves are named by the actual sound.',
                 noteSetOn: 'Custom set',
                 noteSetTitle: 'Choose notes to practice',
                 noteSetHint: 'Only checked notes will appear. Nothing checked — full range is used.',
@@ -2173,6 +2191,23 @@ html,body{overscroll-behavior-y:contain;}
         // на текущей ноте (в домашнем задании ошибка по одной ноте считается один раз).
         // Оформление грифа (для всех струнных с грифом): 'wood' | 'maple' | 'dark' | 'color'
         let fbStyle = localStorage.getItem('musicapp_notation_fbStyle') || 'wood';
+        // Гитара и контрабас звучат на октаву ниже написанного. Ноты внутри приложения хранятся
+        // как написаны (стан, гриф), а октавы подписываем и слушаем микрофоном по звучанию.
+        function instrOctShift(mode) { return (mode || instrMode) === 'guitar' || (mode || instrMode) === 'contrabass' ? -1 : 0; }
+        function octLabel(oct) { const t = TRANSLATIONS[lang]; const o = oct + instrOctShift(); return t.octaves[o] || String(o); }
+        // Только открытые струны: вкл/выкл и выбранные струны для каждого инструмента
+        // (номера с 0 — первая, самая тонкая струна). По умолчанию звучат все.
+        let openStr = (() => { try { const o = JSON.parse(localStorage.getItem('musicapp_notation_openStrings') || '{}'); return { on: !!o.on, sel: o.sel || {} }; } catch (e) { return { on: false, sel: {} }; } })();
+        function saveOpenStr() { try { localStorage.setItem('musicapp_notation_openStrings', JSON.stringify(openStr)); } catch (e) {} }
+        function openStrAvailable() { return !!FRETBOARD_CONFIG[instrMode]; }
+        function openStrSelected() {
+            const cfg = FRETBOARD_CONFIG[instrMode]; if (!cfg) return [];
+            const sel = openStr.sel[instrMode];
+            const all = cfg.strings.map((_, i) => i);
+            const list = Array.isArray(sel) ? sel.filter(i => i >= 0 && i < cfg.strings.length) : all;
+            return list.length ? list : all;
+        }
+        function openStrActive() { return openStr.on && openStrAvailable(); }
         let testAnswerLocked = false;
         let testNoteMissed = false;
 
@@ -2916,6 +2951,35 @@ html,body{overscroll-behavior-y:contain;}
             contrabass: { strings: [{ note: 'G', octave: 3 }, { note: 'D', octave: 3 }, { note: 'A', octave: 2 }, { note: 'E', octave: 2 }], frets: 16, markers: [3,5,7,9,12,15] }
         };
 
+        function renderOpenStr() {
+            const t = TRANSLATIONS[lang];
+            const btn = document.getElementById('openStrBtn'), panel = document.getElementById('openStrPanel');
+            if (!btn || !panel) return;
+            const avail = openStrAvailable();
+            btn.classList.toggle('hidden', !avail);
+            btn.textContent = '🎸 ' + t.openStrBtn;
+            btn.classList.toggle('active', openStrActive());
+            panel.classList.toggle('hidden', !isTestMode || !openStrActive());
+            if (!avail || !openStrActive()) return;
+            document.getElementById('openStrTitle').textContent = t.openStrTitle;
+            document.getElementById('openStrHint').textContent = t.openStrHint;
+            const cfg = FRETBOARD_CONFIG[instrMode], sel = openStrSelected();
+            const list = document.getElementById('openStrList');
+            list.innerHTML = cfg.strings.map((st, i) => {
+                const on = sel.includes(i);
+                return `<button type="button" data-str="${i}" style="padding:8px 12px;border-radius:10px;border:1px solid ${on ? 'var(--color-blue-600)' : 'var(--color-border)'};background:${on ? 'var(--color-blue-600)' : 'var(--color-bg-primary)'};color:${on ? '#fff' : 'var(--color-text-secondary)'};font-size:11px;font-weight:900;cursor:pointer;">${i + 1} ${t.stringWord} — ${t.notes[st.note].toLowerCase()} (${octLabel(st.octave).toLowerCase()})</button>`;
+            }).join('');
+            list.querySelectorAll('[data-str]').forEach(b => b.addEventListener('click', () => {
+                const i = +b.dataset.str;
+                let cur = openStrSelected().slice();
+                if (cur.includes(i)) { if (cur.length > 1) cur = cur.filter(x => x !== i); } // хотя бы одна струна
+                else cur.push(i);
+                openStr.sel[instrMode] = cur.sort((a, b) => a - b);
+                saveOpenStr();
+                generateNewTestNote();
+            }));
+        }
+
         function renderFbStyleRow() {
             const row = document.getElementById('fbStyleRow');
             if (!row) return;
@@ -3261,8 +3325,17 @@ html,body{overscroll-behavior-y:contain;}
                 const f = candidates.filter(c => fc.has(c.note + c.octave));
                 if (f.length) candidates = f;
             }
+            if (openStrActive()) {
+                // Только открытые струны (без учёта уровня и своего набора); одна и та же струна
+                // два раза подряд выпадает реже, чтобы упражнение не застревало.
+                const cfg = FRETBOARD_CONFIG[instrMode];
+                let opens = openStrSelected().map(i => ({ note: cfg.strings[i].note, octave: cfg.strings[i].octave }));
+                if (opens.length > 1 && testNote) { const f = opens.filter(c => !(c.note === testNote.note && c.octave === testNote.octave)); if (f.length) opens = f; }
+                candidates = opens;
+            }
             testNote = candidates[Math.floor(Math.random() * candidates.length)];
             showHint = false;
+            if (openStrActive() && isTestMode && activeTab === 'theory') setTimeout(() => { if (testNote) playFrequency(testNote.note, testNote.octave); }, 350);
             testAnswerLocked = false;
             testNoteMissed = false;
             updateUI();
@@ -3271,7 +3344,7 @@ html,body{overscroll-behavior-y:contain;}
         // ── Домашнее задание: запись результатов ──
         function hwNoteLabel(n) {
             const t = TRANSLATIONS[lang];
-            return (t.notes[n.note] || n.note).toLowerCase() + ' (' + String(t.octaves[n.octave] || n.octave).toLowerCase() + ')';
+            return (t.notes[n.note] || n.note).toLowerCase() + ' (' + octLabel(n.octave).toLowerCase() + ')';
         }
 
         // Тест нот: цель — найти N нот. Верно с первой попытки = ok, была ошибка = bad
@@ -3298,8 +3371,14 @@ html,body{overscroll-behavior-y:contain;}
             const parts = [t.hwNotesName, t[instrMode], t.testLevels[testLevel]];
             if (useSharpsInTest) parts.push(t.hwSharps);
             if (set.length) parts.push(t.hwOwnSet + ' (' + set.length + ')');
-            return { k: 'notes', u: 'notes', n: parts.join(' · '),
-                     p: { ins: instrMode, lv: testLevel, sh: useSharpsInTest ? 1 : 0, set: set.join(' '), cl: clefMode } };
+            const p = { ins: instrMode, lv: testLevel, sh: useSharpsInTest ? 1 : 0, set: set.join(' '), cl: clefMode };
+            if (openStrActive()) {
+                const sel = openStrSelected();
+                p.os = sel.join(',');
+                parts.splice(1, 0, t.openStrBtn.toLowerCase() + (sel.length < FRETBOARD_CONFIG[instrMode].strings.length ? ' (' + sel.map(i => i + 1).join(', ') + ')' : ''));
+                if (set.length) parts.pop();
+            }
+            return { k: 'notes', u: 'notes', n: parts.join(' · '), p };
         }
         function hwReadingConfig() {
             const m = getReadingMelody();
@@ -3366,12 +3445,17 @@ html,body{overscroll-behavior-y:contain;}
             if (!grid) return;
             const t = TRANSLATIONS[lang];
             const pool = useSharpsInTest ? NOTES : NOTES.filter(n => !n.includes('#'));
+            // Показываем только октавы и ноты, которые есть у выбранного инструмента
+            // (самый широкий, продвинутый диапазон) — чтобы нельзя было отметить недоступную ноту.
+            const { minMidi, maxMidi } = getInstrTestRange(instrMode, 2);
             let html = '';
             for (let oct = 6; oct >= 2; oct--) {
+                const notesHere = pool.filter(n => { const m = noteToMidi(n, oct); return m >= minMidi && m <= maxMidi; });
+                if (!notesHere.length) continue;
                 html += `<div style="display:flex;align-items:center;gap:6px;margin-bottom:6px;">
-                    <span style="width:52px;flex-shrink:0;font-size:9px;font-weight:900;color:var(--color-text-muted);text-transform:uppercase;">${t.octaves[oct] || oct}</span>
+                    <span style="width:52px;flex-shrink:0;font-size:9px;font-weight:900;color:var(--color-text-muted);text-transform:uppercase;">${octLabel(oct)}</span>
                     <div style="display:flex;gap:4px;flex-wrap:wrap;">`;
-                for (const note of pool) {
+                for (const note of notesHere) {
                     const key = note + oct;
                     const checked = customNoteSet.has(key);
                     html += `<button type="button" data-notekey="${key}" style="min-width:38px;padding:6px 4px;border-radius:8px;border:1px solid var(--color-border);cursor:pointer;font-size:10px;font-weight:900;transition:all .15s;background:${checked ? 'var(--color-blue-600)' : 'var(--color-bg-primary)'};color:${checked ? '#fff' : 'var(--color-text-secondary)'};border-color:${checked ? 'var(--color-blue-600)' : 'var(--color-border)'};">${t.notes[note]}</button>`;
@@ -3874,7 +3958,8 @@ html,body{overscroll-behavior-y:contain;}
                     // tuning drift without confusing it with the neighbouring note.
                     const targetNote = getMicTargetNote();
                     if (targetNote && !micMatchCooldown) {
-                        const targetFreq = getFrequency(targetNote.note, targetNote.octave);
+                        // Сравниваем с реальным звучанием: гитара/контрабас — на октаву ниже записи.
+                        const targetFreq = getFrequency(targetNote.note, targetNote.octave) * Math.pow(2, instrOctShift());
                         const cents = 1200 * Math.log2(freq / targetFreq);
                         const isMatch = Math.abs(cents) <= 55;
                         if (detected) detected.className = 'mic-detected ' + (isMatch ? 'match' : 'nomatch');
@@ -4060,7 +4145,7 @@ html,body{overscroll-behavior-y:contain;}
             }
 
             const displayNote = isTestMode && testNote ? testNote : selectedNote;
-            const octaveName = t.octaves[displayNote.octave] || '';
+            const octaveName = octLabel(displayNote.octave);
             const noteName = showHint ? ` — ${t.notes[displayNote.note]}` : '';
             document.getElementById('staffLabel').textContent = octaveName + noteName;
 
@@ -4081,6 +4166,12 @@ html,body{overscroll-behavior-y:contain;}
             // Набор нот — доступен только в тест-режиме
             const noteSetToggleRow = document.getElementById('noteSetToggleRow');
             if (noteSetToggleRow) noteSetToggleRow.classList.toggle('hidden', !isTestMode);
+            renderOpenStr();
+            const trn = document.getElementById('transposeNote');
+            if (trn) {
+                trn.classList.toggle('hidden', instrOctShift() === 0);
+                trn.textContent = instrMode === 'contrabass' ? t.transposeNoteCb : t.transposeNote;
+            }
             const noteSetBtn = document.getElementById('noteSetBtn');
             if (noteSetBtn) {
                 noteSetBtn.textContent = '🎯 ' + t.noteSetBtn + (useCustomNoteSet && customNoteSet.size > 0 ? ` (${customNoteSet.size})` : '');
@@ -4429,6 +4520,12 @@ html,body{overscroll-behavior-y:contain;}
                 updateUI();
             });
 
+            document.getElementById('openStrBtn').addEventListener('click', () => {
+                openStr.on = !openStr.on;
+                saveOpenStr();
+                if (isTestMode) generateNewTestNote(); else updateUI();
+            });
+
             document.getElementById('sharpsToggleBtn').addEventListener('click', () => {
                 useSharpsInTest = !useSharpsInTest;
                 localStorage.setItem('musicapp_notation_useSharps', useSharpsInTest ? '1' : '0');
@@ -4689,6 +4786,12 @@ html,body{overscroll-behavior-y:contain;}
                     useCustomNoteSet = set.length > 0;
                     customNoteSet = new Set(set);
                     if (['auto', 'bass', 'tenor', 'treble'].includes(p.cl)) clefMode = p.cl;
+                    // Открытые струны из задания — только в памяти, свои настройки ученика не трогаем.
+                    if (typeof p.os === 'string' && p.os) {
+                        const ins = VALID_INSTR.includes(p.ins) ? p.ins : 'piano';
+                        openStr = { on: true, sel: { [ins]: p.os.split(',').map(Number).filter(n => n >= 0 && n < 8) } };
+                        saveOpenStr = () => {};
+                    } else openStr = { on: false, sel: {} };
                 } else {
                     return;
                 }
@@ -4700,7 +4803,7 @@ html,body{overscroll-behavior-y:contain;}
                 const st = document.createElement('style');
                 st.textContent =
                     '.hw-lock .tabs, .hw-lock .instr-cat-tabs, .hw-lock .instrument-selector, .hw-lock #clefModeRow,' +
-                    '.hw-lock #testLevelRow, .hw-lock #noteSetToggleRow, .hw-lock #noteSetPanel, .hw-lock #testModeBtn, .hw-lock #hintBtn,' +
+                    '.hw-lock #testLevelRow, .hw-lock #noteSetToggleRow, .hw-lock #noteSetPanel, .hw-lock #openStrPanel, .hw-lock #testModeBtn, .hw-lock #hintBtn,' +
                     '.hw-lock #readingLevelRow, .hw-lock #readingTimeSigRow, .hw-lock #readingMelodyRow, .hw-lock #readingTempoRow,' +
                     '.hw-lock #readingUntimedRow, .hw-lock #readingEditorRow, .hw-lock #readingEditorPanel { display: none !important; }' +
                     '.hw-lock #theoryContent .control-grid { grid-template-columns: 1fr !important; }';
