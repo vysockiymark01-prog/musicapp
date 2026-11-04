@@ -1304,10 +1304,11 @@ const HWT={
     untitled:'Домашнее задание',
     wnTitle:'Что нового',wnOk:'Понятно',
     wn:[
-      ['👏','<b>Ритм хлопками.</b> В Ритмическом тренажёре новая вкладка «Прохлопай»: хлопай ритм в ладоши — микрофон проверит, ровно ли получилось.'],
-      ['🎤','<b>Пение интервалов.</b> В Слуховом анализе → «Интервалы» → «Спеть»: звучит нижняя нота, поёшь верхнюю.'],
-      ['🎹','<b>MIDI-клавиатура.</b> Подключи клавиатуру к телефону и отвечай с неё в Нотной грамоте, Диктантах, Цифровке и Джазе.'],
-      ['🔁','<b>Интервальные повторения.</b> Ошибки чаще попадаются снова, а на главной появляется «Пора повторить».']
+      ['🎯','<b>Тест длительностей.</b> Нотная грамота → «Ритм» → «Тест длительностей»: назови длительность, найди знак, сосчитай доли, дополни такт. Ноты и паузы, три уровня.'],
+      ['🎸','<b>Открытые струны.</b> В тесте нот можно тренировать только открытые струны и выбрать, какие именно. Гитару теперь слышит микрофон, а октавы подписаны по звучанию, как в гитарных школах.'],
+      ['🎨','<b>Красивый гриф.</b> Выбор оформления: дерево, клён, цветные ноты или тёмный. У скрипки, альта, виолончели и контрабаса — гриф без ладов, как настоящий.'],
+      ['🎼','<b>3-я октава.</b> Продвинутый уровень домры, гитары, балалайки, скрипки и укулеле теперь доходит до 3-й октавы.'],
+      ['👂','<b>Ответ нотой.</b> Слуховой анализ → «Интервалы»: при тонике «до» можно отвечать названием ноты или с пианино, есть уровень «до-ре-ми» для малышей.']
     ]
   },
   en:{
@@ -1330,10 +1331,11 @@ const HWT={
     untitled:'Homework',
     wnTitle:"What's new",wnOk:'Got it',
     wn:[
-      ['👏','<b>Clapping rhythms.</b> The Rhythm trainer has a new “Clap” tab: clap the rhythm and the microphone checks how steady it is.'],
-      ['🎤','<b>Singing intervals.</b> Ear training → Intervals → Sing: the lower note plays, you sing the upper one.'],
-      ['🎹','<b>MIDI keyboard.</b> Connect a keyboard to your phone and answer with it in Music notation, Dictations, Figured bass and Jazz.'],
-      ['🔁','<b>Spaced repetition.</b> Mistakes come back more often, and the home page shows “Time to review”.']
+      ['🎯','<b>Durations test.</b> Music notation → Rhythm → Durations test: name the duration, find the sign, count beats, complete the bar. Notes and rests, three levels.'],
+      ['🎸','<b>Open strings.</b> The note test can use open strings only — pick which ones. The microphone now hears the guitar, and octaves are named by the actual sound.'],
+      ['🎨','<b>Nicer fretboard.</b> Choose a style: wood, maple, colour notes or dark. Violin, viola, cello and double bass get a fretless fingerboard, like the real thing.'],
+      ['🎼','<b>3rd octave.</b> The advanced level for domra, guitar, balalaika, violin and ukulele now reaches the 3rd octave.'],
+      ['👂','<b>Answer with a note.</b> Ear training → Intervals: with C as the tonic you can answer with the note name or the piano; plus a “C-D-E” level for little ones.']
     ]
   }
 };
@@ -1524,7 +1526,7 @@ function handleIncoming(){
 }
 
 /* ── «Что нового» — один раз после обновления, только тем, кто уже пользовался приложением ── */
-const WN_KEY='musicapp_whatsnew_seen',WN_VER='st2';
+const WN_KEY='musicapp_whatsnew_seen',WN_VER='st3';
 function maybeShowWhatsNew(cameWithLink){
   if(localStorage.getItem(WN_KEY)===WN_VER)return;
   if(!localStorage.getItem(TOUR_KEY)){localStorage.setItem(WN_KEY,WN_VER);return;} // новый пользователь — ему покажут тур

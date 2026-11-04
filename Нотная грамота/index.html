@@ -4792,6 +4792,16 @@ html,body{overscroll-behavior-y:contain;}
                         openStr = { on: true, sel: { [ins]: p.os.split(',').map(Number).filter(n => n >= 0 && n < 8) } };
                         saveOpenStr = () => {};
                     } else openStr = { on: false, sel: {} };
+                } else if (tk.item.k === 'durations') {
+                    // Тест длительностей (вкладка «Ритм»): вариант и уровень из задания.
+                    hwTask = tk;
+                    const st = document.createElement('style');
+                    st.textContent = '.hw-lock .tabs { display: none !important; }';
+                    document.head.appendChild(st);
+                    document.body.classList.add('hw-lock');
+                    dtApplyTask({ dv: p.dv, lv: Math.round(clampNum(p.lv, 0, 2, 0)), pic: p.pic === 0 ? 0 : 1 });
+                    MHW.mountBar(document.querySelector('.container'), '../index.html');
+                    return;
                 } else {
                     return;
                 }
@@ -5654,6 +5664,360 @@ html,body{overscroll-behavior-y:contain;}
             generateExercise();
         }
     </script>
+<style>
+/* ── Тест длительностей (вкладка «Ритм») ── */
+.rh-mode-row { display:flex; gap:6px; margin-bottom:12px; }
+.rh-mode-row .level-btn { flex:1; }
+.dt-box { background:var(--color-bg-card); border:1px solid var(--color-border); border-radius:24px; padding:16px; box-shadow:var(--shadow-sm); }
+.dt-row { display:flex; gap:6px; flex-wrap:wrap; margin-bottom:10px; }
+.dt-chip { padding:7px 11px; border-radius:10px; border:1px solid var(--color-border); background:var(--color-bg-primary); color:var(--color-text-secondary);
+  font-size:11px; font-weight:800; cursor:pointer; }
+.dt-chip.active { background:var(--color-blue-600); border-color:var(--color-blue-600); color:#fff; }
+.dt-score { display:flex; gap:10px; justify-content:center; margin:4px 0 10px; font-size:11px; font-weight:900; text-transform:uppercase; color:var(--color-text-muted); }
+.dt-score b { font-size:18px; color:var(--color-text-primary); margin-right:4px; }
+.dt-score .ok b { color:#10b981; } .dt-score .bad b { color:#ef4444; }
+.dt-q { text-align:center; font-size:14px; font-weight:800; color:var(--color-text-primary); margin:6px 0 10px; min-height:20px; }
+.dt-stage { background:var(--color-bg-primary); border:1px solid var(--color-border); border-radius:18px; display:flex; justify-content:center; align-items:center; min-height:130px; margin-bottom:12px; overflow-x:auto; }
+.dt-stage svg { display:block; }
+.dt-answers { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; margin-bottom:10px; }
+.dt-ans svg { max-width:100%; height:auto; }
+.dt-ans.pic { flex-direction:column; gap:2px; padding:8px 6px; }
+.dt-ans .dt-cap { font-size:11px; font-weight:800; line-height:1.2; color:var(--color-text-secondary); }
+.dt-ans { min-width:0; padding:12px 8px; border-radius:14px; border:2px solid var(--color-border); background:var(--color-bg-card); color:var(--color-text-primary);
+  font-size:13px; font-weight:800; cursor:pointer; min-height:52px; display:flex; align-items:center; justify-content:center; text-align:center; }
+.dt-ans svg { display:block; }
+.dt-ans.correct { border-color:#10b981; background:rgba(16,185,129,.12); }
+.dt-ans.wrong { border-color:#ef4444; background:rgba(239,68,68,.1); }
+.dt-ans:disabled { cursor:default; }
+.dt-actions { display:flex; gap:8px; }
+.dt-actions button { flex:1; padding:12px; border-radius:12px; border:none; font-size:11px; font-weight:900; text-transform:uppercase; cursor:pointer; }
+.dt-listen { background:var(--color-bg-primary); color:var(--color-text-primary); border:1px solid var(--color-border) !important; }
+.dt-next { background:var(--color-blue-600); color:#fff; }
+.dt-explain { text-align:center; font-size:12px; font-weight:700; color:var(--color-text-secondary); min-height:18px; margin-bottom:10px; }
+</style>
+<script>
+// ── 🎯 Тест длительностей (Нотная грамота → «Ритм») ────────────
+// Четыре варианта: «Назови длительность» (знак → название), «Найди знак» (название → знак),
+// «Сколько долей?» (в размере 4/4) и «Дополни такт» (какой длительности не хватает в такте 4/4).
+// Ноты и паузы рисуются своим SVG (без шрифтовых значков), чтобы одинаково выглядели на всех
+// телефонах. На каждый вопрос — одна попытка; ответы идут в статистику и домашние задания.
+const DT_ITEMS = [
+  { id:'w',  base:'w', beats:4,    lvl:0 }, { id:'h',  base:'h', beats:2,    lvl:0 }, { id:'q',  base:'q', beats:1, lvl:0 },
+  { id:'e',  base:'e', beats:0.5,  lvl:1 },
+  { id:'rw', base:'w', beats:4,    lvl:1, rest:true }, { id:'rh', base:'h', beats:2, lvl:1, rest:true },
+  { id:'rq', base:'q', beats:1,    lvl:1, rest:true }, { id:'re', base:'e', beats:0.5, lvl:1, rest:true },
+  { id:'s',  base:'s', beats:0.25, lvl:2 }, { id:'rs', base:'s', beats:0.25, lvl:2, rest:true },
+  { id:'hd', base:'h', beats:3,    lvl:2, dot:true }, { id:'qd', base:'q', beats:1.5, lvl:2, dot:true }, { id:'ed', base:'e', beats:0.75, lvl:2, dot:true }
+];
+const DT_L = {
+  ru: { mode:['🎧 Ритм на слух','🎯 Тест длительностей'], vars:['Назови длительность','Найди знак','Сколько долей?','Дополни такт'],
+        base:{ w:'целая', h:'половинная', q:'четвертная', e:'восьмая', s:'шестнадцатая' }, dot:' с точкой', rest:' пауза',
+        qName:'Какая это длительность?', qFind:n=>'Найди: '+n, qBeats:'Сколько долей длится в размере 4/4?', qFill:'Какой длительности не хватает в такте 4/4?',
+        beats:b=>b+' '+(b===1?'доля':(b>1&&b<5&&Number.isInteger(b)?'доли':'доли')), listen:'🔊 Послушать', next:'Далее →',
+        ok:'Верно', bad:'Ошибки', streak:'Серия', explain:(n,b)=>n+' — '+b, add:'➕ В задание', pics:'🖼 Картинки на кнопках',
+        goal:'Сколько вопросов ответить?', goalText:'Упражнение запомнит вариант и уровень.', hwName:'Длительности' },
+  en: { mode:['🎧 Rhythm by ear','🎯 Durations test'], vars:['Name the duration','Find the sign','How many beats?','Complete the bar'],
+        base:{ w:'whole', h:'half', q:'quarter', e:'eighth', s:'sixteenth' }, dot:'dotted ', rest:' rest',
+        qName:'Which duration is this?', qFind:n=>'Find: '+n, qBeats:'How many beats does it last in 4/4?', qFill:'Which duration is missing in this 4/4 bar?',
+        beats:b=>b+' beat'+(b===1?'':'s'), listen:'🔊 Listen', next:'Next →',
+        ok:'Correct', bad:'Mistakes', streak:'Streak', explain:(n,b)=>n+' — '+b, add:'➕ Add to homework', pics:'🖼 Pictures on buttons',
+        goal:'How many questions to answer?', goalText:'The exercise keeps the variant and level.', hwName:'Durations' }
+};
+const DTL = k => DT_L[lang==='en'?'en':'ru'][k];
+const DT_VARS = ['name','find','beats','fill'];
+let dtOn = false, dtVar = localStorage.getItem('musicapp_notation_dtVar') || 'name', dtLevel = +(localStorage.getItem('musicapp_notation_dtLevel') || 0);
+if(!DT_VARS.includes(dtVar)) dtVar = 'name'; if(![0,1,2].includes(dtLevel)) dtLevel = 0;
+let dtQ = null, dtAnswered = false, dtScore = { ok:0, bad:0, streak:0 }, dtLocked = false;
+// Картинки на кнопках ответов: знак длительности + подпись под ним (по умолчанию включено —
+// так малышам проще связать знак и название). Выключенные — тест «по памяти».
+let dtPics = localStorage.getItem('musicapp_notation_dtPics') !== '0';
+
+function dtName(it){
+  const L = DT_L[lang==='en'?'en':'ru'];
+  if(lang === 'en') return (it.dot ? L.dot : '') + L.base[it.base] + (it.rest ? L.rest : (it.dot ? '' : ' note'));
+  return it.rest ? L.base[it.base] + L.rest : L.base[it.base] + (it.dot ? L.dot : '');
+}
+function dtBeatsTxt(b){
+  const frac = { 0.25:'¼', 0.5:'½', 0.75:'¾', 1.5:'1½' };
+  const s = frac[b] || String(b);
+  if(lang === 'en') return s + ' beat' + (b === 1 ? '' : 's');
+  const word = b === 1 ? 'доля' : (Number.isInteger(b) && b >= 2 && b <= 4 ? 'доли' : 'доли');
+  return s + ' ' + word;
+}
+function dtPool(){ return DT_ITEMS.filter(it => it.lvl <= dtLevel); }
+const dtRand = a => a[Math.floor(Math.random() * a.length)];
+const dtShuffle = a => { const b = a.slice(); for(let i=b.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [b[i],b[j]]=[b[j],b[i]]; } return b; };
+
+// ── Рисование одной длительности: x — центр, y0 — верхняя линейка стана (шаг линеек 10) ──
+function dtGlyph(it, x, y0, color){
+  const mid = y0 + 20; // средняя линейка (си 1-й октавы)
+  let h = '';
+  if(it.rest){
+    if(it.base === 'w') h += `<rect x="${x-9}" y="${y0+10}" width="18" height="6" fill="${color}"/>`;            // висит под 4-й линейкой
+    else if(it.base === 'h') h += `<rect x="${x-9}" y="${mid-6}" width="18" height="6" fill="${color}"/>`;       // лежит на 3-й линейке
+    else if(it.base === 'q') h += `<path d="M ${x-3} ${mid-18} L ${x+5} ${mid-8} Q ${x-2} ${mid-3} ${x+1} ${mid+3} L ${x+6} ${mid+10} Q ${x-8} ${mid+5} ${x-1} ${mid+16}" fill="none" stroke="${color}" stroke-width="3.2" stroke-linejoin="round" stroke-linecap="round"/>`;
+    else {
+      const flags = it.base === 's' ? 2 : 1;
+      h += `<line x1="${x+6}" y1="${mid-10}" x2="${x-2}" y2="${mid+14 + (flags-1)*8}" stroke="${color}" stroke-width="2.4" stroke-linecap="round"/>`;
+      for(let f=0; f<flags; f++){
+        const yy = mid - 10 + f*9;
+        h += `<circle cx="${x-3}" cy="${yy-1}" r="3.4" fill="${color}"/><path d="M ${x-3} ${yy+1} Q ${x+2} ${yy+2} ${x+6-f*1.5} ${yy-1+f*0}" fill="none" stroke="${color}" stroke-width="2"/>`;
+      }
+    }
+    return h;
+  }
+  const open = it.base === 'w' || it.base === 'h';
+  h += `<ellipse cx="${x}" cy="${mid}" rx="${it.base==='w'?9.5:8.5}" ry="6.3" transform="rotate(-20 ${x} ${mid})" fill="${open?'none':color}" stroke="${color}" stroke-width="${open?2.4:0}"/>`;
+  if(it.base !== 'w'){
+    h += `<line x1="${x+7.8}" y1="${mid-1}" x2="${x+7.8}" y2="${mid-36}" stroke="${color}" stroke-width="2"/>`;
+    const flags = it.base === 'e' ? 1 : (it.base === 's' ? 2 : 0);
+    for(let f=0; f<flags; f++) h += `<path d="M ${x+7.8} ${mid-36+f*9} Q ${x+20} ${mid-26+f*9} ${x+19} ${mid-12+f*9}" fill="none" stroke="${color}" stroke-width="2.2"/>`;
+  }
+  if(it.dot) h += `<circle cx="${x+16}" cy="${mid-4}" r="2.6" fill="${color}"/>`; // точка — в промежутке
+  return h;
+}
+function dtStaffSvg(items, opts){
+  opts = opts || {};
+  const colors = getStaffColors();
+  const step = opts.timeSig ? 46 : 56, left = opts.timeSig ? 64 : 40;
+  const w = Math.max(opts.minW || 200, left + items.length * step + 30), y0 = 30;
+  let h = `<svg viewBox="0 0 ${w} 110" width="${w}" height="110" xmlns="http://www.w3.org/2000/svg">`;
+  for(let i=0;i<5;i++) h += `<line x1="10" y1="${y0+i*10}" x2="${w-10}" y2="${y0+i*10}" stroke="${colors.staffLine}" stroke-width="1.3"/>`;
+  if(opts.timeSig){
+    h += `<text x="40" y="${y0+18}" font-size="21" font-weight="900" fill="${colors.note}" text-anchor="middle" font-family="serif">4</text>`;
+    h += `<text x="40" y="${y0+38}" font-size="21" font-weight="900" fill="${colors.note}" text-anchor="middle" font-family="serif">4</text>`;
+    h += `<line x1="${w-12}" y1="${y0}" x2="${w-12}" y2="${y0+40}" stroke="${colors.staffLine}" stroke-width="2"/>`;
+  }
+  items.forEach((it, i) => {
+    const x = left + i * step + step / 2 - 8;
+    if(it === null){ // место пропуска
+      h += `<rect x="${x-16}" y="${y0-8}" width="32" height="56" rx="7" fill="rgba(37,99,235,.08)" stroke="#2563eb" stroke-width="2" stroke-dasharray="5 4"/>`;
+      h += `<text x="${x}" y="${y0+28}" font-size="22" font-weight="900" fill="#2563eb" text-anchor="middle">?</text>`;
+    } else h += dtGlyph(it, x, y0, (opts.colorAt && opts.colorAt[i]) || colors.note);
+  });
+  return h + '</svg>';
+}
+function dtSmallSvg(it){
+  const colors = getStaffColors();
+  let h = `<svg viewBox="0 0 70 74" width="70" height="74" xmlns="http://www.w3.org/2000/svg">`;
+  for(let i=0;i<5;i++) h += `<line x1="4" y1="${16+i*10}" x2="66" y2="${16+i*10}" stroke="${colors.staffLine}" stroke-width="1" opacity=".55"/>`;
+  return h + dtGlyph(it, 30, 16, colors.note) + '</svg>';
+}
+
+// ── Генерация вопросов ──
+function dtNew(){
+  dtAnswered = false;
+  const pool = dtPool();
+  if(dtVar === 'fill'){
+    // Пропуск — не целая (иначе в такте больше ничего нет); остальное — случайные длительности,
+    // дающие в сумме оставшиеся доли. Варианты ответа отличаются по длительности, чтобы был один верный.
+    const cand = pool.filter(it => it.beats < 4 && it.beats >= (dtLevel === 2 ? 0.5 : 1));
+    const miss = dtRand(cand);
+    // Такт должен быть похож на настоящий: в основном ноты, не больше одной паузы,
+    // шестнадцатые — только парами (иначе такт превращается в россыпь мелких значков).
+    let rem = 4 - miss.beats, fill = [], guard = 0, rests = miss.rest ? 1 : 0;
+    while(rem > 0.001 && guard++ < 40){
+      let ok = pool.filter(it => it.beats <= rem + 0.001 && it.beats < 4 && (it.beats >= 0.5 || dtLevel === 2) && (!it.rest || rests < 1));
+      if(!ok.length) break;
+      const notesOnly = ok.filter(it => !it.rest);
+      if(notesOnly.length && Math.random() < 0.8) ok = notesOnly;
+      const it = dtRand(ok);
+      if(it.base === 's' && !it.rest && rem >= 0.5 - 0.001){ fill.push(it, it); rem -= 0.5; continue; }
+      fill.push(it); rem -= it.beats; if(it.rest) rests++;
+    }
+    if(rem > 0.001){ dtNew(); return; }
+    fill = dtShuffle(fill);
+    const pos = Math.floor(Math.random() * (fill.length + 1));
+    const bar = fill.slice(); bar.splice(pos, 0, null);
+    const others = dtShuffle(pool.filter(it => Math.abs(it.beats - miss.beats) > 0.001 && it.beats < 4 && !it.rest === !miss.rest));
+    const opts = dtShuffle([miss].concat(others.slice(0, 3)));
+    dtQ = { kind:'fill', item:miss, bar, pos, opts };
+  } else if(dtVar === 'beats'){
+    const it = dtRand(pool);
+    const vals = [...new Set(pool.map(x => x.beats))].filter(b => Math.abs(b - it.beats) > 0.001);
+    const opts = dtShuffle([it.beats].concat(dtShuffle(vals).slice(0, 3)));
+    dtQ = { kind:'beats', item:it, opts };
+  } else {
+    const it = dtRand(pool);
+    const same = pool.filter(x => x.id !== it.id && (!!x.rest === !!it.rest || dtLevel > 0));
+    const opts = dtShuffle([it].concat(dtShuffle(same).slice(0, 3)));
+    dtQ = { kind:dtVar, item:it, opts };
+  }
+  dtRender();
+}
+let dtLastResult;
+function dtRender(result){
+  dtLastResult = result;
+  const box = document.getElementById('dtStage'); if(!box || !dtQ) return;
+  const q = dtQ, t = DTL;
+  const qEl = document.getElementById('dtQ'), ans = document.getElementById('dtAnswers'), ex = document.getElementById('dtExplain');
+  if(q.kind === 'fill'){
+    const colorAt = {}; if(result) colorAt[q.pos] = result.ok ? '#10b981' : '#ef4444';
+    box.innerHTML = dtStaffSvg(result ? q.bar.map(x => x === null ? q.item : x) : q.bar, { timeSig:true, colorAt });
+    qEl.textContent = t('qFill');
+  } else if(q.kind === 'find'){
+    box.innerHTML = `<div style="font-size:22px;font-weight:900;color:var(--color-text-primary);padding:24px 12px;text-align:center;">${dtName(q.item)}</div>`;
+    qEl.textContent = t('qFind')('');
+  } else {
+    box.innerHTML = dtStaffSvg([q.item], { minW:200 });
+    qEl.textContent = q.kind === 'beats' ? t('qBeats') : t('qName');
+  }
+  ans.style.gridTemplateColumns = (!dtPics && (q.kind === 'find' || q.kind === 'fill')) ? 'repeat(' + Math.min(4, q.opts.length) + ',minmax(0,1fr))' : 'repeat(2,minmax(0,1fr))';
+  ans.innerHTML = q.opts.map((o, i) => {
+    let label, pic = false;
+    if(dtPics){
+      // Знак + подпись под ним. Для «Сколько долей?» картинка — нота такой длительности.
+      const it = q.kind === 'beats' ? DT_ITEMS.find(x => !x.rest && Math.abs(x.beats - o) < 0.001) : o;
+      const cap = q.kind === 'beats' ? dtBeatsTxt(o) : dtName(o);
+      label = (it ? dtSmallSvg(it) : '') + `<span class="dt-cap">${cap}</span>`;
+      pic = true;
+    }
+    else if(q.kind === 'beats') label = dtBeatsTxt(o);
+    else if(q.kind === 'name') label = dtName(o);
+    else label = dtSmallSvg(o);
+    let cls = 'dt-ans' + (pic ? ' pic' : '');
+    if(result){
+      const isRight = q.kind === 'beats' ? Math.abs(o - q.item.beats) < 0.001 : o.id === q.item.id;
+      if(isRight) cls += ' correct'; else if(i === result.chosen) cls += ' wrong';
+    }
+    return `<button type="button" class="${cls}" data-i="${i}" ${result ? 'disabled' : ''}>${label}</button>`;
+  }).join('');
+  ans.querySelectorAll('.dt-ans').forEach(b => b.addEventListener('click', () => dtAnswer(+b.dataset.i)));
+  ex.textContent = result ? t('explain')(dtName(q.item), dtBeatsTxt(q.item.beats)) : '';
+  document.getElementById('dtScoreOk').textContent = dtScore.ok;
+  document.getElementById('dtScoreBad').textContent = dtScore.bad;
+  document.getElementById('dtScoreStreak').textContent = dtScore.streak;
+}
+function dtAnswer(i){
+  if(dtAnswered || !dtQ) return;
+  dtAnswered = true;
+  const q = dtQ, o = q.opts[i];
+  const ok = q.kind === 'beats' ? Math.abs(o - q.item.beats) < 0.001 : o.id === q.item.id;
+  if(ok){ dtScore.ok++; dtScore.streak++; } else { dtScore.bad++; dtScore.streak = 0; }
+  showFeedback(TRANSLATIONS[lang][ok ? 'correct' : 'wrong'], ok);
+  dtRender({ ok, chosen:i });
+  dtReport(ok, q);
+  setTimeout(() => dtPlay(), 450); // после ответа — услышать, сколько длится
+  if(ok) setTimeout(() => { if(dtQ === q) dtNew(); }, 2200);
+}
+// Точка для статистики и заданий (подключается в блоке ниже).
+function dtReport(ok, q){}
+
+// Звук: щелчки по долям 4/4 (70 BPM) и сама длительность — нота звучит, пауза молчит.
+let dtPlayTimers = [];
+function dtPlay(){
+  if(!dtQ) return;
+  dtPlayTimers.forEach(clearTimeout); dtPlayTimers = [];
+  const beatMs = 60000 / 70;
+  const seq = dtQ.kind === 'fill' ? dtQ.bar.map(x => x === null ? dtQ.item : x) : [dtQ.item];
+  const total = seq.reduce((a, it) => a + it.beats, 0);
+  const bars = Math.max(1, Math.ceil(total / 4 - 0.001));
+  for(let b=0; b<bars*4; b++) dtPlayTimers.push(setTimeout(() => playFrequency(b % 4 === 0 ? 'E' : 'C', 6, 0.04), b * beatMs));
+  let pos = 0;
+  seq.forEach(it => {
+    if(!it.rest){ const at = pos * beatMs, dur = it.beats * beatMs / 1000 * 0.92; dtPlayTimers.push(setTimeout(() => playFrequency('A', 4, dur), at)); }
+    pos += it.beats;
+  });
+}
+
+// ── Интерфейс ──
+function dtLabels(){
+  const L = DT_L[lang==='en'?'en':'ru'];
+  const m = document.getElementById('rhModeRow');
+  if(m){ m.children[0].textContent = L.mode[0]; m.children[1].textContent = L.mode[1]; }
+  document.querySelectorAll('#dtVarRow .dt-chip').forEach((b, i) => { b.textContent = L.vars[i]; b.classList.toggle('active', DT_VARS[i] === dtVar); });
+  document.querySelectorAll('#dtLvlRow .dt-chip[data-lv]').forEach(b => { const lv = +b.dataset.lv; b.textContent = TRANSLATIONS[lang].testLevels[lv]; b.classList.toggle('active', lv === dtLevel); });
+  const s = (id, v) => { const el = document.getElementById(id); if(el) el.textContent = v; };
+  const pb = document.getElementById('dtPicsBtn'); if(pb){ pb.textContent = L.pics; pb.classList.toggle('active', dtPics); }
+  s('dtLblOk', L.ok); s('dtLblBad', L.bad); s('dtLblStreak', L.streak); s('dtListenBtn', L.listen); s('dtNextBtn', L.next); s('dtAddBtn', L.add);
+  const add = document.getElementById('dtAddBtn'); if(add) add.style.display = window.MHW ? '' : 'none';
+}
+function dtSetOn(on){
+  dtOn = !!on;
+  const m = document.getElementById('rhModeRow');
+  m.children[0].classList.toggle('active', !dtOn); m.children[1].classList.toggle('active', dtOn);
+  document.querySelector('#rhythmContent .rhythm-box').style.display = dtOn ? 'none' : '';
+  document.getElementById('dtPanel').style.display = dtOn ? '' : 'none';
+  if(dtOn && !dtQ) dtNew(); else if(dtOn) dtRender(dtAnswered ? undefined : undefined);
+  dtLabels();
+}
+function dtInit(){
+  const rc = document.getElementById('rhythmContent');
+  const modeRow = document.createElement('div');
+  modeRow.className = 'rh-mode-row'; modeRow.id = 'rhModeRow';
+  modeRow.innerHTML = '<button type="button" class="level-btn active"></button><button type="button" class="level-btn"></button>';
+  rc.insertBefore(modeRow, rc.firstChild);
+  modeRow.children[0].addEventListener('click', () => dtSetOn(false));
+  modeRow.children[1].addEventListener('click', () => dtSetOn(true));
+  const panel = document.createElement('div');
+  panel.id = 'dtPanel'; panel.className = 'dt-box'; panel.style.display = 'none';
+  panel.innerHTML = `
+    <div class="dt-row" id="dtVarRow">${DT_VARS.map(v => `<button type="button" class="dt-chip" data-v="${v}"></button>`).join('')}</div>
+    <div class="dt-row" id="dtLvlRow">${[0,1,2].map(l => `<button type="button" class="dt-chip" data-lv="${l}"></button>`).join('')}<button type="button" class="dt-chip" id="dtPicsBtn"></button></div>
+    <div class="dt-score"><span class="ok"><b id="dtScoreOk">0</b><span id="dtLblOk"></span></span><span class="bad"><b id="dtScoreBad">0</b><span id="dtLblBad"></span></span><span><b id="dtScoreStreak">0</b><span id="dtLblStreak"></span></span></div>
+    <div class="dt-q" id="dtQ"></div>
+    <div class="dt-stage" id="dtStage"></div>
+    <div class="dt-explain" id="dtExplain"></div>
+    <div class="dt-answers" id="dtAnswers"></div>
+    <div class="dt-actions"><button type="button" class="dt-listen" id="dtListenBtn"></button><button type="button" class="dt-next" id="dtNextBtn"></button></div>
+    <div class="dt-row" style="justify-content:flex-end;margin:10px 0 0;"><button type="button" class="dt-chip" id="dtAddBtn"></button></div>`;
+  rc.insertBefore(panel, modeRow.nextSibling);
+  panel.querySelectorAll('#dtVarRow .dt-chip').forEach(b => b.addEventListener('click', () => {
+    if(dtLocked) return; dtVar = b.dataset.v; localStorage.setItem('musicapp_notation_dtVar', dtVar); dtNew(); dtLabels();
+  }));
+  panel.querySelectorAll('#dtLvlRow .dt-chip[data-lv]').forEach(b => b.addEventListener('click', () => {
+    if(dtLocked) return; dtLevel = +b.dataset.lv; localStorage.setItem('musicapp_notation_dtLevel', String(dtLevel)); dtNew(); dtLabels();
+  }));
+  document.getElementById('dtPicsBtn').addEventListener('click', () => {
+    if(dtLocked) return; dtPics = !dtPics; localStorage.setItem('musicapp_notation_dtPics', dtPics ? '1' : '0'); dtLabels(); dtRender(dtLastResult);
+  });
+  document.getElementById('dtListenBtn').addEventListener('click', dtPlay);
+  document.getElementById('dtNextBtn').addEventListener('click', () => dtNew());
+  document.getElementById('dtAddBtn').addEventListener('click', async () => {
+    if(!window.MHW) return;
+    const g = await MHW.askGoal({ title: DTL('goal'), text: DTL('goalText'), options: [10, 20, 30] });
+    if(!g) return;
+    MHW.addFromModule(Object.assign({ m:'notation', g }, dtConfig()), '../index.html');
+  });
+  document.getElementById('langBtn').addEventListener('click', () => setTimeout(() => { dtLabels(); if(dtOn) dtRender(); }, 0));
+  dtLabels();
+}
+// Текущие настройки как упражнение (для «➕ В задание», статистики и тренировки слабых мест).
+function dtConfig(){
+  const L = DT_L[lang==='en'?'en':'ru'];
+  const parts = [L.hwName, L.vars[DT_VARS.indexOf(dtVar)], TRANSLATIONS[lang].testLevels[dtLevel]];
+  if(!dtPics) parts.push(lang === 'en' ? 'no pictures' : 'без картинок');
+  return { k:'durations', u:'ans', n:parts.join(' · '), p:{ dv:dtVar, lv:dtLevel, pic: dtPics ? 1 : 0 } };
+}
+// Задание учителя / тренировка: вариант и уровень из задания, переключатели скрыты.
+function dtApplyTask(p){
+  if(DT_VARS.includes(p.dv)) dtVar = p.dv;
+  if([0,1,2].includes(p.lv)) dtLevel = p.lv;
+  if(p.pic === 0 || p.pic === 1) dtPics = p.pic === 1;
+  dtLocked = true;
+  dtQ = null;
+  const st = document.createElement('style');
+  st.textContent = '#rhModeRow, #dtVarRow, #dtLvlRow, #dtAddBtn, #dtPicsBtn { display:none !important; }';
+  document.head.appendChild(st);
+  document.getElementById('rhythmTab').click();
+  dtSetOn(true);
+}
+(function(){
+  dtInit();
+  // Статистика: подпись — название длительности («восьмая пауза»), чтобы в «Моих слабых местах»
+  // было видно, какие знаки путаются.
+  if(window.MHW){
+    const ans = MHW.answer('notation', dtConfig);
+    const orig = dtReport;
+    dtReport = function(ok, q){
+      orig(ok, q);
+      if(hwTask && hwTask.item.k !== 'durations') return;
+      const name = dtName(q.item);
+      ans(ok, name, { mis: q.kind === 'beats' ? name + ' → ' + dtBeatsTxt(q.item.beats) : name });
+    };
+  }
+})();
+</script>
 <script>
 // ── 🎹 MIDI-клавиатура (../audio-in.js) ─────────────────────────
 // «Теория» (тест и просмотр), «Композитор», редактор своих мелодий — как нажатие клавиши на
