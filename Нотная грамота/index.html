@@ -5897,13 +5897,13 @@ function dtAnswer(i){
   showFeedback(TRANSLATIONS[lang][ok ? 'correct' : 'wrong'], ok);
   dtRender({ ok, chosen:i });
   dtReport(ok, q);
-  setTimeout(() => dtPlay(), 450); // после ответа — услышать, сколько длится
   if(ok) setTimeout(() => { if(dtQ === q) dtNew(); }, 2200);
 }
 // Точка для статистики и заданий (подключается в блоке ниже).
 function dtReport(ok, q){}
 
-// Звук: щелчки по долям 4/4 (70 BPM) и сама длительность — нота звучит, пауза молчит.
+// Звук только по кнопке «Послушать»: длительность звучит нотой нужной длины (70 BPM),
+// пауза молчит. Автоматически после ответа и со щелчками-долями не играем — это мешало.
 let dtPlayTimers = [];
 function dtPlay(){
   if(!dtQ) return;
@@ -5912,7 +5912,6 @@ function dtPlay(){
   const seq = dtQ.kind === 'fill' ? dtQ.bar.map(x => x === null ? dtQ.item : x) : [dtQ.item];
   const total = seq.reduce((a, it) => a + it.beats, 0);
   const bars = Math.max(1, Math.ceil(total / 4 - 0.001));
-  for(let b=0; b<bars*4; b++) dtPlayTimers.push(setTimeout(() => playFrequency(b % 4 === 0 ? 'E' : 'C', 6, 0.04), b * beatMs));
   let pos = 0;
   seq.forEach(it => {
     if(!it.rest){ const at = pos * beatMs, dur = it.beats * beatMs / 1000 * 0.92; dtPlayTimers.push(setTimeout(() => playFrequency('A', 4, dur), at)); }
