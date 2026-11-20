@@ -592,6 +592,8 @@ function autocorrelate(buffer, sampleRate){
   const THRESH=0.15; let tau=2;
   while(tau<half-1){ if(cmnd[tau]<THRESH){ while(tau+1<half-1 && cmnd[tau+1]<cmnd[tau]) tau++; break; } tau++; }
   if(tau>=half-1) return -1;
+  // Защита от октавной ошибки: если провал на двойном периоде заметно глубже — это основной тон.
+  { const t2=tau*2; if(t2+3<half-1){ let b=t2; for(let k=t2-3;k<=t2+3;k++) if(cmnd[k]<cmnd[b]) b=k; if(cmnd[b]<cmnd[tau]*0.5 && cmnd[tau]-cmnd[b]>0.03) tau=b; } }
   if(tau>0 && tau<half-1){ const s0=cmnd[tau-1],s1=cmnd[tau],s2=cmnd[tau+1]; const den=2*s1-s0-s2; if(den>0) tau=tau+0.5*(s2-s0)/den; }
   return sampleRate/tau;
 }

@@ -1,0 +1,11 @@
+# Файлы для Google Play и рабочие материалы — не публикуются на сайте
+*.zip
+*.aab
+*.apk
+*.pdf
+app_icon_fresh*
+feature_graphic.*
+google_play_*.md
+Новая папка/
+.DS_Store
+.claude/

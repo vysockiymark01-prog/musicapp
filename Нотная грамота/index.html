@@ -3863,6 +3863,16 @@ html,body{overscroll-behavior-y:contain;}
             }
             if (tau >= half - 1) return -1; // no clear pitch found
 
+            // Защита от октавной ошибки: у струнных 2-й обертон бывает громче основного тона,
+            // и YIN хватает полпериода (нота на октаву выше). Если провал на двойном периоде
+            // заметно глубже — это и есть настоящий основной тон.
+            const t2 = tau * 2;
+            if (t2 + 3 < half - 1) {
+                let b = t2;
+                for (let k = t2 - 3; k <= t2 + 3; k++) if (cmnd[k] < cmnd[b]) b = k;
+                if (cmnd[b] < cmnd[tau] * 0.5 && cmnd[tau] - cmnd[b] > 0.03) tau = b;
+            }
+
             // Step 4: parabolic interpolation for sub-sample precision
             if (tau > 0 && tau < half - 1) {
                 const s0 = cmnd[tau - 1], s1 = cmnd[tau], s2 = cmnd[tau + 1];
@@ -3940,7 +3950,9 @@ html,body{overscroll-behavior-y:contain;}
                 micFreqHistory.push(rawFreq);
                 if (micFreqHistory.length > 6) micFreqHistory.shift();
                 const sortedFreqs = [...micFreqHistory].sort((a, b) => a - b);
-                const freq = sortedFreqs[Math.floor(sortedFreqs.length / 2)];
+                // При чётном числе замеров берём нижний из двух средних: раньше брался верхний,
+                // и один «октавный» кадр на атаке струны сразу давал ноту на октаву выше.
+                const freq = sortedFreqs[Math.floor((sortedFreqs.length - 1) / 2)];
 
                 const result = freqToNoteOctave(freq);
                 if (result) {
@@ -3961,7 +3973,10 @@ html,body{overscroll-behavior-y:contain;}
                         // Сравниваем с реальным звучанием: гитара/контрабас — на октаву ниже записи.
                         const targetFreq = getFrequency(targetNote.note, targetNote.octave) * Math.pow(2, instrOctShift());
                         const cents = 1200 * Math.log2(freq / targetFreq);
-                        const isMatch = Math.abs(cents) <= 55;
+                        // Засчитываем, только если нота держится: не меньше 4 из последних 6 замеров
+                        // попали в цель. Один случайный кадр больше не даёт «верно».
+                        const inTune = f => Math.abs(1200 * Math.log2(f / targetFreq)) <= 55;
+                        const isMatch = inTune(freq) && micFreqHistory.filter(inTune).length >= 4;
                         if (detected) detected.className = 'mic-detected ' + (isMatch ? 'match' : 'nomatch');
                         if (isMatch) handleMicMatch();
                     }

@@ -28,6 +28,9 @@
     tau = 2;
     while (tau < half - 1) { if (cmnd[tau] < 0.15) { while (tau + 1 < half - 1 && cmnd[tau + 1] < cmnd[tau]) tau++; break; } tau++; }
     if (tau >= half - 1) return -1;
+    // Защита от октавной ошибки: если провал на двойном периоде заметно глубже — это основной тон.
+    var t2 = tau * 2;
+    if (t2 + 3 < half - 1) { var b = t2, k; for (k = t2 - 3; k <= t2 + 3; k++) if (cmnd[k] < cmnd[b]) b = k; if (cmnd[b] < cmnd[tau] * 0.5 && cmnd[tau] - cmnd[b] > 0.03) tau = b; }
     var s0 = cmnd[tau - 1], s1 = cmnd[tau], s2 = cmnd[tau + 1], den = 2 * s1 - s0 - s2;
     var t = den > 0 ? tau + 0.5 * (s2 - s0) / den : tau;
     return sampleRate / t;
