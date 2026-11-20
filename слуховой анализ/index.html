@@ -238,6 +238,7 @@ html,body{overscroll-behavior-y:contain;}
 }
 </style>
 <script src="../hw.js"></script>
+<script src="../blitz.js"></script>
 <script src="../audio-in.js"></script>
 </head>
 <body>
@@ -2891,6 +2892,24 @@ document.addEventListener('DOMContentLoaded', singInit);
   });
   // setTimeout — наш обработчик срабатывает раньше, чем раздел успевает переключить язык.
   document.getElementById('langBtn').addEventListener('click', () => setTimeout(add.relabel, 0));
+
+  // ⏱ На время (../blitz.js): интервалы, аккорды, разрешения, лады, гаммы. Следующий вопрос
+  // звучит сразу, без кнопки «Слушать». Цепочки и пение — без блица.
+  const BZ_Q = { intervals: ['iNewQuestion','iPlayCurrent'], chords: ['cNewQuestion','cPlayCurrent'], resolution: ['rNewQuestion','rPlayCurrent'],
+                 modes: ['mNewQuestion','mPlayCurrent'], scales: ['seNewQuestion','sePlayCurrent'] };
+  const bzOk = () => !!BZ_Q[activeTab] && !(activeTab === 'intervals' && singMode);
+  const bzAsk = tab => { window[BZ_Q[tab][0]](); window[BZ_Q[tab][1]](); };
+  let bzTab = '';
+  const bz = window.BLITZ ? BLITZ.mount({ mod: MOD, id: () => 'ear-' + activeTab, minSec: 60,
+    parent: document.querySelector('.container'), ref: document.getElementById('intervalsContent'),
+    isActive: () => activeTab === bzTab && bzOk(), start: () => { bzTab = activeTab; bzAsk(bzTab); }, next: () => bzAsk(bzTab) }) : null;
+  const bzSync = () => { if(bz) bz.row.style.display = bzOk() ? '' : 'none'; };
+  ['saSwitchTab', 'setSingMode'].forEach(fn => {
+    const o = window[fn]; if(typeof o !== 'function') return;
+    window[fn] = function(){ const r = o.apply(this, arguments); bzSync(); return r; };
+  });
+  document.addEventListener('click', e => { if(e.target.closest && e.target.closest('.tab')) setTimeout(bzSync, 0); });
+  bzSync();
 
   // Перехват ответов — всегда (статистика); в задании ещё и прогресс.
   const trackers = {};

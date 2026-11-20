@@ -530,10 +530,13 @@
   // Прячет элементы, которыми ученик мог бы поменять условия упражнения.
   function lock(selectors) {
     var st = document.createElement('style');
-    st.textContent = selectors.join(',') + '{display:none !important;}';
+    st.textContent = selectors.concat(['.bz-row']).join(',') + '{display:none !important;}'; // в задании — без «На время»
     document.head.appendChild(st);
     document.body.classList.add('hw-lock');
   }
+
+  // Режим «На время» (blitz.js): каждый ответ викторины засчитывается и там.
+  function blitz(mod, ok) { try { if (mod && window.BLITZ) window.BLITZ.hit(mod, ok); } catch (e) {} }
 
   // Счёт «с первой попытки»: ok — верно без единой ошибки, bad — была ошибка (одна на
   // вопрос, сколько бы раз ни промахнулись). done растёт на каждом решённом вопросе.
@@ -548,12 +551,14 @@
         sync(k);
         if (missed) return;
         missed = true;
+        blitz(mod, false);
         if (mod && label) stat(mod, false, label, cfgFn, code);
         var ml = misLabel || label;
         update({ bad: 1, mis: ml ? [ml] : [] });
       },
       right: function (k, label, code) {
         sync(k);
+        if (!missed) blitz(mod, true);
         // Верный ответ после ошибки на том же вопросе знание не подтверждает — в статистику не идёт.
         if (mod && label && !missed) stat(mod, true, label, null, code);
         update({ done: 1, ok: missed ? 0 : 1 });
@@ -567,6 +572,7 @@
   function answer(mod, cfgFn) {
     return function (ok, label, o) {
       o = o || {};
+      blitz(mod, !!ok);
       if (label) stat(mod, ok, label, ok ? null : cfgFn, o.code);
       var d = o.noDone ? {} : { done: 1 };
       if (ok) d.ok = 1;

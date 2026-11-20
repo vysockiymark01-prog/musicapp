@@ -1511,6 +1511,7 @@ html,body{overscroll-behavior-y:contain;}
         .postr-keysig-opt.wrong { background: #dc2626; color: #fff; border-color: #b91c1c; }
     </style>
 <script src="../hw.js"></script>
+<script src="../blitz.js"></script>
 <script src="../audio-in.js"></script>
 </head>
 <body>
@@ -3351,6 +3352,8 @@ html,body{overscroll-behavior-y:contain;}
         // (одна на ноту, сколько бы раз ни промахнулись), так что ok+bad = найдено нот.
         // Каждый ответ также пишется в общую статистику («Мои слабые места» на главной).
         function hwRecordNote(ok) {
+            // ⏱ На время: верно — только с первой попытки, ошибка — одна на ноту.
+            if (testNote && window.BLITZ && !testNoteMissed) BLITZ.hit('notation', !!ok);
             if (!testNote || !window.MHW) return;
             const inTask = hwTask && hwTask.item.k === 'notes';
             const code = testNote.note + testNote.octave;
@@ -4064,6 +4067,7 @@ html,body{overscroll-behavior-y:contain;}
         function checkRhythm() {
             const isCorrect = JSON.stringify(targetRhythm.map(d => d.id)) === JSON.stringify(userRhythm.map(d => d.id));
             showFeedback(isCorrect ? TRANSLATIONS[lang].correct : TRANSLATIONS[lang].wrong, isCorrect);
+            if (window.BLITZ && BLITZ.hit('notation', isCorrect)) return; // на время — следующий ритм даёт blitz.js
             if (isCorrect) {
                 setTimeout(() => generateNewRhythm(), 900);
             }
@@ -5912,7 +5916,7 @@ function dtAnswer(i){
   showFeedback(TRANSLATIONS[lang][ok ? 'correct' : 'wrong'], ok);
   dtRender({ ok, chosen:i });
   dtReport(ok, q);
-  if(ok) setTimeout(() => { if(dtQ === q) dtNew(); }, 2200);
+  if(ok && !(window.BLITZ && BLITZ.on('notation'))) setTimeout(() => { if(dtQ === q) dtNew(); }, 2200);
 }
 // Точка для статистики и заданий (подключается в блоке ниже).
 function dtReport(ok, q){}
@@ -6030,6 +6034,22 @@ function dtApplyTask(p){
       ans(ok, name, { mis: q.kind === 'beats' ? name + ' → ' + dtBeatsTxt(q.item.beats) : name });
     };
   }
+})();
+// ⏱ На время (../blitz.js). «Теория» — тест нот (кнопки, MIDI, микрофон): после ошибки ищем
+// ту же ноту, ✗ — одна на ноту. «Ритм» — тест длительностей или диктант ритма (новый ритм звучит сам).
+(function(){
+  if(!window.BLITZ) return;
+  BLITZ.mount({ mod: 'notation', id: () => 'notation-notes-' + testLevel,
+    parent: document.getElementById('theoryContent'), ref: document.getElementById('testLevelRow'),
+    isActive: () => activeTab === 'theory' && isTestMode,
+    start: () => { if(!isTestMode) document.getElementById('testModeBtn').click(); else generateNewTestNote(); },
+    next: () => {}, auto: () => false });
+  let bzRh = '';
+  BLITZ.mount({ mod: 'notation', id: () => dtOn ? 'notation-durations-' + dtVar + '-' + dtLevel : 'notation-rhythm-' + rhythmSig, minSec: 60,
+    parent: document.getElementById('rhythmContent'), ref: document.getElementById('rhModeRow'),
+    isActive: () => activeTab === 'rhythm' && (dtOn ? 'dt' : 'rh') === bzRh,
+    start: () => { bzRh = dtOn ? 'dt' : 'rh'; if(dtOn) dtNew(); else { generateNewRhythm(); playSequence(targetRhythm); } },
+    next: () => { if(bzRh === 'dt') dtNew(); else { generateNewRhythm(); playSequence(targetRhythm); } } });
 })();
 </script>
 <script>

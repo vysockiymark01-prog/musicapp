@@ -131,6 +131,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
 [data-theme="dark"] .musicapp-streak-toast{background:#f1f5f9;color:#0f172a;}
 </style>
 <script src="../hw.js"></script>
+<script src="../blitz.js"></script>
 </head>
 <body>
 <div class="wrap">
@@ -795,7 +796,7 @@ function answerQuiz2(btn){
   document.getElementById('qstreak').textContent=quizStreak;
   document.getElementById('qbest').textContent=quizBestStreak;
   renderQuiz2();
-  if(correct)setTimeout(nextQuiz2,1400);
+  if(correct&&!(window.BLITZ&&BLITZ.on('transpose')))setTimeout(nextQuiz2,1400);
 }
 
 /* ─── TABS ───────────────────────────────────────── */
@@ -905,8 +906,14 @@ if(__dk0)document.getElementById('themeIco').innerHTML='<circle cx="12" cy="12" 
     MHW.addFromModule(Object.assign({ m: MOD, g }, cfgFor(curTab)), '../index.html');
   });
   add.row.style.display = 'none';
+  // ⏱ На время (../blitz.js): на вкладках с викторинами, рекорд — отдельно для каждой.
+  const NEXT = { 2: () => nextMelody(), 3: () => nextInstrument(), 4: () => nextQuiz2() };
+  let bzTab = -1;
+  const bz = window.BLITZ ? BLITZ.mount({ mod: MOD, id: () => 'transpose-' + curTab, parent: document.querySelector('.wrap'), ref: document.getElementById('panel0'),
+    isActive: () => curTab === bzTab, start: () => { bzTab = curTab; NEXT[curTab](); }, next: () => NEXT[bzTab]() }) : null;
+  if(bz) bz.row.style.display = 'none';
   const origShow = window.showTab;
-  window.showTab = function(n){ curTab = n; const r = origShow.apply(this, arguments); add.row.style.display = QUIZ_TABS[n] ? '' : 'none'; return r; };
+  window.showTab = function(n){ curTab = n; const r = origShow.apply(this, arguments); add.row.style.display = QUIZ_TABS[n] ? '' : 'none'; if(bz) bz.row.style.display = QUIZ_TABS[n] ? '' : 'none'; return r; };
   document.getElementById('langBtn').addEventListener('click', () => setTimeout(add.relabel, 0));
 
   // Перехват ответов — всегда (статистика); в задании ещё и прогресс.

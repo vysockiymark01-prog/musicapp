@@ -332,6 +332,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
 }
 </style>
 <script src="../hw.js"></script>
+<script src="../blitz.js"></script>
 <script src="../audio-in.js"></script>
 </head>
 <body>
@@ -1197,7 +1198,8 @@ function checkBuild(){
   const ok=target.every(c=>buildSel.some(s=>s.note===c.note&&s.octave===c.octave))&&buildSel.length===target.length;
   answerFeedback(ok,exCardEl());
   renderBuild();
-  if(ok)setTimeout(genBuild,1300);
+  if(window.BLITZ&&BLITZ.on('jazz')){} // на время — следующий вопрос даёт blitz.js
+  else if(ok)setTimeout(genBuild,1300);
   else setTimeout(()=>{buildChecked=false;buildSel=[];renderBuild();},1600);
 }
 
@@ -1283,7 +1285,8 @@ function checkChains(){
   const ok=chainsAnswer===chainsEx.correctLabel;
   answerFeedback(ok,exCardEl());
   renderChains();
-  if(ok)setTimeout(genChains,1300);
+  if(window.BLITZ&&BLITZ.on('jazz')){} // на время — следующий вопрос даёт blitz.js
+  else if(ok)setTimeout(genChains,1300);
   else setTimeout(()=>{chainsChecked=false;chainsAnswer='';renderChains();},1600);
 }
 
@@ -1362,7 +1365,8 @@ function checkEar(){
   const ok=earAnswer===earEx.chord.id;
   answerFeedback(ok,exCardEl());
   renderEar();
-  if(ok)setTimeout(genEar,1300);
+  if(window.BLITZ&&BLITZ.on('jazz')){} // на время — следующий вопрос даёт blitz.js
+  else if(ok)setTimeout(genEar,1300);
   else setTimeout(()=>{earChecked=false;earAnswer=null;renderEar();},1600);
 }
 
@@ -1445,7 +1449,8 @@ function checkStyleId(){
   const ok=styleIdAnswer===styleIdEx.style.id;
   answerFeedback(ok,exCardEl());
   renderStyleId();
-  if(ok)setTimeout(genStyleId,1300);
+  if(window.BLITZ&&BLITZ.on('jazz')){} // на время — следующий вопрос даёт blitz.js
+  else if(ok)setTimeout(genStyleId,1300);
   else setTimeout(()=>{styleIdChecked=false;styleIdAnswer=null;renderStyleId();},1600);
 }
 
@@ -1531,7 +1536,8 @@ function checkNotation(){
   const isOk=notationSeq.every((l,i)=>l===correct[i]);
   answerFeedback(isOk,exCardEl());
   renderNotation();
-  if(isOk)setTimeout(genNotation,1300);
+  if(window.BLITZ&&BLITZ.on('jazz')){} // на время — следующий вопрос даёт blitz.js
+  else if(isOk)setTimeout(genNotation,1300);
   else setTimeout(()=>{notationChecked=false;notationSeq=[];renderNotation();},1600);
 }
 
@@ -1612,7 +1618,7 @@ function quizPick(idx){
   if(ok)quizScore++;
   answerFeedback(ok,exCardEl());
   renderQuiz();
-  setTimeout(()=>{quizIdx++;loadQuizQ();},1400);
+  if(!(window.BLITZ&&BLITZ.on('jazz')))setTimeout(()=>{quizIdx++;loadQuizQ();},1400);
 }
 
 function renderQuiz(){
@@ -1790,6 +1796,14 @@ renderCards();
     MHW.addFromModule(Object.assign({ m: MOD, g }, cfgFor(activeEx)), '../index.html');
   });
   document.getElementById('langBtn').addEventListener('click', () => setTimeout(add.relabel, 0));
+  // ⏱ На время (../blitz.js): любое упражнение, рекорд — отдельно для каждого.
+  const BZ_NEXT = { build: () => genBuild(), chains: () => genChains(), ear: () => genEar(), style: () => genStyleId(), notation: () => genNotation(),
+    quiz: () => { if(quizIdx + 1 >= quizOrder.length) initQuiz(); else { quizIdx++; loadQuizQ(); } } };
+  let bzEx = '';
+  if(window.BLITZ) BLITZ.mount({ mod: MOD, id: () => 'jazz-' + activeEx, parent: document.getElementById('exercisesSection'), ref: document.getElementById('exContent'),
+    isActive: () => activeMainTab === 'exercises' && activeEx === bzEx,
+    start: () => { bzEx = activeEx; if(activeEx === 'quiz') initQuiz(); else BZ_NEXT[activeEx](); },
+    next: () => BZ_NEXT[bzEx] && BZ_NEXT[bzEx]() });
 
   // Перехват ответов — всегда (статистика); в задании ещё и прогресс.
   const CUR = { build:()=>buildEx, chains:()=>chainsEx, ear:()=>earEx, style:()=>styleIdEx, notation:()=>notationEx };

@@ -216,6 +216,7 @@ html,body{overscroll-behavior-y:contain;}
   }
 </style>
 <script src="../hw.js"></script>
+<script src="../blitz.js"></script>
 <script src="../audio-in.js"></script>
 </head>
 <body>
@@ -1090,7 +1091,7 @@ function checkAnswer() {
     if (!hintShown) scoreOk++;
     document.getElementById('successBox').classList.add('show');
     document.getElementById('successText').innerHTML = buildSuccessText(currentEx.ts);
-    setTimeout(() => nextExercise(), 900);
+    if (!(window.BLITZ && BLITZ.on('rhythm'))) setTimeout(() => nextExercise(), 900);
   } else {
     scoreErr++;
     document.getElementById('errorBox').classList.add('show');
@@ -1237,7 +1238,7 @@ function findErrorClick(divIdx) {
 
   // After a moment, show next
   setTimeout(() => {
-    if (isCorrectClick) nextExercise();
+    if (isCorrectClick && !(window.BLITZ && BLITZ.on('rhythm'))) nextExercise();
   }, 1500);
 }
 
@@ -1507,10 +1508,17 @@ function clapNext(){ clapStop(); clapIdx++; renderClap(true); }
     if(!g) return;
     MHW.addFromModule(Object.assign({ m: MOD, g }, cfg()), '../index.html');
   });
+  // ⏱ На время (../blitz.js): «Сгруппируй» и «Найди ошибку».
+  let bzTab = '';
+  const bzOk = () => currentTab === 'group' || currentTab === 'find';
+  const bz = window.BLITZ ? BLITZ.mount({ mod: MOD, id: () => 'rhythm-' + currentTab, minSec: 60,
+    parent: document.querySelector('.container'), ref: document.getElementById('mainContent'),
+    isActive: () => currentTab === bzTab, start: () => { bzTab = currentTab; renderExercise(); }, next: () => nextExercise() }) : null;
+  if(bz) bz.row.style.display = bzOk() ? '' : 'none';
   const origSwitch = window.switchTab;
-  window.switchTab = function(tab){ const r = origSwitch.apply(this, arguments); add.row.style.display = tab==='rules' ? 'none' : ''; return r; };
+  window.switchTab = function(tab){ const r = origSwitch.apply(this, arguments); add.row.style.display = tab==='rules' ? 'none' : ''; if(bz) bz.row.style.display = bzOk() ? '' : 'none'; return r; };
   const origLang = window.toggleLang;
-  window.toggleLang = function(){ const r = origLang.apply(this, arguments); add.relabel(); return r; };
+  window.toggleLang = function(){ const r = origLang.apply(this, arguments); add.relabel(); if(bz) bz.relabel(); return r; };
 
   // Перехват ответов — всегда (статистика); в задании ещё и прогресс.
   const tr = MHW.tracker(MOD, cfg);

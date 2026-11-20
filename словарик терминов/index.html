@@ -248,6 +248,7 @@ html,body{overscroll-behavior-y:contain;}
   }
 </style>
 <script src="../hw.js"></script>
+<script src="../blitz.js"></script>
 </head>
 <body>
 <div class="container">
@@ -1182,7 +1183,7 @@ function qAns(btn,chosen,correct) {
     btn.classList.add('correct'); qScore++; progress[correct]='known';
     answerFeedback(true,btn);
     save();
-    setTimeout(nextQ,900);
+    if(!(window.BLITZ&&BLITZ.on('glossary')))setTimeout(nextQ,900);
   } else {
     btn.classList.add('wrong');
     answerFeedback(false,btn);
@@ -1242,6 +1243,7 @@ function mClick(el) {
     document.getElementById('mst').textContent=t('matchStatus')(mMatched.length,mPairs.length);
     if(mMatched.length===mPairs.length){
       const sec=Math.round((Date.now()-mStart)/1000);
+      if(window.BLITZ&&BLITZ.on('glossary')){setTimeout(initMatch,350);return;} // на время — сразу новые пары
       setTimeout(()=>{
         document.getElementById('mainContent').innerHTML=`<div class="match-wrap"><div class="match-done-box">
           <h2>${t('matchDone')}</h2>
@@ -1790,12 +1792,19 @@ function printResult(){ window.print(); }
     if(!g) return;
     MHW.addFromModule(Object.assign({ m: MOD, g }, cfg(true)), '../index.html');
   });
-  const syncAdd = () => { add.row.style.display = (mode==='quiz' || mode==='match') ? '' : 'none'; };
+  // ⏱ На время (../blitz.js): «Тест» (бесконечная колода) и «Сопоставь» (новые пары после каждых шести).
+  let bzMode = '';
+  const bz = window.BLITZ ? BLITZ.mount({ mod: MOD, id: () => 'glossary-' + mode, parent: document.querySelector('.container'), ref: document.querySelector('.search-box'),
+    isActive: () => mode === bzMode,
+    start: () => { bzMode = mode; if(mode === 'quiz') initQuiz(); else initMatch(); },
+    next: () => { if(qIdx + 1 >= qDeck.length) initQuiz(); else nextQ(); },
+    auto: () => bzMode === 'quiz' }) : null;
+  const syncAdd = () => { const on = (mode==='quiz' || mode==='match') ? '' : 'none'; add.row.style.display = on; if(bz) bz.row.style.display = on; };
   const origSwitch = window.switchMode;
   window.switchMode = function(){ const r = origSwitch.apply(this, arguments); syncAdd(); return r; };
   syncAdd();
   const origLang = window.toggleLang;
-  window.toggleLang = function(){ const r = origLang.apply(this, arguments); add.relabel(); return r; };
+  window.toggleLang = function(){ const r = origLang.apply(this, arguments); add.relabel(); if(bz) bz.relabel(); return r; };
 
   // Перехват ответов — всегда (статистика); в задании ещё и прогресс. Подпись и код — термин.
   const ans = MHW.answer(MOD, () => cfg(false));

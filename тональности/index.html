@@ -169,6 +169,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
 }
 </style>
 <script src="../hw.js"></script>
+<script src="../blitz.js"></script>
 </head>
 <body>
 <div class="wrap">
@@ -725,7 +726,7 @@ function answerQuiz(btn,chosen,correct){
   answerFeedback(quizOk,btn);
   document.getElementById('qC').textContent=quizScore.c;
   document.getElementById('qW').textContent=quizScore.w;
-  if(chosen===correct)setTimeout(nextQuiz,1400);
+  if(chosen===correct&&!(window.BLITZ&&BLITZ.on('keys')))setTimeout(nextQuiz,1400);
 }
 
 function setMode(m){
@@ -1293,6 +1294,9 @@ function printResult(){ window.print(); }
     MHW.addFromModule(Object.assign({ m: MOD, g }, cfg()), '../index.html');
   });
   document.getElementById('langBtn').addEventListener('click', () => setTimeout(add.relabel, 0));
+  // ⏱ На время (../blitz.js): викторина с автопереходом к следующему вопросу.
+  if(window.BLITZ) BLITZ.mount({ mod: MOD, id: 'keys-quiz', parent: document.getElementById('quizPanel'), ref: document.getElementById('quizQ'),
+    isActive: () => mode==='quiz', start: () => setMode('quiz'), next: () => nextQuiz() });
 
   // Перехват ответов — всегда (статистика); в задании ещё и прогресс.
   // Подпись для статистики — тональность вопроса (например, «Ре мажор»).
