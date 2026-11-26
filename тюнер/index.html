@@ -322,6 +322,12 @@ const L = {
     play:'Сыграть',  stopPlay:'Стоп',
     inTune:'В строе', flat:'Низко', sharp:'Высоко', silence:'Тишина', hz:'Гц', c:'ц',
     micErrTitle:'Нет доступа к микрофону',
+    micUnsupported:'Браузер не поддерживает доступ к микрофону',
+    micSecure:'Для микрофона открой приложение по защищённому адресу HTTPS',
+    micDenied:'Доступ запрещён. Разреши микрофон для приложения в настройках браузера или телефона',
+    micNotFound:'Микрофон не найден',
+    micBusy:'Микрофон занят другим приложением',
+    micFailed:'Не удалось запустить микрофон. Проверь разрешения и попробуй снова',
     micErrHint:'Разрешите доступ к микрофону в настройках браузера',
     selectStr:'Выберите струну',
     strLabel:'стр.',
@@ -337,6 +343,12 @@ const L = {
     play:'Play', stopPlay:'Stop',
     inTune:'In Tune', flat:'Flat', sharp:'Sharp', silence:'Silence', hz:'Hz', c:'¢',
     micErrTitle:'Microphone access denied',
+    micUnsupported:'This browser does not support microphone access',
+    micSecure:'Open the app over a secure HTTPS connection to use the microphone',
+    micDenied:'Access was denied. Allow microphone access in your browser or phone settings',
+    micNotFound:'No microphone was found',
+    micBusy:'The microphone is being used by another app',
+    micFailed:'Could not start the microphone. Check permissions and try again',
     micErrHint:'Allow microphone access in your browser settings',
     selectStr:'Select a string',
     strLabel:'str.',
@@ -702,8 +714,9 @@ function updateHints(info) {
 
 /* ───────── MIC / AUDIO ENGINE ───────── */
 async function startListening() {
+  let stream = null;
   try {
-    const stream = await navigator.mediaDevices.getUserMedia({
+    stream = await navigator.mediaDevices.getUserMedia({
       audio:{echoCancellation:false,noiseSuppression:false,autoGainControl:false},
       video:false
     });
@@ -764,6 +777,26 @@ async function startListening() {
     loop();
 
   } catch(e) {
+    listening = false;
+    if (stream) stream.getTracks().forEach(track => track.stop());
+    micStream = null;
+    if (audioCtx && audioCtx.state !== 'closed') { try { await audioCtx.close(); } catch (_) {} }
+    audioCtx = null;
+    analyser = null;
+    setStartBtn(false);
+    const messages = {
+      NotAllowedError: L[lang].micDenied,
+      PermissionDeniedError: L[lang].micDenied,
+      NotFoundError: L[lang].micNotFound,
+      DevicesNotFoundError: L[lang].micNotFound,
+      NotReadableError: L[lang].micBusy,
+      TrackStartError: L[lang].micBusy
+    };
+    const message = !navigator.mediaDevices || !navigator.mediaDevices.getUserMedia
+      ? L[lang].micUnsupported
+      : !window.isSecureContext ? L[lang].micSecure
+      : messages[e && e.name] || L[lang].micFailed;
+    document.getElementById('micErrTitle').textContent = message;
     document.getElementById('micErrorDiv').style.display = 'block';
     console.warn('Mic:', e);
   }

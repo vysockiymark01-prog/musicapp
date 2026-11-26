@@ -4015,10 +4015,23 @@ html,body{overscroll-behavior-y:contain;}
                 if (txtEl) txtEl.textContent = TRANSLATIONS[lang].micOn;
             } catch (e) {
                 micEnabled = false;
+                if (micStream) { micStream.getTracks().forEach(track => track.stop()); micStream = null; }
+                if (micSource) { try { micSource.disconnect(); } catch (_) {} micSource = null; }
                 const btn = document.getElementById(ids.toggleBtn);
                 if (btn) btn.className = 'mic-toggle error';
                 const txtEl = document.getElementById(ids.toggleText);
-                if (txtEl) txtEl.textContent = TRANSLATIONS[lang].micError;
+                const reason = !navigator.mediaDevices || !navigator.mediaDevices.getUserMedia
+                    ? (lang === 'ru' ? 'Браузер не поддерживает микрофон' : 'Browser does not support microphone')
+                    : !window.isSecureContext
+                        ? (lang === 'ru' ? 'Открой приложение по HTTPS' : 'Open the app over HTTPS')
+                        : e && (e.name === 'NotAllowedError' || e.name === 'PermissionDeniedError')
+                            ? (lang === 'ru' ? 'Разреши микрофон в настройках браузера' : 'Allow microphone in browser settings')
+                            : e && (e.name === 'NotFoundError' || e.name === 'DevicesNotFoundError')
+                                ? (lang === 'ru' ? 'Микрофон не найден' : 'No microphone found')
+                                : e && (e.name === 'NotReadableError' || e.name === 'TrackStartError')
+                                    ? (lang === 'ru' ? 'Микрофон занят другим приложением' : 'Microphone is busy')
+                                    : TRANSLATIONS[lang].micError;
+                if (txtEl) txtEl.textContent = reason;
             }
         }
 
